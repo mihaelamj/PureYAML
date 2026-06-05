@@ -13,6 +13,8 @@ stronger release verification gates.
   continues with indented mapping siblings, matching large OpenAPI schema keys.
 - Add release-mode build and test gates to macOS, Linux, Windows, and WASM
   verification scripts.
+- Update GitHub Actions checkout steps to `actions/checkout@v6` so CI uses the
+  current Node 24 action runtime.
 - Add README platform CI badges and the production hardening roadmap.
 
 ## Current Production Readiness
