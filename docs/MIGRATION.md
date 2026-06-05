@@ -24,6 +24,7 @@ See [../ATTRIBUTION.md](../ATTRIBUTION.md) for the project attribution.
 | Compose all YAML documents in a stream | `PureYAML.parseStream(_:)` | Returns indexed `PureYAML.Stream.Document` values. |
 | Preserve explicit YAML tags for analysis | `PureYAML.parseTagged(_:)` or `PureYAML.parseTaggedStream(_:)` | Returns tag-preserving nodes without Foundation-backed construction. |
 | Serialize a YAML tree | `PureYAML.dump(_:options:)` | Emits deterministic YAML with explicit block, flow, and scalar policies. |
+| Serialize all YAML documents in a stream | `PureYAML.dump(_:options:)` with `[PureYAML.Stream.Document]` | Emits deterministic explicit document starts and preserves array order. |
 | Decode a `Decodable` type from YAML | `PureYAML.decode(_:from:)` | Runs default validation before typed decoding. |
 | Encode an `Encodable` value to YAML | `PureYAML.encodeToYAML(_:options:)` | Encodes through `PureYAML.Model.Value`, then dumps. |
 | Validate document structure | `PureYAML.validate(_:using:strict:)` | Default rule reports duplicate mapping keys with exact paths. |
@@ -75,6 +76,7 @@ add a fixture beside the closest existing suite.
 | Merge keys | Plain `<<` and explicit `!!merge` keys expand mapping values and sequence-of-mapping values. Local keys override inherited keys; duplicate local keys remain visible to validation. | `MergeKeyCompatibilityTests`, `ParsingCompatibilityTests`, `DownstreamDocumentTests` |
 | YAML directives and document markers | `%YAML 1.2`, selected `%TAG` expansion, `---`, and `...` are supported. | `ParsingCompatibilityTests`, `StreamParsingTests` |
 | Multi-document streams | `PureYAML.parseStream(_:)` parses implicit and explicit documents, empty explicit documents as `null`, `...` document ends, and trailing comments before the next `---`. | `StreamParsingTests` |
+| Multi-document stream dumping | `PureYAML.dump(_:)` with stream documents emits explicit `---` before every document, preserves array order, and round-trips through `parseStream(_:)`. | `StreamDumpingTests` |
 | Stream validation | Stream validation preserves document indexes while keeping validation paths document-local. | `StreamParsingTests` |
 | Built-in scalar tags | `!!str`, `!!int`, `!!float`, `!!bool`, and `!!null` are applied when valid. | `ScalarCompatibilityFixtures` |
 | Tag-preserving parsing | `parseTagged(_:)` and `parseTaggedStream(_:)` preserve explicit scalar and collection tags for compatibility analysis. | `TaggedCompatibilityTests` |
@@ -121,7 +123,6 @@ explicit fallback value tree. This avoids silent compatibility drift.
 
 Do not migrate a caller yet if it requires:
 
-- multi-document stream dumping;
 - binary or timestamp conversion into Foundation types;
 - arbitrary `Any` load and dump APIs;
 - custom resolvers;

@@ -131,6 +131,10 @@ can represent them.
 with `unsupportedMultiDocumentStream`. `PureYAML.parseStream(_:)` parses all
 documents in the stream, including empty explicit documents as `null`, and
 returns `PureYAML.Stream.Document` values with stable zero-based indexes.
+`PureYAML.dump(_:)` accepts those stream documents and emits explicit `---`
+document starts in the caller-provided array order. Each document body is
+rendered through the same dumper used for single-document values, so block,
+flow, literal scalar, and complex-key output policies stay centralized.
 
 `PureYAML.parseTagged(_:)` and `PureYAML.parseTaggedStream(_:)` reuse the same
 scanner and event parser but compose `PureYAML.Tagged.Node` values that preserve
@@ -223,10 +227,9 @@ outside the library because it must own data-loss policy explicitly.
 
 Compatibility should be added in small, test-backed slices:
 
-1. Multi-document stream dumping.
-2. Additional built-in validation rules beyond duplicate-key behavior.
-3. Broader Codable compatibility beyond scalar, keyed, and unkeyed containers.
-4. Yams corpus comparison tests in a separate compatibility suite.
+1. Additional built-in validation rules beyond duplicate-key behavior.
+2. Broader Codable compatibility beyond scalar, keyed, and unkeyed containers.
+3. Yams corpus comparison tests in a separate compatibility suite.
 
 The private `PureYAMLResearch` repository may be used to study Yams behavior, but
 the public implementation must be written in Swift and must not copy C parser

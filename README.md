@@ -47,9 +47,10 @@ common scalars, quoted strings, comments, flow collections, literal and folded
 block scalars, anchors, aliases, YAML directives, document markers, explicit
 built-in scalar tags, merge-key expansion, complex mapping keys,
 multi-document stream parsing, and a matching dumper with block and flow output
-policies. It also includes path-aware validation for structural YAML checks such
-as duplicate mapping keys, plus stream validation that preserves document
-indexes. Callers that need explicit tag metadata can use `PureYAML.parseTagged(_:)` or
+policies, including multi-document stream dumping with explicit document starts.
+It also includes path-aware validation for structural YAML checks such as
+duplicate mapping keys, plus stream validation that preserves document indexes.
+Callers that need explicit tag metadata can use `PureYAML.parseTagged(_:)` or
 `PureYAML.parseTaggedStream(_:)` and run tagged validation over the preserved
 source-shaped node tree.
 
@@ -137,6 +138,7 @@ title: First
 """)
 
 try PureYAML.validate(documents)
+let streamYAML = PureYAML.dump(documents)
 ```
 
 Typed conversion is available for scalar values, keyed mapping-backed structs,

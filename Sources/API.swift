@@ -17,6 +17,14 @@ public extension PureYAML {
         Emitting.Dumper(options: options).dump(value)
     }
 
+    /// Serializes indexed YAML stream documents with explicit document starts.
+    static func dump(
+        _ documents: [Stream.Document],
+        options: Emitting.Options = .default,
+    ) -> String {
+        Emitting.Dumper(options: options).dump(documents)
+    }
+
     /// Validates a parsed YAML value with the default validation rules.
     @discardableResult
     static func validate(

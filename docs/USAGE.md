@@ -47,6 +47,7 @@ Those tests are the executable contract for the short-form examples.
 | Parse a YAML stream while preserving explicit tags | `PureYAML.parseTaggedStream(_:)` | `[PureYAML.Tagged.Document]` |
 | Construct typed values from tagged nodes | `PureYAML.Tagged.Constructor` | Caller-owned output type |
 | Emit YAML from a value tree | `PureYAML.dump(_:options:)` | `String` |
+| Emit YAML from stream documents | `PureYAML.dump(_:options:)` with `[PureYAML.Stream.Document]` | `String` |
 | Validate a value tree | `PureYAML.validate(_:using:strict:)` | `[PureYAML.Validation.Issue]` or a thrown issue collection |
 | Validate stream documents | `PureYAML.validate(_:using:strict:)` with `[PureYAML.Stream.Document]` | `[PureYAML.Stream.Issue]` or a thrown stream issue collection |
 | Decode a typed value from YAML | `PureYAML.decode(_:from:)` | `Decodable` value |
@@ -89,6 +90,18 @@ title: First
 - YAML
 """)
 ```
+
+Use `PureYAML.dump(_:)` with `[PureYAML.Stream.Document]` to emit a
+multi-document stream. The dumper emits explicit `---` before every document and
+preserves the array order rather than sorting by `document.index`:
+
+```swift
+let yaml = PureYAML.dump(documents)
+```
+
+The same emitter options apply to each document body. Flow collections,
+literal-block scalar selection, and complex mapping key emission are delegated to
+the single-document dumper.
 
 `PureYAML.parse(_:)` remains the single-document API. It accepts one implicit or
 explicit document, including an explicit empty document, and throws

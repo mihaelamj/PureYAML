@@ -91,6 +91,14 @@ struct DocumentationExampleTests {
             ])),
         ])
         #expect(try PureYAML.validate(documents).isEmpty)
+        #expect(PureYAML.dump(documents) == """
+        ---
+        title: "First"
+        ---
+        - "Swift"
+        - "YAML"
+
+        """)
     }
 
     @Test("README tagged parsing example stays executable")

@@ -15,6 +15,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add `PureYAML.Stream.Document`, document-indexed stream validation issues, and
   stream validation APIs that preserve document indexes without changing
   document-local validation paths.
+- Add stream dumping for `[PureYAML.Stream.Document]` with deterministic
+  explicit document starts and existing emitter option support.
 - Add merge-key expansion for plain `<<` and explicit `!!merge` keys, including
   scalar merge mappings, sequence-of-mapping merge values, local override
   behavior, and exact errors for invalid merge values.
