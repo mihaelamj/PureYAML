@@ -38,3 +38,14 @@ already defined in that block.
 
 The README must start its Mermaid section with the shared legend. Run
 `bash scripts/check-roadmap.sh` after changing roadmap diagrams.
+
+## Rule 3: Collapse completed epics
+
+Completed epics must not be expanded into their child issues in Mermaid
+roadmaps. Once every child in an epic is `done`, remove that detailed Mermaid
+block and show the completed epic as one `done` node in its parent or
+super-epic roadmap.
+
+Do not keep all-green detailed roadmap diagrams. The issue checklist can retain
+the historical child issue list, but Mermaid must stay focused on active or
+upcoming work.

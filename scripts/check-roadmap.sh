@@ -117,6 +117,12 @@ validate_block() {
       fail "mermaid block $index has unclassed node: $trimmed"
     fi
   done < "$block"
+
+  if [ "$index" -gt 1 ] &&
+    grep -Fq ':::done' "$block" &&
+    ! grep -Eq ':::(todo|review|epic)' "$block"; then
+    fail "mermaid block $index expands completed work; collapse completed epics to one done node"
+  fi
 }
 
 repo_name() {

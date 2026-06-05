@@ -59,27 +59,6 @@ flowchart TB
   Epic12 --> Epic13
 ```
 
-Parse core detailed roadmap:
-
-```mermaid
-flowchart TB
-  classDef done fill:#ddf9e4,stroke:#34c759,color:#111827
-  classDef review fill:#fff7d6,stroke:#ffcc00,color:#111827
-  classDef epic fill:#f2e5ff,stroke:#af52de,color:#111827
-  classDef todo fill:#f2f4f7,stroke:#8e8e93,color:#111827
-  Issue2["#2 Event Model and Golden Tests"]:::done
-  Issue3["#3 UTF-8 Reader and Scanner"]:::done
-  Issue4["#4 Token Stream to Events"]:::done
-  Issue5["#5 Events to PureYAML Values"]:::done
-  Issue6["#6 Scalars Tags and Aliases"]:::done
-  Issue7["#7 macOS Linux and WASM Hardening"]:::done
-  Issue2 --> Issue3
-  Issue3 --> Issue4
-  Issue4 --> Issue5
-  Issue5 --> Issue6
-  Issue6 --> Issue7
-```
-
 Emitter detailed roadmap:
 
 ```mermaid
