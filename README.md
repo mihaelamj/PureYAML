@@ -57,7 +57,7 @@ flowchart TB
   classDef review fill:#fff7d6,stroke:#ffcc00,color:#111827
   classDef epic fill:#f2e5ff,stroke:#af52de,color:#111827
   classDef todo fill:#f2f4f7,stroke:#8e8e93,color:#111827
-  Issue2["#2 Event Model and Golden Tests"]:::todo
+  Issue2["#2 Event Model and Golden Tests"]:::done
   Issue3["#3 UTF-8 Reader and Scanner"]:::todo
   Issue4["#4 Token Stream to Events"]:::todo
   Issue5["#5 Events to PureYAML Values"]:::todo

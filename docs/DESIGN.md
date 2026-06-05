@@ -39,6 +39,8 @@ PureYAML
 │   └── Pair
 ├── Parsing
 │   ├── Parser
+│   ├── Event
+│   ├── Mark
 │   ├── Line
 │   └── ParseError
 ├── Emitting
@@ -67,6 +69,12 @@ The initial parser supports:
 - nulls
 - quoted strings
 - comments outside quoted strings
+
+The parser layer also has an internal event contract. `Parsing.Event` can
+represent stream, document, scalar, sequence, mapping, and alias events, with
+marks plus scalar and collection styles. Anchors and tags are carried as event
+metadata so the later scanner/composer work can add YAML feature coverage
+without changing the event shape.
 
 The initial dumper emits block-style YAML from the model.
 

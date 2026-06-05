@@ -2,6 +2,7 @@ extension PureYAML.Parsing.Parser {
     func preprocess(_ yaml: String) throws -> [PureYAML.Parsing.Line] {
         var lines: [PureYAML.Parsing.Line] = []
         let rawLines = yaml.split(separator: "\n", omittingEmptySubsequences: false)
+        var lineStartIndex = 0
         for offset in rawLines.indices {
             let raw = String(rawLines[offset])
             var indent = 0
@@ -14,23 +15,40 @@ extension PureYAML.Parsing.Parser {
                     break
                 }
             }
-            let content = trim(stripComment(String(raw.dropFirst(indent))))
+            let textAfterIndent = String(raw.dropFirst(indent))
+            let stripped = stripComment(textAfterIndent)
+            let (content, contentOffset) = trimWithOffset(stripped)
             if !content.isEmpty {
-                lines.append(PureYAML.Parsing.Line(number: offset + 1, indent: indent, content: content))
+                lines.append(PureYAML.Parsing.Line(
+                    number: offset + 1,
+                    indent: indent,
+                    column: indent + contentOffset + 1,
+                    index: lineStartIndex + indent + String(stripped.prefix(contentOffset)).utf8.count,
+                    content: content,
+                ))
             }
+            lineStartIndex += raw.utf8.count + 1
         }
         return lines
     }
 
     func splitMappingEntry(_ text: String) -> (key: String, value: String)? {
+        guard let entry = splitMappingEntryWithOffsets(text) else {
+            return nil
+        }
+        return (entry.key, entry.value)
+    }
+
+    func splitMappingEntryWithOffsets(_ text: String) -> PureYAML.Parsing.MappingEntry? {
         var inSingleQuote = false
         var inDoubleQuote = false
         var previousWasEscape = false
-        let characters = Array(text)
-        for index in characters.indices {
-            let character = characters[index]
+        var index = text.startIndex
+        while index < text.endIndex {
+            let character = text[index]
             if character == "\\", inDoubleQuote {
                 previousWasEscape.toggle()
+                index = text.index(after: index)
                 continue
             }
             if character == "'", !inDoubleQuote {
@@ -38,19 +56,28 @@ extension PureYAML.Parsing.Parser {
             } else if character == "\"", !inSingleQuote, !previousWasEscape {
                 inDoubleQuote.toggle()
             } else if character == ":", !inSingleQuote, !inDoubleQuote {
-                let next = characters.index(after: index)
-                if next == characters.endIndex || characters[next] == " " {
-                    let key = trim(String(characters[..<index]))
-                    let value = next == characters.endIndex ? "" : trim(String(characters[next...]))
-                    if key.isEmpty {
+                let next = text.index(after: index)
+                if next == text.endIndex || text[next] == " " {
+                    let key = trimWithOffset(text, in: text.startIndex ..< index)
+                    let value = next == text.endIndex
+                        ? ("", text.distance(from: text.startIndex, to: text.endIndex))
+                        : trimWithOffset(text, in: next ..< text.endIndex)
+                    if key.0.isEmpty {
                         return nil
                     }
-                    return (unquoteKey(key), value)
+                    return PureYAML.Parsing.MappingEntry(
+                        key: unquoteKey(key.0),
+                        keyStyle: scalarStyle(key.0),
+                        keyOffset: key.1,
+                        value: value.0,
+                        valueOffset: value.1,
+                    )
                 }
             }
             if character != "\\" {
                 previousWasEscape = false
             }
+            index = text.index(after: index)
         }
         return nil
     }
@@ -97,8 +124,20 @@ extension PureYAML.Parsing.Parser {
     }
 
     func trim(_ text: String) -> String {
+        trimWithOffset(text).0
+    }
+
+    func trimWithOffset(_ text: String) -> (String, Int) {
+        trimWithOffset(text, in: text.startIndex ..< text.endIndex)
+    }
+
+    func trimWithOffset(
+        _ text: String,
+        in range: Range<String.Index>,
+    ) -> (String, Int) {
         var start = text.startIndex
-        var end = text.endIndex
+        var end = range.upperBound
+        start = range.lowerBound
         while start < end, text[start].isWhitespace {
             start = text.index(after: start)
         }
@@ -109,6 +148,9 @@ extension PureYAML.Parsing.Parser {
             }
             end = previous
         }
-        return String(text[start ..< end])
+        return (
+            String(text[start ..< end]),
+            text.distance(from: text.startIndex, to: start),
+        )
     }
 }

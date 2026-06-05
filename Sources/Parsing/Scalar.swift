@@ -1,4 +1,14 @@
 extension PureYAML.Parsing.Parser {
+    func scalarStyle(_ text: String) -> PureYAML.Parsing.ScalarStyle {
+        if text.hasPrefix("\"") {
+            return .doubleQuoted
+        }
+        if text.hasPrefix("'") {
+            return .singleQuoted
+        }
+        return .plain
+    }
+
     func parseScalar(
         _ text: String,
         line: Int,
