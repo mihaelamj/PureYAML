@@ -46,7 +46,17 @@ flowchart TB
   classDef todo fill:#f2f4f7,stroke:#8e8e93,color:#111827
   SuperEpic8["#8 Parser Replacement Roadmap"]:::epic
   Epic1["#1 Pure Swift Parse Core"]:::done
+  Epic9["#9 Deterministic Emitter Core"]:::todo
+  Epic10["#10 Typed Decoding and Encoding"]:::todo
+  Epic11["#11 YAML Compatibility Corpus"]:::todo
+  Epic12["#12 Usage and Migration Docs"]:::todo
+  Epic13["#13 Release Readiness"]:::todo
   SuperEpic8 --> Epic1
+  Epic1 --> Epic9
+  Epic9 --> Epic10
+  Epic10 --> Epic11
+  Epic11 --> Epic12
+  Epic12 --> Epic13
 ```
 
 Parse core detailed roadmap:
