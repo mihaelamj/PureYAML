@@ -48,7 +48,7 @@ flowchart TB
   Epic1["#1 Pure Swift Parse Core"]:::done
   Epic9["#9 Deterministic Emitter Core"]:::done
   Epic10["#10 Typed Decoding and Encoding"]:::done
-  Epic11["#11 YAML Compatibility Corpus"]:::todo
+  Epic11["#11 YAML Compatibility Corpus"]:::done
   Epic12["#12 Usage and Migration Docs"]:::todo
   Epic13["#13 Release Readiness"]:::todo
   SuperEpic8 --> Epic1
@@ -90,6 +90,9 @@ but it does not copy their implementation into `Sources/`. See
 [ATTRIBUTION.md](ATTRIBUTION.md).
 
 ## Usage
+
+The examples in this section are covered by
+`Tests/DocumentationExampleTests.swift`.
 
 ```swift
 import PureYAML
