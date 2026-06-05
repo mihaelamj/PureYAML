@@ -42,6 +42,31 @@ flowchart TB
 
 Parser Replacement Roadmap #8 is complete in main.
 
+Production Hardening and Validation Readiness #54 is active. It tracks the
+remaining production-readiness work after current Yams parse-success parity on
+the checked corpus:
+
+```mermaid
+flowchart TB
+  classDef done fill:#ddf9e4,stroke:#34c759,color:#111827
+  classDef review fill:#fff7d6,stroke:#ffcc00,color:#111827
+  classDef epic fill:#f2e5ff,stroke:#af52de,color:#111827
+  classDef todo fill:#f2f4f7,stroke:#8e8e93,color:#111827
+  E54["#54 Production hardening epic"]:::epic
+  I49["#49 Structured validation reports"]:::todo
+  I50["#50 False-positive diagnostic triage"]:::todo
+  I51["#51 Bad-YAML mutation suite"]:::todo
+  I52["#52 OpenAPIDoctor integration dry run"]:::todo
+  I53["#53 Yams differential regression gate"]:::todo
+  I48["#48 Parser throughput toward libyaml parity"]:::todo
+  E54 --> I49
+  E54 --> I50
+  E54 --> I51
+  E54 --> I52
+  E54 --> I53
+  E54 --> I48
+```
+
 ## Status
 
 The current release is 0.1.0. It includes block mappings, block sequences,
