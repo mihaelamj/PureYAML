@@ -31,6 +31,35 @@ func requireSequence(
     return values
 }
 
+extension PureYAML.Model.Value {
+    var mapping: PureYAML.Model.Mapping? {
+        guard case let .mapping(mapping) = self else {
+            return nil
+        }
+        return mapping
+    }
+}
+
+extension PureYAML.Model.Mapping {
+    func mapping(_ key: String) -> PureYAML.Model.Mapping? {
+        self[key]?.mapping
+    }
+
+    func sequence(_ keys: String...) -> [PureYAML.Model.Value]? {
+        var value: PureYAML.Model.Value?
+        for key in keys {
+            let mapping: PureYAML.Model.Mapping? = if let currentValue = value {
+                currentValue.mapping
+            } else {
+                self
+            }
+            value = mapping?[key]
+        }
+
+        return requireSequence(value)
+    }
+}
+
 func expectParseError(
     _ yaml: String,
     _ expected: PureYAML.Parsing.ParseError,

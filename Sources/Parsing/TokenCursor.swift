@@ -23,6 +23,14 @@ extension PureYAML.Parsing {
             return tokens[previousIndex]
         }
 
+        func peek(offset: Int = 1) -> Token? {
+            let targetIndex = index + offset
+            guard tokens.indices.contains(targetIndex) else {
+                return nil
+            }
+            return tokens[targetIndex]
+        }
+
         mutating func advance() -> Token? {
             guard let token = current else {
                 return nil

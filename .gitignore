@@ -72,6 +72,7 @@
 # Tooling logs (cron, hooks, local scripts)
 *.log
 **/*.log
+.derived-data-log-*
 
 # Local SQLite DB created by autoMigrate at first boot.
 # Codeweaver scaffolds (template-time/bookings/crm/inventory) all default

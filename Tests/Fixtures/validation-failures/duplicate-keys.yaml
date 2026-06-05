@@ -1,0 +1,7 @@
+title: First
+title: Second
+paths:
+  /users:
+    get: {}
+  /users:
+    post: {}

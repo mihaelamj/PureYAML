@@ -20,6 +20,9 @@ let package = Package(
             name: "PureYAMLTests",
             dependencies: ["PureYAML"],
             path: "Tests",
+            resources: [
+                .copy("Fixtures"),
+            ],
         ),
     ],
 )

@@ -66,12 +66,18 @@ source_singletons=$(
 )
 report_matches "Sources must not introduce singleton or service-locator access patterns" "$source_singletons"
 
+source_traps=$(
+  grep -RInE '\bfatalError[[:space:]]*\(|\bpreconditionFailure[[:space:]]*\(|\bassertionFailure[[:space:]]*\(|\btry!|\bas!|[A-Za-z0-9_)\]}][[:space:]]*![[:space:]]*([).,\];:]|$)' Sources --include '*.swift' 2>/dev/null || true
+)
+report_matches "Sources must not use traps, forced casts, try!, or force unwraps" "$source_traps"
+
 test_imports=$(
   grep -RInE '^[[:space:]]*(@testable[[:space:]]+)?import[[:space:]]+[A-Za-z_][A-Za-z0-9_]*' Tests --include '*.swift' 2>/dev/null \
     | grep -vE '^[^:]+:[0-9]+:[[:space:]]*@testable[[:space:]]+import[[:space:]]+PureYAML[[:space:]]*$' \
+    | grep -vE '^[^:]+:[0-9]+:[[:space:]]*import[[:space:]]+Foundation[[:space:]]*$' \
     | grep -vE '^[^:]+:[0-9]+:[[:space:]]*import[[:space:]]+Testing[[:space:]]*$' || true
 )
-report_matches "Tests may import only Testing and @testable PureYAML" "$test_imports"
+report_matches "Tests may import only Foundation, Testing, and @testable PureYAML" "$test_imports"
 
 test_xctest=$(
   grep -RInE '\bXCTest(Case|Expectation)?\b|\bXCTAssert[A-Za-z]*\b|^[[:space:]]*import[[:space:]]+XCTest[[:space:]]*$' Tests --include '*.swift' 2>/dev/null || true

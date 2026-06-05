@@ -18,6 +18,7 @@
 --wrapparameters before-first
 --wrapcollections before-first
 --self remove
+--exclude .build,DerivedData
 
 # PureYAML uses OpenAPIKit-style `test_...` method names with Swift Testing.
 --disable swiftTestingTestCaseNames

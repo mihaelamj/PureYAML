@@ -30,11 +30,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add first-class complex mapping keys through `Model.Pair.keyNode`, including
   parsing, deterministic validation paths, duplicate-key checks, and block/flow
   dumping for sequence and mapping keys.
+- Add a real-world YAML fixture corpus with representative assertions for
+  short, medium, and very large documents, including OpenAPI and Kubernetes
+  examples.
+- Add deliberately failing YAML fixtures that demonstrate exact validation
+  diagnostics, strict failures, and non-strict warning returns.
 
 ### Changed
 
 - Tokenize YAML document start and end markers so scanner, event-parser, and
   stream tests can pin exact document-boundary behavior.
+- Harden block mapping and multiline plain-scalar parsing around nested
+  sequences, compact mapping entries, explicit complex keys, tagged keys, and
+  lower-column mapping siblings.
 - Keep quoted `"<<":` and explicitly string-tagged `!!str <<` keys as ordinary
   string keys while merge syntax is expanded during parsing.
 - Keep Foundation-backed tags such as `!!timestamp` and `!!binary` as ordinary

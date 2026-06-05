@@ -7,6 +7,7 @@ opt_in_rules:
   - force_unwrapping
 excluded:
   - .build
+  - DerivedData
 force_unwrapping: error
 force_try: error
 force_cast: error

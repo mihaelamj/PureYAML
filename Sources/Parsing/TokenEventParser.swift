@@ -62,6 +62,10 @@ extension PureYAML.Parsing.TokenEventParser {
 
         let result = try parseNode()
         var endMark = result.endMark
+        while cursor.current?.kind.isDedent == true {
+            let dedent = try expect("dedent") { $0.isDedent }
+            endMark = dedent.endMark
+        }
         if cursor.current?.kind.isDocumentEnd == true {
             let end = try expect("document end") { $0.isDocumentEnd }
             endMark = end.endMark
@@ -129,6 +133,9 @@ extension PureYAML.Parsing.TokenEventParser {
                 includeIndentedContinuation: false,
             )
         case let .scalar(value, style):
+            if canParsePlainScalarContinuation() {
+                return try parsePlainScalarWithContinuation(properties: properties)
+            }
             _ = cursor.advance()
             let decoded = try decodeScalar(value, style: style, line: token.mark.line)
             let mark = properties.mark ?? token.mark

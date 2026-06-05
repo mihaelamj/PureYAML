@@ -22,6 +22,24 @@ validation rule must make these parts explicit:
 - **Default status**: state whether the rule belongs in
   `Validation.Validator.defaultRules` or must be opt-in.
 
+## Validation Document Rule
+
+User-facing tools must offer a validation document/report instead of exposing
+only a raw crash, trap, stack trace, or unstructured thrown error. Library APIs
+may throw typed errors, but CLIs, batch tools, and corpus runners must be able
+to write or print a readable validation document that includes:
+
+- input URL or file path;
+- failure category;
+- line and column when available;
+- failing reference or path when applicable;
+- original error text;
+- whether processing continued or stopped.
+
+Input-level failures must be data. A tool may return a non-zero exit code after
+reporting failures, but it must not silently drop them or terminate before the
+validation document can be produced.
+
 ## Test Contract
 
 Every validator change must include Swift Testing coverage for:

@@ -47,6 +47,11 @@ extension PureYAML.Parsing.Scanner {
         var hasDocumentStartMarker = false
         var isDocumentClosed = false
         var flowDepth = 0
+        var validImplicitIndentation: Set<Int> = []
+        var pendingBlockScalarIndentation = false
+        var pendingBlockScalarIndentationIndicator: Int?
+        var blockScalarIndentation: Int?
+        var blockScalarContentPrefix = ""
         var tagHandles = [
             "!": "!",
             "!!": "tag:yaml.org,2002:",
@@ -79,60 +84,16 @@ extension PureYAML.Parsing.Scanner {
 }
 
 extension PureYAML.Parsing.Scanner {
-    func scanIndentation(_ state: inout State) throws {
-        let start = state.reader.mark
-        var width = 0
-        while let character = state.reader.peek() {
-            if character == " " {
-                width += 1
-                state.reader.advance()
-            } else if character == "\t" {
-                throw PureYAML.Parsing.ParseError.tabIndentation(line: state.reader.mark.line)
-            } else {
-                break
-            }
-        }
-
-        guard !state.reader.isAtEnd, !isLineBreak(state.reader.peek()) else {
-            return
-        }
-        guard state.reader.peek() != "#" else {
-            return
-        }
-        guard state.flowDepth == 0 else {
-            return
-        }
-
-        let end = state.reader.mark
-        let current = state.indentation.last ?? 0
-        if width > current {
-            state.indentation.append(width)
-            state.append(.indent(width: width), mark: start, endMark: end)
-        } else if width < current {
-            while state.indentation.count > 1, width < (state.indentation.last ?? 0) {
-                state.indentation.removeLast()
-                state.append(.dedent(width: state.indentation.last ?? 0), mark: end, endMark: end)
-            }
-            guard width == state.indentation.last else {
-                throw PureYAML.Parsing.ParseError.unexpectedIndentation(line: end.line)
-            }
-        }
-    }
-
-    func closeIndentation(_ state: inout State) {
-        let mark = state.reader.mark
-        while state.indentation.count > 1 {
-            state.indentation.removeLast()
-            state.append(.dedent(width: state.indentation.last ?? 0), mark: mark, endMark: mark)
-        }
-    }
-
     func scanToken(_ state: inout State) throws {
         skipSeparation(&state)
         guard let character = state.reader.peek(), !isLineBreak(character) else {
             return
         }
 
+        if state.blockScalarIndentation != nil {
+            scanBlockScalarContent(&state)
+            return
+        }
         if try scanLineIndicatorToken(character, state: &state) {
             return
         }
@@ -261,6 +222,9 @@ extension PureYAML.Parsing.Scanner {
         let start = state.reader.mark
         state.reader.advance()
         state.append(kind, mark: start, endMark: state.reader.mark)
+        if case .blockEntry = kind, hasNodeOnSameLine(afterCurrentPositionIn: state.reader) {
+            state.validImplicitIndentation.insert(start.column + 1)
+        }
     }
 
     func scanComment(_ state: inout State) {
@@ -316,10 +280,13 @@ extension PureYAML.Parsing.Scanner {
     ) {
         let start = state.reader.mark
         var chomping = PureYAML.Parsing.BlockScalarChomping.clip
+        var indentationIndicator: Int?
         state.reader.advance()
         while let character = state.reader.peek(), isBlockScalarHeaderCharacter(character) {
             if character == "-" {
                 chomping = .strip
+            } else if character.isNumber {
+                indentationIndicator = Int(String(character))
             }
             state.reader.advance()
         }
@@ -328,6 +295,17 @@ extension PureYAML.Parsing.Scanner {
             mark: start,
             endMark: state.reader.mark,
         )
+        state.pendingBlockScalarIndentation = true
+        state.pendingBlockScalarIndentationIndicator = indentationIndicator
+    }
+
+    func scanBlockScalarContent(_ state: inout State) {
+        let start = state.reader.mark
+        let value = state.blockScalarContentPrefix + state.reader.consume { character in
+            !isLineBreak(character)
+        }
+        state.blockScalarContentPrefix = ""
+        state.append(.scalar(value: value, style: .plain), mark: start, endMark: state.reader.mark)
     }
 
     func scanNamedToken(
@@ -383,18 +361,26 @@ extension PureYAML.Parsing.Scanner {
             value.append(character)
             state.reader.advance()
         }
-        let trimmed = trimTrailingSpaces(value)
-        appendMappingKeyIfNeeded(start: start, state: &state)
+        var trimmed = trimTrailingSpaces(value)
+        let isMappingKey = appendMappingKeyIfNeeded(start: start, state: &state)
+        if !isMappingKey {
+            trimmed = scanPlainScalarContinuations(
+                after: trimmed,
+                state: &state,
+            )
+        }
         state.append(.scalar(value: trimmed, style: .plain), mark: start, endMark: state.reader.mark)
     }
 
+    @discardableResult
     func appendMappingKeyIfNeeded(
         start: PureYAML.Parsing.Mark,
         state: inout State,
-    ) {
+    ) -> Bool {
         guard state.reader.peek() == ":", isMappingValueBoundary(state.reader.peek(offset: 1)) else {
-            return
+            return false
         }
         state.append(.mappingKey, mark: start, endMark: start)
+        return true
     }
 }
