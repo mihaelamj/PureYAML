@@ -16,6 +16,7 @@ For code changes, load at minimum:
 - `docs/rules/testing.md`
 - `docs/rules/verification.md`
 - `docs/rules/commits.md`
+- `docs/rules/research-compatibility.md`
 
 ## What PureYAML Is
 
@@ -34,6 +35,10 @@ The private `PureYAMLResearch` repo is for studying Yams and libyaml behavior.
 Do not copy C code or upstream Yams source into this public package.
 Keep attribution in `ATTRIBUTION.md` accurate when compatibility work references
 Yams or CYaml behavior.
+
+Compatibility work must start from that research source. Before changing parser,
+emitter, validation, or typed conversion behavior, inspect the matching
+PureYAMLResearch source or fixture and use it only to define behavior and tests.
 
 ## Namespace Rules
 

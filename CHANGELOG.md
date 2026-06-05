@@ -58,6 +58,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   nested sequences and sequence properties on keyed structs.
 - Add a fixture-backed sequence typed-conversion test corpus and a
   forbidden-pattern verification gate for package, source, and test contracts.
+- Add broader Codable compatibility coverage for dynamic mapping keys, nested
+  container round trips, keyed super coders, default `super` coders, and
+  deterministic unsupported-shape errors.
+- Add an explicit research-compatibility rule requiring parser, emitter,
+  validation, and typed conversion work to start from PureYAMLResearch behavior
+  without copying implementation code.
 
 ### Changed
 
@@ -66,3 +72,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Harden duplicate-key validation to use set membership while preserving exact
   diagnostics.
 - Make validation rules immutable after construction.
+- Preserve keyed super-encoder field order even when delayed child encoders are
+  written in a different order than they were requested.
+- Make keyed default `superEncoder()` and `superDecoder()` use the standard
+  `super` mapping key instead of the current mapping.

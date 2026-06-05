@@ -47,7 +47,7 @@ flowchart TB
   SuperEpic8["#8 Parser Replacement Roadmap"]:::epic
   Epic1["#1 Pure Swift Parse Core"]:::done
   Epic9["#9 Deterministic Emitter Core"]:::done
-  Epic10["#10 Typed Decoding and Encoding"]:::todo
+  Epic10["#10 Typed Decoding and Encoding"]:::done
   Epic11["#11 YAML Compatibility Corpus"]:::todo
   Epic12["#12 Usage and Migration Docs"]:::todo
   Epic13["#13 Release Readiness"]:::todo
@@ -61,24 +61,7 @@ flowchart TB
 
 #9 Deterministic Emitter Core is complete in main.
 
-#10 Typed Decoding and Encoding is active:
-
-```mermaid
-flowchart TB
-  classDef done fill:#ddf9e4,stroke:#34c759,color:#111827
-  classDef review fill:#fff7d6,stroke:#ffcc00,color:#111827
-  classDef epic fill:#f2e5ff,stroke:#af52de,color:#111827
-  classDef todo fill:#f2f4f7,stroke:#8e8e93,color:#111827
-  Epic10["#10 Typed Decoding and Encoding"]:::epic
-  Scalar20["#20 Scalar Typed Conversion"]:::done
-  Keyed21["#21 Keyed Typed Conversion"]:::done
-  Unkeyed22["#22 Unkeyed Typed Conversion"]:::done
-  Compat23["#23 Broader Codable Compatibility"]:::todo
-  Epic10 --> Scalar20
-  Scalar20 --> Keyed21
-  Keyed21 --> Unkeyed22
-  Unkeyed22 --> Compat23
-```
+#10 Typed Decoding and Encoding is complete in main.
 
 ## Status
 
@@ -121,7 +104,8 @@ try PureYAML.validate(document)
 ```
 
 Typed conversion is available for scalar values, keyed mapping-backed structs,
-and unkeyed sequences:
+dictionary-like string mappings, unkeyed sequences, nested containers, and
+keyed super coders:
 
 ```swift
 struct Info: Codable {

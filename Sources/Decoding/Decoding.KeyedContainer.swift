@@ -117,23 +117,18 @@ struct KeyedDecodingContainerImpl<Key: CodingKey>: KeyedDecodingContainerProtoco
     }
 
     func superDecoder() throws -> any Swift.Decoder {
-        PureYAML.Decoding.Decoder(
-            value: .mapping(mapping),
-            codingPath: codingPath,
-            userInfo: userInfo,
-            validatesInput: validatesInput,
-        )
+        try decoder(for: SuperCodingKey())
     }
 
     func superDecoder(forKey key: Key) throws -> any Swift.Decoder {
         try decoder(for: key)
     }
 
-    private func singleValue(for key: Key) throws -> any SingleValueDecodingContainer {
+    private func singleValue(for key: any CodingKey) throws -> any SingleValueDecodingContainer {
         try decoder(for: key).singleValueContainer()
     }
 
-    private func decoder(for key: Key) throws -> PureYAML.Decoding.Decoder {
+    private func decoder(for key: any CodingKey) throws -> PureYAML.Decoding.Decoder {
         try PureYAML.Decoding.Decoder(
             value: value(for: key),
             codingPath: codingPath + [key],
@@ -142,7 +137,7 @@ struct KeyedDecodingContainerImpl<Key: CodingKey>: KeyedDecodingContainerProtoco
         )
     }
 
-    private func value(for key: Key) throws -> PureYAML.Model.Value {
+    private func value(for key: any CodingKey) throws -> PureYAML.Model.Value {
         guard let value = mapping[key.stringValue] else {
             throw PureYAML.Decoding.Error.keyNotFound(
                 key: key.stringValue,
@@ -154,7 +149,7 @@ struct KeyedDecodingContainerImpl<Key: CodingKey>: KeyedDecodingContainerProtoco
 
     private func validateIfNeeded(
         _ value: PureYAML.Model.Value,
-        forKey key: Key,
+        forKey key: any CodingKey,
     ) throws {
         if validatesInput {
             try PureYAML.Decoding.validate(value, codingPath: codingPath + [key])

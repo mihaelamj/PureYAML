@@ -130,14 +130,21 @@ struct KeyedEncodingContainerImpl<Key: CodingKey>: KeyedEncodingContainerProtoco
     }
 
     mutating func superEncoder() -> any Swift.Encoder {
-        PureYAML.Encoding.Encoder(
-            codingPath: codingPath,
+        let key = SuperCodingKey()
+        storage.set(.null, forKey: key.stringValue)
+        let childStorage = PureYAML.Encoding.Encoder.Storage(
+            parent: storage,
+            parentKey: key.stringValue,
+        )
+        return PureYAML.Encoding.Encoder(
+            codingPath: codingPath + [key],
             userInfo: userInfo,
-            storage: storage,
+            storage: childStorage,
         )
     }
 
     mutating func superEncoder(forKey key: Key) -> any Swift.Encoder {
+        storage.set(.null, forKey: key.stringValue)
         let childStorage = PureYAML.Encoding.Encoder.Storage(
             parent: storage,
             parentKey: key.stringValue,
