@@ -89,6 +89,13 @@ PureYAML is informed by Yams and its bundled `CYaml` / libyaml-derived parser,
 but it does not copy their implementation into `Sources/`. See
 [ATTRIBUTION.md](ATTRIBUTION.md).
 
+## Documentation
+
+- [Usage](docs/USAGE.md): public APIs, validation, emitter options, and
+  cross-platform gates.
+- [Migration and support boundaries](docs/MIGRATION.md): what PureYAML can
+  replace today and which YAML features are deliberately unsupported.
+
 ## Usage
 
 The examples in this section are covered by
