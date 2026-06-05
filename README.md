@@ -1,5 +1,7 @@
 # PureYAML
 
+[![Linux](https://img.shields.io/badge/Linux-CI-34C759?style=for-the-badge&logo=linux&logoColor=white&labelColor=1D1D1F)](https://github.com/mihaelamj/PureYAML/actions/workflows/ci.yml)
+
 PureYAML is a dependency-free YAML package written entirely in Swift.
 
 The goal is a Linux- and WebAssembly-compatible replacement for the YAML pieces
