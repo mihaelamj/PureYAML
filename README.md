@@ -61,6 +61,25 @@ flowchart TB
 
 #9 Deterministic Emitter Core is complete in main.
 
+#10 Typed Decoding and Encoding is active:
+
+```mermaid
+flowchart TB
+  classDef done fill:#ddf9e4,stroke:#34c759,color:#111827
+  classDef review fill:#fff7d6,stroke:#ffcc00,color:#111827
+  classDef epic fill:#f2e5ff,stroke:#af52de,color:#111827
+  classDef todo fill:#f2f4f7,stroke:#8e8e93,color:#111827
+  Epic10["#10 Typed Decoding and Encoding"]:::epic
+  Scalar20["#20 Scalar Typed Conversion"]:::done
+  Keyed21["#21 Keyed Typed Conversion"]:::done
+  Unkeyed22["#22 Unkeyed Typed Conversion"]:::done
+  Compat23["#23 Broader Codable Compatibility"]:::todo
+  Epic10 --> Scalar20
+  Scalar20 --> Keyed21
+  Keyed21 --> Unkeyed22
+  Unkeyed22 --> Compat23
+```
+
 ## Status
 
 This repository starts with the first real parser milestone: block mappings,
@@ -175,6 +194,7 @@ That command expands to:
 ```sh
 bash scripts/check-style.sh
 bash scripts/check-namespacing.sh
+bash scripts/check-forbidden-patterns.sh
 bash scripts/check-changelog-touched.sh
 bash scripts/check-roadmap.sh
 swiftformat . --config .swiftformat --lint
