@@ -43,6 +43,8 @@ Those tests are the executable contract for the short-form examples.
 |---|---|---|
 | Parse YAML into an ordered value tree | `PureYAML.parse(_:)` | `PureYAML.Model.Value` |
 | Parse a YAML stream into indexed documents | `PureYAML.parseStream(_:)` | `[PureYAML.Stream.Document]` |
+| Parse YAML while preserving explicit tags | `PureYAML.parseTagged(_:)` | `PureYAML.Tagged.Node` |
+| Parse a YAML stream while preserving explicit tags | `PureYAML.parseTaggedStream(_:)` | `[PureYAML.Tagged.Document]` |
 | Emit YAML from a value tree | `PureYAML.dump(_:options:)` | `String` |
 | Validate a value tree | `PureYAML.validate(_:using:strict:)` | `[PureYAML.Validation.Issue]` or a thrown issue collection |
 | Validate stream documents | `PureYAML.validate(_:using:strict:)` with `[PureYAML.Stream.Document]` | `[PureYAML.Stream.Issue]` or a thrown stream issue collection |
@@ -101,6 +103,44 @@ If a caller needs a JSON-like dictionary after validation, build that projection
 in application code after deciding how duplicate keys, unsupported tags, and
 complex keys should behave. Keeping that step outside PureYAML makes the lossy
 boundary explicit.
+
+## Tagged Usage
+
+Use `PureYAML.parseTagged(_:)` when the caller needs to preserve explicit YAML
+tags for compatibility analysis or project-specific conversion. The tagged
+model is separate from `Model.Value` so normal parsing remains small and
+dependency-free.
+Tagged parsing preserves source shape for diagnostics and compatibility
+analysis. Use `parse(_:)` or `parseStream(_:)` when the caller needs semantic
+merge-key expansion into `Model.Value`.
+
+```swift
+let tagged = try PureYAML.parseTagged("""
+payload: !!binary |
+  YWJj
+custom: !<tag:example.com,2026:thing> {name: Example}
+""")
+
+let result = PureYAML.Tagged.Validator().collect(tagged)
+```
+
+The default tagged validator reports unsupported built-in tags such as
+`!!binary`, `!!timestamp`, `!!set`, `!!omap`, and `!!pairs`. It also reports
+built-in tags applied to the wrong node kind, such as `!!seq {name: Example}`.
+Project-specific tags are preserved and allowed by default.
+
+Tagged validation supports the same strict and non-strict issue behavior as
+ordinary validation. Start from `PureYAML.Tagged.Validator.blank` when a caller
+wants only project-specific tag rules.
+
+`PureYAML.parseTaggedStream(_:)` returns indexed tagged documents, and
+`PureYAML.Tagged.Validator` can validate those documents with
+`PureYAML.Stream.Issue` diagnostics.
+
+PureYAML deliberately does not construct Foundation values for tags such as
+`!!timestamp` or `!!binary`. Those tags stay visible in the tagged tree and stay
+ordinary strings in `Model.Value`; callers own any `Date`, `Data`, or
+domain-specific conversion.
 
 ## Typed Conversion
 

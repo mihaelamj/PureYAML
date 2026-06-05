@@ -18,6 +18,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add merge-key expansion for plain `<<` and explicit `!!merge` keys, including
   scalar merge mappings, sequence-of-mapping merge values, local override
   behavior, and exact errors for invalid merge values.
+- Add `PureYAML.parseTagged(_:)` and `PureYAML.parseTaggedStream(_:)` for
+  tag-preserving node trees, plus tagged validation rules for unsupported
+  built-in tags and tags applied to the wrong node kind.
 
 ### Changed
 
@@ -25,6 +28,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   stream tests can pin exact document-boundary behavior.
 - Keep quoted `"<<":` and explicitly string-tagged `!!str <<` keys as ordinary
   string keys while merge syntax is expanded during parsing.
+- Keep Foundation-backed tags such as `!!timestamp` and `!!binary` as ordinary
+  model values in `parse(_:)`; callers that need tag diagnostics can use the
+  tagged parser and validator explicitly.
 
 ## [0.1.0] - 2026-06-05
 

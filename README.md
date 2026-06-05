@@ -48,16 +48,21 @@ block scalars, anchors, aliases, YAML directives, document markers, explicit
 built-in scalar tags, merge-key expansion, multi-document stream parsing, and a
 matching dumper with block and flow output policies. It also includes path-aware
 validation for structural YAML checks such as duplicate mapping keys, plus
-stream validation that preserves document indexes.
+stream validation that preserves document indexes. Callers that need explicit
+tag metadata can use `PureYAML.parseTagged(_:)` or
+`PureYAML.parseTaggedStream(_:)` and run tagged validation over the preserved
+source-shaped node tree.
 
 It is not yet a full YAML 1.2 implementation. The internal event parser now
 recognizes anchors, aliases, tags, flow collections, and block scalar styles from
 scanner tokens, and the public value parser composes those events into
-`PureYAML.Model.Value`. Full tag-specific collection semantics, complex mapping
-keys, directives beyond the selected compatibility subset, and custom decoding
-are planned work. Unsupported gaps are pinned by executable tests so they
-produce exact errors or exact fallback value trees instead of silent parser
-drift.
+`PureYAML.Model.Value`. The tagged parser preserves explicit scalar and
+collection tags without adding Foundation-backed constructors; use normal
+parsing when semantic merge-key expansion is required. Complex mapping
+keys, directives beyond the selected compatibility subset, automatic
+`Data`/`Date` construction, and custom decoding are planned work. Unsupported
+gaps are pinned by executable tests so they produce exact errors, exact
+validation issues, or exact fallback value trees instead of silent parser drift.
 
 ## Attribution
 
@@ -93,6 +98,17 @@ servers:
 let yaml = PureYAML.dump(document)
 
 try PureYAML.validate(document)
+```
+
+Use `parseTagged(_:)` when the caller needs to inspect explicit tags before
+project-specific construction:
+
+```swift
+let tagged = try PureYAML.parseTagged("""
+value: !!timestamp 2001-01-23
+""")
+
+let tagIssues = PureYAML.Tagged.Validator().collect(tagged)
 ```
 
 Use `parseStream(_:)` when the input may contain more than one YAML document.

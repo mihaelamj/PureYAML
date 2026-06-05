@@ -20,4 +20,7 @@ public enum PureYAML {
 
     /// YAML stream types.
     public enum Stream {}
+
+    /// Tag-preserving YAML document model types.
+    public enum Tagged {}
 }

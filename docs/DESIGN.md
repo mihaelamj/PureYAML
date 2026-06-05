@@ -63,6 +63,12 @@ PureYAML
 │   ├── Document
 │   ├── Issue
 │   └── Result
+├── Tagged
+│   ├── Node
+│   ├── Document
+│   ├── Tag
+│   ├── Validator
+│   └── Rule
 └── Validation
     ├── Validator
     ├── Rule
@@ -74,7 +80,8 @@ PureYAML
 convenience entry points. Parsing runs through the scanner, token-event parser,
 and event composer before returning `PureYAML.Model.Value` for one document or
 `PureYAML.Stream.Document` values for a stream. The implementation lives in
-namespaced parser, dumper, scalar typed coder, stream, and validator types.
+namespaced parser, dumper, scalar typed coder, stream, tagged-node, and
+validator types.
 
 ## First Milestone
 
@@ -97,6 +104,7 @@ The initial parser supports:
 - YAML directives, document markers, and multi-document streams
 - explicit built-in scalar tags for strings, integers, floats, booleans, and
   nulls
+- tag-preserving parse APIs for scalar and collection tags
 
 The parser layer also has an internal event contract. `Parsing.Event` can
 represent stream, document, scalar, sequence, mapping, and alias events, with
@@ -122,6 +130,17 @@ can represent them.
 with `unsupportedMultiDocumentStream`. `PureYAML.parseStream(_:)` parses all
 documents in the stream, including empty explicit documents as `null`, and
 returns `PureYAML.Stream.Document` values with stable zero-based indexes.
+
+`PureYAML.parseTagged(_:)` and `PureYAML.parseTaggedStream(_:)` reuse the same
+scanner and event parser but compose `PureYAML.Tagged.Node` values that preserve
+explicit tags on scalar, sequence, and mapping nodes. Tagged parsing is an
+analysis surface, not a constructor surface: it deliberately does not construct
+Foundation values for `!!timestamp` or `!!binary`, and project-specific tags are
+preserved for caller-owned conversion. It preserves source shape for diagnostics;
+normal parsing is the semantic surface that expands merge keys into
+`Model.Value`. `PureYAML.Tagged.Validator` reports
+unsupported built-in tags and built-in tags applied to the wrong node kind with
+the same path and stream issue types used by the main validator.
 
 The dumper emits deterministic YAML from the model. The default policy is
 block-style collections with quoted strings. `Emitting.Options` can opt into
@@ -164,16 +183,18 @@ hidden inside an arbitrary-value projection. The research constructor also
 includes Foundation-specific scalar conversions, which would break the
 dependency-free and WASM-compatible library boundary.
 
-Application code may project `Model.Value` into JSON-like dictionaries after
-validation, but that projection must own the data-loss policy explicitly.
+Application code may project `Model.Value` or `Tagged.Node` into JSON-like or
+domain-specific values after validation, but that projection must own the
+data-loss and constructor policy explicitly.
 
 ## Planned Compatibility Work
 
 Compatibility should be added in small, test-backed slices:
 
-1. Tag-aware collection handling.
-2. Multi-document stream dumping.
-3. First-class complex mapping keys.
+1. Multi-document stream dumping.
+2. First-class complex mapping keys.
+3. Explicit constructor APIs for caller-owned tagged conversion if a
+   dependency-free design proves worthwhile (#39).
 4. Additional built-in validation rules beyond duplicate-key behavior.
 5. Broader Codable compatibility beyond scalar, keyed, and unkeyed containers.
 6. Yams corpus comparison tests in a separate compatibility suite.

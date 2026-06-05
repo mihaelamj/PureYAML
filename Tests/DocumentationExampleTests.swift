@@ -93,6 +93,25 @@ struct DocumentationExampleTests {
         #expect(try PureYAML.validate(documents).isEmpty)
     }
 
+    @Test("README tagged parsing example stays executable")
+    func test_readmeTaggedParsingExample() throws {
+        let tagged = try PureYAML.parseTagged(
+            """
+            value: !!timestamp 2001-01-23
+            """,
+        )
+        let tagIssues = PureYAML.Tagged.Validator().collect(tagged)
+        let expectedIssues = [
+            PureYAML.Validation.Issue(
+                severity: .error,
+                reason: "Unsupported built-in tag 'tag:yaml.org,2002:timestamp'",
+                path: .init([.key("value")]),
+            ),
+        ]
+
+        #expect(tagIssues.issues == expectedIssues)
+    }
+
     @Test("README emitter options example stays executable")
     func test_readmeEmitterOptionsExample() throws {
         let document = PureYAML.Model.Value.mapping(.init([

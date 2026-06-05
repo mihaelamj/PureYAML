@@ -1,13 +1,13 @@
-extension PureYAML.Parsing {
+extension PureYAML.Tagged {
     struct EventComposer {
-        var events: [Event]
+        var events: [PureYAML.Parsing.Event]
         var index: Int
-        var anchors: [String: PureYAML.Model.Value]
-        let scalarParser: Parser
+        var anchors: [String: PureYAML.Tagged.Node]
+        let scalarParser: PureYAML.Parsing.Parser
 
         init(
-            events: [Event],
-            scalarParser: Parser,
+            events: [PureYAML.Parsing.Event],
+            scalarParser: PureYAML.Parsing.Parser,
         ) {
             self.events = events
             index = 0
@@ -15,7 +15,7 @@ extension PureYAML.Parsing {
             self.scalarParser = scalarParser
         }
 
-        mutating func compose() throws -> PureYAML.Model.Value {
+        mutating func compose() throws -> PureYAML.Tagged.Node {
             _ = try expect("stream start") { event in
                 if case .streamStart = event {
                     return true
@@ -38,11 +38,16 @@ extension PureYAML.Parsing {
             if case let .documentStart(mark)? = current {
                 throw PureYAML.Parsing.ParseError.unsupportedMultiDocumentStream(line: mark.line)
             }
-            _ = try expectStreamEnd()
+            _ = try expect("stream end") { event in
+                if case .streamEnd = event {
+                    return true
+                }
+                return false
+            }
             return value
         }
 
-        mutating func composeStream() throws -> [PureYAML.Stream.Document] {
+        mutating func composeStream() throws -> [PureYAML.Tagged.Document] {
             _ = try expect("stream start") { event in
                 if case .streamStart = event {
                     return true
@@ -50,7 +55,7 @@ extension PureYAML.Parsing {
                 return false
             }
 
-            var documents: [PureYAML.Stream.Document] = []
+            var documents: [PureYAML.Tagged.Document] = []
             while current?.isStreamEnd != true {
                 _ = try expect("document start") { event in
                     if case .documentStart = event {
@@ -59,24 +64,29 @@ extension PureYAML.Parsing {
                     return false
                 }
                 anchors = [:]
-                let value = try composeNode()
+                let node = try composeNode()
                 _ = try expect("document end") { event in
                     if case .documentEnd = event {
                         return true
                     }
                     return false
                 }
-                documents.append(.init(index: documents.count, value: value))
+                documents.append(.init(index: documents.count, node: node))
             }
 
-            _ = try expectStreamEnd()
+            _ = try expect("stream end") { event in
+                if case .streamEnd = event {
+                    return true
+                }
+                return false
+            }
             return documents
         }
     }
 }
 
-extension PureYAML.Parsing.EventComposer {
-    mutating func composeNode() throws -> PureYAML.Model.Value {
+extension PureYAML.Tagged.EventComposer {
+    mutating func composeNode() throws -> PureYAML.Tagged.Node {
         guard let event = current else {
             throw unexpectedEvent(expected: "YAML node")
         }
@@ -92,22 +102,27 @@ extension PureYAML.Parsing.EventComposer {
                 )
             }
             return value
-        case let .mappingStart(anchor, _, _, _):
-            let value = try composeMapping()
+        case let .mappingStart(anchor, tag, _, _):
+            let value = try composeMapping(tag: tag)
             store(value, anchor: anchor)
             return value
         case let .scalar(value, anchor, tag, style, mark):
             index += 1
-            let model = try composeScalar(
-                value,
-                tag: tag,
-                style: style,
-                mark: mark,
+            let scalar = try PureYAML.Tagged.Scalar(
+                rawValue: value,
+                value: scalarParser.composeScalarValue(
+                    value,
+                    tag: tag,
+                    style: style,
+                    mark: mark,
+                ),
+                tag: .normalized(tag),
             )
-            store(model, anchor: anchor)
-            return model
-        case let .sequenceStart(anchor, _, _, _):
-            let value = try composeSequence()
+            let node = PureYAML.Tagged.Node.scalar(scalar)
+            store(node, anchor: anchor)
+            return node
+        case let .sequenceStart(anchor, tag, _, _):
+            let value = try composeSequence(tag: tag)
             store(value, anchor: anchor)
             return value
         default:
@@ -115,72 +130,63 @@ extension PureYAML.Parsing.EventComposer {
         }
     }
 
-    mutating func composeSequence() throws -> PureYAML.Model.Value {
+    mutating func composeSequence(tag: String?) throws -> PureYAML.Tagged.Node {
         _ = try expect("sequence start") { event in
             if case .sequenceStart = event {
                 return true
             }
             return false
         }
-        var values: [PureYAML.Model.Value] = []
+        var values: [PureYAML.Tagged.Node] = []
         while current?.isSequenceEnd != true {
             try values.append(composeNode())
         }
         _ = try expect("sequence end") { $0.isSequenceEnd }
-        return .sequence(values)
+        return .sequence(.init(values: values, tag: .normalized(tag)))
     }
 
-    mutating func composeMapping() throws -> PureYAML.Model.Value {
+    mutating func composeMapping(tag: String?) throws -> PureYAML.Tagged.Node {
         _ = try expect("mapping start") { event in
             if case .mappingStart = event {
                 return true
             }
             return false
         }
-        var mergeSources: [[PureYAML.Model.Pair]] = []
-        var localPairs: [PureYAML.Model.Pair] = []
+        var pairs: [PureYAML.Tagged.Pair] = []
         while current?.isMappingEnd != true {
             let key = try composeMappingKey()
-            if key.isMergeKey {
-                try mergeSources.append(contentsOf: composeMergeSources())
-            } else {
-                let value = try composeNode()
-                localPairs.append(PureYAML.Model.Pair(key: key.value, value: value))
-            }
+            let value = try composeNode()
+            pairs.append(.init(key: key.value, keyTag: key.tag, value: value))
         }
         _ = try expect("mapping end") { $0.isMappingEnd }
-        let pairs = mergedPairs(from: mergeSources, localPairs: localPairs)
-        return .mapping(PureYAML.Model.Mapping(pairs))
+        return .mapping(.init(pairs: pairs, tag: .normalized(tag)))
     }
 
     mutating func composeMappingKey() throws -> ComposedMappingKey {
         guard let event = current else {
             throw unexpectedEvent(expected: "mapping key")
         }
-        guard case let .scalar(value, anchor, tag, style, _) = event else {
+        guard case let .scalar(value, anchor, tag, style, mark) = event else {
             let mark = event.mark
             throw PureYAML.Parsing.ParseError.expectedScalarKey(line: mark.line, column: mark.column)
         }
         index += 1
-        store(.string(value), anchor: anchor)
-        return ComposedMappingKey(
-            value: value,
-            tag: scalarParser.normalizedTag(tag),
-            style: style,
+        let scalar = try PureYAML.Tagged.Scalar(
+            rawValue: value,
+            value: scalarParser.composeScalarValue(value, tag: tag, style: style, mark: mark),
+            tag: .normalized(tag),
         )
-    }
-
-    func composeScalar(
-        _ value: String,
-        tag: String?,
-        style: PureYAML.Parsing.ScalarStyle,
-        mark: PureYAML.Parsing.Mark,
-    ) throws -> PureYAML.Model.Value {
-        try scalarParser.composeScalarValue(value, tag: tag, style: style, mark: mark)
+        store(.scalar(scalar), anchor: anchor)
+        return ComposedMappingKey(value: value, tag: .normalized(tag))
     }
 }
 
-extension PureYAML.Parsing.EventComposer {
+extension PureYAML.Tagged.EventComposer {
+    struct ComposedMappingKey {
+        var value: String
+        var tag: PureYAML.Tagged.Tag?
+    }
+
     var current: PureYAML.Parsing.Event? {
         guard events.indices.contains(index) else {
             return nil
@@ -189,7 +195,7 @@ extension PureYAML.Parsing.EventComposer {
     }
 
     mutating func store(
-        _ value: PureYAML.Model.Value,
+        _ value: PureYAML.Tagged.Node,
         anchor: String?,
     ) {
         guard let anchor else {
@@ -220,14 +226,5 @@ extension PureYAML.Parsing.EventComposer {
             line: mark.line,
             column: mark.column,
         )
-    }
-
-    mutating func expectStreamEnd() throws -> PureYAML.Parsing.Event {
-        try expect("stream end") { event in
-            if case .streamEnd = event {
-                return true
-            }
-            return false
-        }
     }
 }

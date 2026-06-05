@@ -22,11 +22,13 @@ See [../ATTRIBUTION.md](../ATTRIBUTION.md) for the project attribution.
 |---|---|---|
 | Compose YAML into a native YAML tree | `PureYAML.parse(_:)` | Returns `PureYAML.Model.Value`, preserving mapping order and duplicate keys. |
 | Compose all YAML documents in a stream | `PureYAML.parseStream(_:)` | Returns indexed `PureYAML.Stream.Document` values. |
+| Preserve explicit YAML tags for analysis | `PureYAML.parseTagged(_:)` or `PureYAML.parseTaggedStream(_:)` | Returns tag-preserving nodes without Foundation-backed construction. |
 | Serialize a YAML tree | `PureYAML.dump(_:options:)` | Emits deterministic YAML with explicit block, flow, and scalar policies. |
 | Decode a `Decodable` type from YAML | `PureYAML.decode(_:from:)` | Runs default validation before typed decoding. |
 | Encode an `Encodable` value to YAML | `PureYAML.encodeToYAML(_:options:)` | Encodes through `PureYAML.Model.Value`, then dumps. |
 | Validate document structure | `PureYAML.validate(_:using:strict:)` | Default rule reports duplicate mapping keys with exact paths. |
 | Validate every document in a stream | `PureYAML.validate(_:using:strict:)` with stream documents | Reports `PureYAML.Stream.Issue` values that preserve document indexes. |
+| Validate explicit tag usage | `PureYAML.Tagged.Validator` | Reports unsupported built-in tags and kind-inconsistent built-in tags with exact paths. |
 | Load arbitrary `Any` dictionaries and arrays | Use `Model.Value` or typed `Codable` | There is deliberately no public arbitrary `Any` conversion API. Dictionary-shaped values erase YAML diagnostics. |
 
 ## Arbitrary Any Decision
@@ -72,6 +74,8 @@ add a fixture beside the closest existing suite.
 | Multi-document streams | `PureYAML.parseStream(_:)` parses implicit and explicit documents, empty explicit documents as `null`, `...` document ends, and trailing comments before the next `---`. | `StreamParsingTests` |
 | Stream validation | Stream validation preserves document indexes while keeping validation paths document-local. | `StreamParsingTests` |
 | Built-in scalar tags | `!!str`, `!!int`, `!!float`, `!!bool`, and `!!null` are applied when valid. | `ScalarCompatibilityFixtures` |
+| Tag-preserving parsing | `parseTagged(_:)` and `parseTaggedStream(_:)` preserve explicit scalar and collection tags for compatibility analysis. | `TaggedCompatibilityTests` |
+| Tagged validation | Unsupported built-in tags and built-in tags applied to the wrong node kind are reported with exact paths. Project-specific tags are allowed by default. | `TaggedCompatibilityTests` |
 | Emitting | Deterministic block output by default, with opt-in flow collections and conservative literal blocks. | `DumperTests`, `EmitterCorpusTests` |
 | Typed conversion | Scalar, keyed, unkeyed, nested, sequence, dynamic-key, and super-coder cases are covered. | `CodingTests`, `CodableCompatibilityTests` |
 | Validation | Duplicate mapping keys are reported with exact issue paths. | `ValidationTests`, `ValidationModelTests` |
@@ -92,10 +96,10 @@ explicit fallback value tree. This avoids silent compatibility drift.
 | Undefined aliases | Throws `undefinedAlias`. | `CollectionCompatibilityFixtures.parseErrors` |
 | Invalid explicit scalar tag values | Throws `invalidTaggedScalar`. | `ScalarCompatibilityFixtures.invalidExplicitScalarTags` |
 | Invalid merge values | Throws `invalidMergeValue` when `<<` is not followed by a mapping or sequence of mappings. | `MergeKeyCompatibilityTests` |
-| Unsupported built-in tags such as `!!timestamp`, `!!binary`, `!!set`, and `!!omap` | Keeps parseable value trees without special tag semantics. | `UnsupportedYAMLGapsFixtures.fallbackValues` |
+| Unsupported built-in tags such as `!!timestamp`, `!!binary`, `!!set`, and `!!omap` | `parse(_:)` keeps parseable value trees without special tag construction. `parseTagged(_:)` preserves the tags, and tagged validation reports them as unsupported built-in tags. | `UnsupportedYAMLGapsFixtures.fallbackValues`, `TaggedCompatibilityTests` |
 | Sexagesimal-style scalars and date-looking plain scalars | Keep string values for currently unsupported spellings such as `1:20`, `2002-04-28`, and `09`. | `ScalarCompatibilityFixtures.unsupportedScalars` |
-| Custom constructors, custom resolvers, and environment expansion | Not implemented. Build project-specific conversion on top of `Model.Value` or typed `Codable`. | Planned future work |
-| Foundation-specific scalar conversions such as `Data`, `Date`, or `URL` strategies | Not special-cased in the library target. Encode explicit strings or typed models instead. | Planned future work |
+| Custom constructors, custom resolvers, and environment expansion | Not implemented. Build project-specific conversion on top of `Model.Value`, tagged nodes, or typed `Codable`. | #39 |
+| Foundation-specific scalar conversions such as `Data`, `Date`, or `URL` strategies | Not special-cased in the library target. Tags stay visible through `parseTagged(_:)`; callers own conversion. | `TaggedCompatibilityTests` |
 
 ## Migration Checklist
 
