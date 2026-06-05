@@ -12,6 +12,46 @@ The package is intentionally strict about portability:
 - root Swift package layout
 - macOS, Linux, and WASI build gates
 
+## Roadmap
+
+Mermaid status legend:
+
+```mermaid
+flowchart TB
+  classDef done fill:#34C759,color:#000,stroke:#248A3D,stroke-width:2px
+  classDef review fill:#FFCC00,color:#000,stroke:#B58B00,stroke-width:2px
+  classDef active fill:#FF9500,color:#000,stroke:#B36200,stroke-width:2px
+  classDef next fill:#007AFF,color:#fff,stroke:#005BBB,stroke-width:2px
+  classDef partial fill:#AF52DE,color:#fff,stroke:#7D3CAF,stroke-width:2px
+  classDef todo fill:#8E8E93,color:#fff,stroke:#6B6B70,stroke-width:2px
+  LDone[Done]:::done
+  LReview[Review]:::review
+  LActive[Active]:::active
+  LNext[Next]:::next
+  LPartial[Partial]:::partial
+  LTodo[Todo]:::todo
+  LDone ~~~ LReview
+  LReview ~~~ LActive
+  LActive ~~~ LNext
+  LNext ~~~ LPartial
+  LPartial ~~~ LTodo
+```
+
+Epics overview:
+
+```mermaid
+flowchart TB
+  classDef done fill:#34C759,color:#000,stroke:#248A3D,stroke-width:2px
+  classDef review fill:#FFCC00,color:#000,stroke:#B58B00,stroke-width:2px
+  classDef active fill:#FF9500,color:#000,stroke:#B36200,stroke-width:2px
+  classDef next fill:#007AFF,color:#fff,stroke:#005BBB,stroke-width:2px
+  classDef partial fill:#AF52DE,color:#fff,stroke:#7D3CAF,stroke-width:2px
+  classDef todo fill:#8E8E93,color:#fff,stroke:#6B6B70,stroke-width:2px
+  SuperEpic8["#8 Parser Replacement Roadmap - Active"]:::active
+  Epic1["#1 Pure Swift Parse Core - Next"]:::next
+  SuperEpic8 --> Epic1
+```
+
 ## Status
 
 This repository starts with the first real parser milestone: block mappings,
@@ -55,6 +95,7 @@ PureYAML must stay dependency-free and portable. Before merging changes:
 bash scripts/check-style.sh
 bash scripts/check-namespacing.sh
 bash scripts/check-changelog-touched.sh
+python3 scripts/check-roadmap.py
 swiftformat . --config .swiftformat --lint
 swiftlint --config .swiftlint.yml --strict
 swift build

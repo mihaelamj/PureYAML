@@ -52,4 +52,9 @@ done < <(git ls-files)
 if [ "$FAIL" -ne 0 ]; then
   echo "style: gate failed. Rules: docs/rules/git-discipline.md" >&2
 fi
+
+if ! python3 scripts/check-roadmap.py; then
+  FAIL=1
+fi
+
 exit "$FAIL"
