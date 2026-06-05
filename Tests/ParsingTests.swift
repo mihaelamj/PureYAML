@@ -176,6 +176,9 @@ struct ParsingTests {
             text: |
               one
               two
+            stripped: |-
+              one
+              two
             folded: >
               one
               two
@@ -183,6 +186,7 @@ struct ParsingTests {
         ))
 
         #expect(root?["text"] == .string("one\ntwo\n"))
+        #expect(root?["stripped"] == .string("one\ntwo"))
         #expect(root?["folded"] == .string("one two\n"))
     }
 

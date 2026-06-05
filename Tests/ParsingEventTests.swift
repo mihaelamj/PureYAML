@@ -112,6 +112,9 @@ struct ParsingEventTests {
             text: |
               one
               two
+            stripped: |-
+              one
+              two
             folded: >
               one
               two
@@ -125,13 +128,15 @@ struct ParsingEventTests {
             "mappingStart anchor=- tag=- style=block @1:1@0",
             "scalar value=\"text\" anchor=- tag=- style=plain @1:1@0",
             "scalar value=\"one\\ntwo\\n\" anchor=- tag=- style=literal @1:7@6",
-            "scalar value=\"folded\" anchor=- tag=- style=plain @4:1@20",
-            "scalar value=\"one two\\n\" anchor=- tag=- style=folded @4:9@28",
-            "mappingEnd @6:6@41",
-            "documentEnd @6:6@41",
-            "streamEnd @6:6@41",
+            "scalar value=\"stripped\" anchor=- tag=- style=plain @4:1@20",
+            "scalar value=\"one\\ntwo\" anchor=- tag=- style=literal @4:11@30",
+            "scalar value=\"folded\" anchor=- tag=- style=plain @7:1@45",
+            "scalar value=\"one two\\n\" anchor=- tag=- style=folded @7:9@53",
+            "mappingEnd @9:6@66",
+            "documentEnd @9:6@66",
+            "streamEnd @9:6@66",
         ])
-        #expect(!descriptions.contains { $0.contains("one\\ntwo") && $0.contains("@4:9@28") })
+        #expect(!descriptions.contains { $0.contains("one\\ntwo\\n") && $0.contains("@4:11@30") })
     }
 
     @Test("Reports parse-event errors")

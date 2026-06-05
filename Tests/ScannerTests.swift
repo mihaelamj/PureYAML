@@ -278,7 +278,7 @@ private func expectFlowAndBlockScalarKinds(_ tokens: [String]) {
         "mappingKey",
         "scalar value=\"folded\" style=plain",
         "mappingValue",
-        "blockScalarHeader style=folded",
+        "blockScalarHeader style=folded chomping=strip",
         "indent width=2",
         "scalar value=\"line\" style=plain",
         "dedent width=0",
@@ -296,7 +296,7 @@ private func expectFlowAndBlockScalarRequiredKinds(_ tokens: [String]) {
         "anchor name=item",
         "alias name=item",
         "blockScalarHeader style=literal",
-        "blockScalarHeader style=folded",
+        "blockScalarHeader style=folded chomping=strip",
     ])
 }
 

@@ -6,5 +6,8 @@ public extension PureYAML.Emitting {
 
         /// Render strings as plain scalars only when that is unambiguous.
         case plainWhenSafe
+
+        /// Render safe multiline strings as literal block scalars.
+        case literalBlockWhenMultiline
     }
 }

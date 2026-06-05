@@ -301,11 +301,19 @@ extension PureYAML.Parsing.Scanner {
         state: inout State,
     ) {
         let start = state.reader.mark
+        var chomping = PureYAML.Parsing.BlockScalarChomping.clip
         state.reader.advance()
         while let character = state.reader.peek(), isBlockScalarHeaderCharacter(character) {
+            if character == "-" {
+                chomping = .strip
+            }
             state.reader.advance()
         }
-        state.append(.blockScalarHeader(style: style), mark: start, endMark: state.reader.mark)
+        state.append(
+            .blockScalarHeader(style: style, chomping: chomping),
+            mark: start,
+            endMark: state.reader.mark,
+        )
     }
 
     func scanNamedToken(

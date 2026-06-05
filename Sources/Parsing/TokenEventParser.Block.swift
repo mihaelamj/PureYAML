@@ -110,12 +110,7 @@ extension PureYAML.Parsing.TokenEventParser {
             _ = try expect("dedent") { $0.isDedent }
         }
 
-        let value: String = switch header.kind {
-        case .blockScalarHeader(.folded):
-            lines.joined(separator: " ") + (lines.isEmpty ? "" : "\n")
-        default:
-            lines.joined(separator: "\n") + (lines.isEmpty ? "" : "\n")
-        }
+        let value = blockScalarValue(lines: lines, header: header.kind)
         let mark = properties.mark ?? header.mark
         events.append(.scalar(
             value: value,
@@ -129,12 +124,40 @@ extension PureYAML.Parsing.TokenEventParser {
 
     func scalarStyle(for kind: PureYAML.Parsing.TokenKind) -> PureYAML.Parsing.ScalarStyle {
         switch kind {
-        case .blockScalarHeader(.folded):
+        case .blockScalarHeader(.folded, _):
             .folded
-        case .blockScalarHeader(.literal):
+        case .blockScalarHeader(.literal, _):
             .literal
         default:
             .plain
+        }
+    }
+
+    func blockScalarValue(
+        lines: [String],
+        header: PureYAML.Parsing.TokenKind,
+    ) -> String {
+        let (style, chomping): (PureYAML.Parsing.BlockScalarStyle, PureYAML.Parsing.BlockScalarChomping)
+        switch header {
+        case let .blockScalarHeader(headerStyle, headerChomping):
+            style = headerStyle
+            chomping = headerChomping
+        default:
+            style = .literal
+            chomping = .clip
+        }
+
+        let separator = style == .folded ? " " : "\n"
+        let content = lines.joined(separator: separator)
+        guard !content.isEmpty else {
+            return ""
+        }
+
+        switch chomping {
+        case .strip:
+            return content
+        case .clip:
+            return content + "\n"
         }
     }
 }

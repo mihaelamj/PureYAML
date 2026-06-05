@@ -24,7 +24,7 @@ extension PureYAML.Emitting.Dumper {
         case let .sequence(values):
             renderSequence(values, indent: indent)
         default:
-            [String(repeating: " ", count: indent) + renderScalar(value)]
+            renderScalarNode(value, indent: indent)
         }
     }
 
@@ -38,7 +38,7 @@ extension PureYAML.Emitting.Dumper {
             case .mapping, .sequence:
                 [prefix + escapeKey(pair.key) + ":"] + render(pair.value, indent: indent + 2)
             default:
-                [prefix + escapeKey(pair.key) + ": " + renderScalar(pair.value)]
+                renderMappingScalarPair(pair, indent: indent)
             }
         }
     }
@@ -53,9 +53,43 @@ extension PureYAML.Emitting.Dumper {
             case .mapping, .sequence:
                 [prefix + "-"] + render(value, indent: indent + 2)
             default:
-                [prefix + "- " + renderScalar(value)]
+                renderSequenceScalarItem(value, indent: indent)
             }
         }
+    }
+
+    func renderScalarNode(
+        _ value: PureYAML.Model.Value,
+        indent: Int,
+    ) -> [String] {
+        let prefix = String(repeating: " ", count: indent)
+        if let lines = renderLiteralBlockString(value, contentIndent: indent + 2) {
+            return [prefix + lines.header] + lines.content
+        }
+        return [prefix + renderScalar(value)]
+    }
+
+    func renderMappingScalarPair(
+        _ pair: PureYAML.Model.Pair,
+        indent: Int,
+    ) -> [String] {
+        let prefix = String(repeating: " ", count: indent)
+        let key = escapeKey(pair.key)
+        if let lines = renderLiteralBlockString(pair.value, contentIndent: indent + 2) {
+            return [prefix + key + ": " + lines.header] + lines.content
+        }
+        return [prefix + key + ": " + renderScalar(pair.value)]
+    }
+
+    func renderSequenceScalarItem(
+        _ value: PureYAML.Model.Value,
+        indent: Int,
+    ) -> [String] {
+        let prefix = String(repeating: " ", count: indent)
+        if let lines = renderLiteralBlockString(value, contentIndent: indent + 2) {
+            return [prefix + "- " + lines.header] + lines.content
+        }
+        return [prefix + "- " + renderScalar(value)]
     }
 
     func renderScalar(_ value: PureYAML.Model.Value) -> String {
@@ -81,7 +115,58 @@ extension PureYAML.Emitting.Dumper {
             quote(value)
         case .plainWhenSafe:
             canRenderPlainString(value) ? value : quote(value)
+        case .literalBlockWhenMultiline:
+            quote(value)
         }
+    }
+
+    func renderLiteralBlockString(
+        _ value: PureYAML.Model.Value,
+        contentIndent: Int,
+    ) -> (header: String, content: [String])? {
+        guard
+            case let .string(string) = value,
+            options.scalarStyle == .literalBlockWhenMultiline,
+            canRenderLiteralBlockString(string)
+        else {
+            return nil
+        }
+
+        let keepsTrailingNewline = string.hasSuffix("\n")
+        let header = keepsTrailingNewline ? "|" : "|-"
+        let contentSource = keepsTrailingNewline ? String(string.dropLast()) : string
+        let prefix = String(repeating: " ", count: contentIndent)
+        let content = contentSource.split(separator: "\n", omittingEmptySubsequences: false)
+            .map { prefix + String($0) }
+        return (header, content)
+    }
+
+    func canRenderLiteralBlockString(_ value: String) -> Bool {
+        guard value.contains("\n"), !value.contains("\r"), !value.contains("\t") else {
+            return false
+        }
+
+        let contentSource = value.hasSuffix("\n") ? String(value.dropLast()) : value
+        guard !contentSource.isEmpty else {
+            return false
+        }
+
+        return contentSource
+            .split(separator: "\n", omittingEmptySubsequences: false)
+            .allSatisfy(canRenderLiteralBlockLine)
+    }
+
+    func canRenderLiteralBlockLine(_ line: Substring) -> Bool {
+        guard !line.isEmpty, line.first?.isWhitespace == false, line.last?.isWhitespace == false else {
+            return false
+        }
+        guard !line.contains("#"), !containsColonSpace(String(line)) else {
+            return false
+        }
+        guard let first = line.first else {
+            return false
+        }
+        return !isPlainScalarIndicator(first)
     }
 
     func canRenderPlainString(_ value: String) -> Bool {

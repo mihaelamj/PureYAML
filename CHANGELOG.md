@@ -40,6 +40,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   edits, not only committed or staged changes.
 - Add emitter options with a selectable scalar policy for quoted strings or
   conservative plain-string output.
+- Add opt-in literal block scalar emission for safe multiline strings, including
+  `|-` parsing support for stripped final newlines.
 - Add Yams and CYaml attribution without copying their implementation into
   `Sources/`.
 

@@ -128,6 +128,71 @@ struct DumperTests {
         #expect(try PureYAML.parse(yaml) == value)
     }
 
+    @Test("Dumps selected top-level multiline strings as literal block scalars")
+    func test_literalBlockScalarPolicyTopLevelString() throws {
+        let value = PureYAML.Model.Value.string("one\ntwo\n")
+        let options = PureYAML.Emitting.Options(scalarStyle: .literalBlockWhenMultiline)
+        let yaml = PureYAML.dump(value, options: options)
+
+        #expect(yaml == """
+        |
+          one
+          two
+
+        """)
+        #expect(!yaml.contains("\\n"))
+        #expect(try PureYAML.parse(yaml) == value)
+    }
+
+    @Test("Dumps selected mapping values and sequence items as literal block scalars")
+    func test_literalBlockScalarPolicyCollections() throws {
+        let value = PureYAML.Model.Value.mapping(.init([
+            .init(key: "title", value: .string("Example")),
+            .init(key: "body", value: .string("one\ntwo\n")),
+            .init(key: "items", value: .sequence([
+                .string("alpha\nbeta"),
+                .string("gamma"),
+            ])),
+        ]))
+        let options = PureYAML.Emitting.Options(scalarStyle: .literalBlockWhenMultiline)
+        let yaml = PureYAML.dump(value, options: options)
+
+        #expect(yaml == """
+        title: "Example"
+        body: |
+          one
+          two
+        items:
+          - |-
+            alpha
+            beta
+          - "gamma"
+
+        """)
+        #expect(!yaml.contains("one\\ntwo"))
+        #expect(!yaml.contains("alpha\\nbeta"))
+        #expect(try PureYAML.parse(yaml) == value)
+    }
+
+    @Test("Dumps unsafe multiline strings as quoted scalars")
+    func test_literalBlockScalarPolicyKeepsUnsafeMultilineStringsQuoted() throws {
+        let value = PureYAML.Model.Value.mapping(.init([
+            .init(key: "colon", value: .string("one: two\nnext")),
+            .init(key: "hash", value: .string("one # two\nnext")),
+            .init(key: "leading", value: .string("one\n next")),
+        ]))
+        let options = PureYAML.Emitting.Options(scalarStyle: .literalBlockWhenMultiline)
+        let yaml = PureYAML.dump(value, options: options)
+
+        #expect(yaml == """
+        colon: "one: two\\nnext"
+        hash: "one # two\\nnext"
+        leading: "one\\n next"
+
+        """)
+        #expect(try PureYAML.parse(yaml) == value)
+    }
+
     @Test("Dumper accepts explicit default options")
     func test_explicitDefaultOptions() {
         let value = PureYAML.Model.Value.mapping(.init([

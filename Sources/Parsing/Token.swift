@@ -25,7 +25,7 @@ extension PureYAML.Parsing {
         case flowMappingEnd
         case flowEntry
         case scalar(value: String, style: ScalarStyle)
-        case blockScalarHeader(style: BlockScalarStyle)
+        case blockScalarHeader(style: BlockScalarStyle, chomping: BlockScalarChomping)
         case anchor(String)
         case alias(String)
         case tag(String)
@@ -62,8 +62,12 @@ extension PureYAML.Parsing.TokenKind: CustomStringConvertible {
             "flowEntry"
         case let .scalar(value, style):
             "scalar value=\"\(escape(value))\" style=\(style)"
-        case let .blockScalarHeader(style):
-            "blockScalarHeader style=\(style)"
+        case let .blockScalarHeader(style, chomping):
+            if chomping == .clip {
+                "blockScalarHeader style=\(style)"
+            } else {
+                "blockScalarHeader style=\(style) chomping=\(chomping)"
+            }
         case let .anchor(value):
             "anchor name=\(value)"
         case let .alias(value):
