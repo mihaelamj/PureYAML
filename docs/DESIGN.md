@@ -125,11 +125,16 @@ non-strict validation returns warnings while still throwing for errors. The
 validation corpus pins exact issue paths, descriptions, severity splits,
 strict/non-strict behavior, rule traversal order, and duplicate-key diagnostics.
 
-The first typed conversion slice supports scalar single-value Decodable and
-Encodable values. `PureYAML.decode(_:from:)`, `PureYAML.encode(_:)`, and
+Typed conversion supports scalar single-value Decodable and Encodable values,
+plus keyed mapping-backed structs with scalar, optional scalar, and nested keyed
+struct fields. `PureYAML.decode(_:from:)`, `PureYAML.encode(_:)`, and
 `PureYAML.encodeToYAML(_:)` validate input shapes and throw exact path-aware
-typed coding errors. Keyed and unkeyed containers remain planned work under the
-typed conversion roadmap.
+typed coding errors. Unkeyed containers remain planned work under the typed
+conversion roadmap.
+
+Typed decoding runs default validation before Swift `Decodable` construction.
+That keeps ambiguous YAML states, such as duplicate mapping keys, from being
+silently collapsed by keyed property lookup.
 
 ## Planned Compatibility Work
 
@@ -137,7 +142,7 @@ Compatibility should be added in small, test-backed slices:
 
 1. Tag-aware collection handling and merge keys.
 2. Additional built-in validation rules beyond duplicate-key behavior.
-3. Codable-style decoding and encoding.
+3. Unkeyed typed decoding and encoding, then broader Codable compatibility.
 4. Yams corpus comparison tests in a separate compatibility suite.
 
 The private `PureYAMLResearch` repository may be used to study Yams behavior, but

@@ -68,16 +68,8 @@ struct CodingTests {
         testCase.expectFailure()
     }
 
-    @Test("Unsupported decoding containers report exact errors")
-    func test_unsupportedDecodingContainersReportExactErrors() {
-        expectDecodingError(
-            .unsupportedContainer(kind: "keyed", path: .root),
-        ) {
-            _ = try PureYAML.decode(ExampleStruct.self, from: .mapping(.init([
-                .init(key: "name", value: .string("hello")),
-            ])))
-        }
-
+    @Test("Unsupported unkeyed decoding container reports exact errors")
+    func test_unsupportedUnkeyedDecodingContainerReportsExactErrors() {
         expectDecodingError(
             .unsupportedContainer(kind: "unkeyed", path: .root),
         ) {
@@ -85,24 +77,12 @@ struct CodingTests {
         }
     }
 
-    @Test("Unsupported encoding containers report exact errors")
-    func test_unsupportedEncodingContainersReportExactErrors() {
-        expectEncodingError(
-            .unsupportedContainer(kind: "keyed", path: .init([.key("name")])),
-        ) {
-            _ = try PureYAML.encode(ExampleStruct(name: "hello"))
-        }
-
+    @Test("Unsupported unkeyed encoding containers report exact errors")
+    func test_unsupportedUnkeyedEncodingContainersReportExactErrors() {
         expectEncodingError(
             .unsupportedContainer(kind: "unkeyed", path: .init([.index(0)])),
         ) {
             _ = try PureYAML.encode([1, 2])
-        }
-
-        expectEncodingError(
-            .unsupportedContainer(kind: "keyed", path: .root),
-        ) {
-            _ = try PureYAML.encode(EmptyStruct())
         }
 
         expectEncodingError(
@@ -184,12 +164,6 @@ struct CodingErrorCase: CustomStringConvertible {
         }
     }
 }
-
-private struct ExampleStruct: Codable, Equatable {
-    var name: String
-}
-
-private struct EmptyStruct: Encodable {}
 
 private func expectDecodingError(
     _ expected: PureYAML.Decoding.Error,

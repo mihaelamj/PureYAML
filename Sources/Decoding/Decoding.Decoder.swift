@@ -1,30 +1,45 @@
 public extension PureYAML.Decoding {
-    /// Scalar typed decoder backed by a ``PureYAML/Model/Value``.
+    /// Typed decoder backed by a ``PureYAML/Model/Value``.
     struct Decoder: Swift.Decoder {
         public let value: PureYAML.Model.Value
         public let codingPath: [any CodingKey]
         public let userInfo: [CodingUserInfoKey: Any]
+        let validatesInput: Bool
 
         public init(
             value: PureYAML.Model.Value,
             codingPath: [any CodingKey] = [],
             userInfo: [CodingUserInfoKey: Any] = [:],
+            validatesInput: Bool = true,
         ) {
             self.value = value
             self.codingPath = codingPath
             self.userInfo = userInfo
+            self.validatesInput = validatesInput
         }
 
         public func container<Key: CodingKey>(
             keyedBy _: Key.Type,
         ) throws -> KeyedDecodingContainer<Key> {
-            throw Error.unsupportedContainer(
-                kind: "keyed",
-                path: PureYAML.Validation.Path(codingPath: codingPath),
-            )
+            try validateIfNeeded()
+            guard case let .mapping(mapping) = value else {
+                throw Error.typeMismatch(
+                    expected: "mapping",
+                    actual: value.kindDescription,
+                    path: PureYAML.Validation.Path(codingPath: codingPath),
+                )
+            }
+
+            return KeyedDecodingContainer(KeyedDecodingContainerImpl<Key>(
+                mapping: mapping,
+                codingPath: codingPath,
+                userInfo: userInfo,
+                validatesInput: validatesInput,
+            ))
         }
 
         public func unkeyedContainer() throws -> any UnkeyedDecodingContainer {
+            try validateIfNeeded()
             throw Error.unsupportedContainer(
                 kind: "unkeyed",
                 path: PureYAML.Validation.Path(codingPath: codingPath),
@@ -32,12 +47,41 @@ public extension PureYAML.Decoding {
         }
 
         public func singleValueContainer() throws -> any SingleValueDecodingContainer {
-            SingleValueContainer(
+            try validateIfNeeded()
+            return SingleValueContainer(
                 value: value,
                 codingPath: codingPath,
                 userInfo: userInfo,
             )
         }
+
+        private func validateIfNeeded() throws {
+            if validatesInput {
+                try PureYAML.Decoding.validate(value, codingPath: codingPath)
+            }
+        }
+    }
+}
+
+extension PureYAML.Decoding {
+    static func validate(
+        _ value: PureYAML.Model.Value,
+        codingPath: [any CodingKey],
+    ) throws {
+        let result = PureYAML.Validation.Validator().collect(value)
+        guard !result.issues.isEmpty else {
+            return
+        }
+
+        let pathPrefix = PureYAML.Validation.Path(codingPath: codingPath)
+        let issues = result.issues.map { issue in
+            PureYAML.Validation.Issue(
+                severity: issue.severity,
+                reason: issue.reason,
+                path: .init(pathPrefix.components + issue.path.components),
+            )
+        }
+        throw PureYAML.Validation.Issue.Collection(issues)
     }
 }
 

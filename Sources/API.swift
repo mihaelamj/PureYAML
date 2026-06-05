@@ -27,7 +27,8 @@ public extension PureYAML {
         _: Value.Type = Value.self,
         from value: Model.Value,
     ) throws -> Value {
-        try Value(from: Decoding.Decoder(value: value))
+        try validate(value)
+        return try Value(from: Decoding.Decoder(value: value, validatesInput: false))
     }
 
     /// Parses YAML and decodes a typed value from the resulting value tree.

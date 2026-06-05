@@ -1,5 +1,5 @@
 public extension PureYAML.Encoding {
-    /// Scalar typed encoder that writes a ``PureYAML/Model/Value``.
+    /// Typed encoder that writes a ``PureYAML/Model/Value``.
     final class Encoder: Swift.Encoder {
         public let codingPath: [any CodingKey]
         public let userInfo: [CodingUserInfoKey: Any]
@@ -15,7 +15,7 @@ public extension PureYAML.Encoding {
             storage = Storage()
         }
 
-        fileprivate init(
+        init(
             codingPath: [any CodingKey],
             userInfo: [CodingUserInfoKey: Any],
             storage: Storage,
@@ -41,131 +41,163 @@ public extension PureYAML.Encoding {
         public func container<Key: CodingKey>(
             keyedBy _: Key.Type,
         ) -> KeyedEncodingContainer<Key> {
-            storage.error = .unsupportedContainer(
-                kind: "keyed",
-                path: PureYAML.Validation.Path(codingPath: codingPath),
-            )
-            return KeyedEncodingContainer(UnsupportedKeyedEncodingContainer<Key>(
+            storage.set(.mapping(.init()))
+            return KeyedEncodingContainer(KeyedEncodingContainerImpl<Key>(
+                storage: storage,
                 codingPath: codingPath,
+                userInfo: userInfo,
             ))
         }
 
         public func unkeyedContainer() -> any UnkeyedEncodingContainer {
-            storage.error = .unsupportedContainer(
+            storage.fail(.unsupportedContainer(
                 kind: "unkeyed",
                 path: PureYAML.Validation.Path(codingPath: codingPath),
+            ))
+            return UnsupportedUnkeyedEncodingContainer(
+                codingPath: codingPath,
+                userInfo: userInfo,
             )
-            return UnsupportedUnkeyedEncodingContainer(codingPath: codingPath)
         }
 
         public func singleValueContainer() -> any SingleValueEncodingContainer {
-            SingleValueContainer(storage: storage, codingPath: codingPath)
+            SingleValueContainer(
+                storage: storage,
+                codingPath: codingPath,
+                userInfo: userInfo,
+            )
         }
     }
 }
 
-private extension PureYAML.Encoding.Encoder {
+extension PureYAML.Encoding.Encoder {
     final class Storage {
         var value: PureYAML.Model.Value?
         var error: PureYAML.Encoding.Error?
+        private let parent: Storage?
+        private let parentKey: String?
+
+        init(
+            parent: Storage? = nil,
+            parentKey: String? = nil,
+        ) {
+            self.parent = parent
+            self.parentKey = parentKey
+        }
+
+        func set(_ value: PureYAML.Model.Value) {
+            self.value = value
+            if let parent, let parentKey {
+                parent.set(value, forKey: parentKey)
+            }
+        }
+
+        func set(
+            _ value: PureYAML.Model.Value,
+            forKey key: String,
+        ) {
+            var mapping: PureYAML.Model.Mapping = if case let .mapping(existing) = self.value {
+                existing
+            } else {
+                .init()
+            }
+
+            if let index = mapping.pairs.firstIndex(where: { $0.key == key }) {
+                mapping.pairs[index] = .init(key: key, value: value)
+            } else {
+                mapping.pairs.append(.init(key: key, value: value))
+            }
+            set(.mapping(mapping))
+        }
+
+        func fail(_ error: PureYAML.Encoding.Error) {
+            self.error = error
+            parent?.fail(error)
+        }
     }
 }
 
 private struct SingleValueContainer: SingleValueEncodingContainer {
     let storage: PureYAML.Encoding.Encoder.Storage
     let codingPath: [any CodingKey]
+    let userInfo: [CodingUserInfoKey: Any]
 
     mutating func encodeNil() throws {
-        storage.error = nil
-        storage.value = .null
+        storage.set(.null)
     }
 
     mutating func encode(_ value: Bool) throws {
-        storage.error = nil
-        storage.value = .bool(value)
+        storage.set(.bool(value))
     }
 
     mutating func encode(_ value: String) throws {
-        storage.error = nil
-        storage.value = .string(value)
+        storage.set(.string(value))
     }
 
     mutating func encode(_ value: Double) throws {
-        storage.error = nil
-        storage.value = .double(value)
+        storage.set(.double(value))
     }
 
     mutating func encode(_ value: Float) throws {
-        storage.error = nil
-        storage.value = .double(Double(value))
+        storage.set(.double(Double(value)))
     }
 
     mutating func encode(_ value: Int) throws {
-        storage.error = nil
-        storage.value = .int(value)
+        storage.set(.int(value))
     }
 
     mutating func encode(_ value: Int8) throws {
-        storage.error = nil
-        storage.value = .int(Int(value))
+        storage.set(.int(Int(value)))
     }
 
     mutating func encode(_ value: Int16) throws {
-        storage.error = nil
-        storage.value = .int(Int(value))
+        storage.set(.int(Int(value)))
     }
 
     mutating func encode(_ value: Int32) throws {
-        storage.error = nil
-        storage.value = .int(Int(value))
+        storage.set(.int(Int(value)))
     }
 
     mutating func encode(_ value: Int64) throws {
         guard let value = Int(exactly: value) else {
             throw unsupportedInteger("Int64")
         }
-        storage.error = nil
-        storage.value = .int(value)
+        storage.set(.int(value))
     }
 
     mutating func encode(_ value: UInt) throws {
         guard let value = Int(exactly: value) else {
             throw unsupportedInteger("UInt")
         }
-        storage.error = nil
-        storage.value = .int(value)
+        storage.set(.int(value))
     }
 
     mutating func encode(_ value: UInt8) throws {
-        storage.error = nil
-        storage.value = .int(Int(value))
+        storage.set(.int(Int(value)))
     }
 
     mutating func encode(_ value: UInt16) throws {
-        storage.error = nil
-        storage.value = .int(Int(value))
+        storage.set(.int(Int(value)))
     }
 
     mutating func encode(_ value: UInt32) throws {
         guard let value = Int(exactly: value) else {
             throw unsupportedInteger("UInt32")
         }
-        storage.error = nil
-        storage.value = .int(value)
+        storage.set(.int(value))
     }
 
     mutating func encode(_ value: UInt64) throws {
         guard let value = Int(exactly: value) else {
             throw unsupportedInteger("UInt64")
         }
-        storage.error = nil
-        storage.value = .int(value)
+        storage.set(.int(value))
     }
 
     mutating func encode(_ value: some Encodable) throws {
         try value.encode(to: PureYAML.Encoding.Encoder(
             codingPath: codingPath,
-            userInfo: [:],
+            userInfo: userInfo,
             storage: storage,
         ))
     }
@@ -178,8 +210,9 @@ private struct SingleValueContainer: SingleValueEncodingContainer {
     }
 }
 
-private struct UnsupportedKeyedEncodingContainer<Key: CodingKey>: KeyedEncodingContainerProtocol {
+struct UnsupportedKeyedEncodingContainer<Key: CodingKey>: KeyedEncodingContainerProtocol {
     var codingPath: [any CodingKey]
+    var userInfo: [CodingUserInfoKey: Any] = [:]
 
     mutating func encodeNil(forKey key: Key) throws {
         throw unsupported(key)
@@ -251,19 +284,23 @@ private struct UnsupportedKeyedEncodingContainer<Key: CodingKey>: KeyedEncodingC
     ) -> KeyedEncodingContainer<NestedKey> {
         KeyedEncodingContainer(UnsupportedKeyedEncodingContainer<NestedKey>(
             codingPath: codingPath + [key],
+            userInfo: userInfo,
         ))
     }
 
     mutating func nestedUnkeyedContainer(forKey key: Key) -> any UnkeyedEncodingContainer {
-        UnsupportedUnkeyedEncodingContainer(codingPath: codingPath + [key])
+        UnsupportedUnkeyedEncodingContainer(
+            codingPath: codingPath + [key],
+            userInfo: userInfo,
+        )
     }
 
     mutating func superEncoder() -> any Swift.Encoder {
-        PureYAML.Encoding.Encoder(codingPath: codingPath, userInfo: [:])
+        PureYAML.Encoding.Encoder(codingPath: codingPath, userInfo: userInfo)
     }
 
     mutating func superEncoder(forKey key: Key) -> any Swift.Encoder {
-        PureYAML.Encoding.Encoder(codingPath: codingPath + [key], userInfo: [:])
+        PureYAML.Encoding.Encoder(codingPath: codingPath + [key], userInfo: userInfo)
     }
 
     private func unsupported(_ key: Key) -> PureYAML.Encoding.Error {
@@ -271,126 +308,5 @@ private struct UnsupportedKeyedEncodingContainer<Key: CodingKey>: KeyedEncodingC
             kind: "keyed",
             path: PureYAML.Validation.Path(codingPath: codingPath + [key]),
         )
-    }
-}
-
-private struct UnsupportedUnkeyedEncodingContainer: UnkeyedEncodingContainer {
-    var codingPath: [any CodingKey]
-    var count: Int {
-        0
-    }
-
-    mutating func encodeNil() throws {
-        throw unsupported()
-    }
-
-    mutating func encode(_: Bool) throws {
-        throw unsupported()
-    }
-
-    mutating func encode(_: String) throws {
-        throw unsupported()
-    }
-
-    mutating func encode(_: Double) throws {
-        throw unsupported()
-    }
-
-    mutating func encode(_: Float) throws {
-        throw unsupported()
-    }
-
-    mutating func encode(_: Int) throws {
-        throw unsupported()
-    }
-
-    mutating func encode(_: Int8) throws {
-        throw unsupported()
-    }
-
-    mutating func encode(_: Int16) throws {
-        throw unsupported()
-    }
-
-    mutating func encode(_: Int32) throws {
-        throw unsupported()
-    }
-
-    mutating func encode(_: Int64) throws {
-        throw unsupported()
-    }
-
-    mutating func encode(_: UInt) throws {
-        throw unsupported()
-    }
-
-    mutating func encode(_: UInt8) throws {
-        throw unsupported()
-    }
-
-    mutating func encode(_: UInt16) throws {
-        throw unsupported()
-    }
-
-    mutating func encode(_: UInt32) throws {
-        throw unsupported()
-    }
-
-    mutating func encode(_: UInt64) throws {
-        throw unsupported()
-    }
-
-    mutating func encode(_: some Encodable) throws {
-        throw unsupported()
-    }
-
-    mutating func nestedContainer<NestedKey: CodingKey>(
-        keyedBy _: NestedKey.Type,
-    ) -> KeyedEncodingContainer<NestedKey> {
-        KeyedEncodingContainer(UnsupportedKeyedEncodingContainer<NestedKey>(
-            codingPath: codingPath + [IndexCodingKey(index: count)],
-        ))
-    }
-
-    mutating func nestedUnkeyedContainer() -> any UnkeyedEncodingContainer {
-        UnsupportedUnkeyedEncodingContainer(
-            codingPath: codingPath + [IndexCodingKey(index: count)],
-        )
-    }
-
-    mutating func superEncoder() -> any Swift.Encoder {
-        PureYAML.Encoding.Encoder(
-            codingPath: codingPath + [IndexCodingKey(index: count)],
-            userInfo: [:],
-        )
-    }
-
-    private func unsupported() -> PureYAML.Encoding.Error {
-        .unsupportedContainer(
-            kind: "unkeyed",
-            path: PureYAML.Validation.Path(
-                codingPath: codingPath + [IndexCodingKey(index: count)],
-            ),
-        )
-    }
-}
-
-private struct IndexCodingKey: CodingKey {
-    var stringValue: String
-    var intValue: Int?
-
-    init(index: Int) {
-        stringValue = "\(index)"
-        intValue = index
-    }
-
-    init?(stringValue: String) {
-        self.stringValue = stringValue
-        intValue = nil
-    }
-
-    init?(intValue: Int) {
-        stringValue = "\(intValue)"
-        self.intValue = intValue
     }
 }

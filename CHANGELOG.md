@@ -51,6 +51,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add scalar typed Decodable and Encodable conversion APIs with exact
   path-aware errors.
 - Add unambiguous bracket-quoted validation paths for punctuation-heavy keys.
+- Add keyed typed Decodable and Encodable conversion for mapping-backed structs.
+- Validate YAML values before typed decoding so duplicate keys are rejected
+  deterministically.
 
 ### Changed
 
