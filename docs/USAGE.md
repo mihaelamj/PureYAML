@@ -48,6 +48,10 @@ Those tests are the executable contract for the short-form examples.
 | Encode a typed value to a value tree | `PureYAML.encode(_:)` | `PureYAML.Model.Value` |
 | Encode a typed value to YAML | `PureYAML.encodeToYAML(_:options:)` | `String` |
 
+PureYAML intentionally does not expose arbitrary `Any` dictionary-and-array load
+or dump APIs. Use `Model.Value` for unknown schemas and typed `Codable` for
+known schemas.
+
 ## Model Usage
 
 Use `PureYAML.Model.Value` when the caller needs to inspect YAML structure,
@@ -67,6 +71,11 @@ The model currently represents:
 Mappings preserve insertion order and retain duplicate keys. That is deliberate:
 validation can report duplicate-key diagnostics instead of losing information by
 collapsing a mapping into a Swift dictionary too early.
+
+If a caller needs a JSON-like dictionary after validation, build that projection
+in application code after deciding how duplicate keys, unsupported tags, merge
+keys, and complex keys should behave. Keeping that step outside PureYAML makes
+the lossy boundary explicit.
 
 ## Typed Conversion
 

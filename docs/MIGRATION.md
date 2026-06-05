@@ -25,7 +25,31 @@ See [../ATTRIBUTION.md](../ATTRIBUTION.md) for the project attribution.
 | Decode a `Decodable` type from YAML | `PureYAML.decode(_:from:)` | Runs default validation before typed decoding. |
 | Encode an `Encodable` value to YAML | `PureYAML.encodeToYAML(_:options:)` | Encodes through `PureYAML.Model.Value`, then dumps. |
 | Validate document structure | `PureYAML.validate(_:using:strict:)` | Default rule reports duplicate mapping keys with exact paths. |
-| Load arbitrary `Any` dictionaries and arrays | Use `Model.Value` or typed `Codable` | There is no arbitrary `Any` conversion API yet. |
+| Load arbitrary `Any` dictionaries and arrays | Use `Model.Value` or typed `Codable` | There is deliberately no public arbitrary `Any` conversion API. Dictionary-shaped values erase YAML diagnostics. |
+
+## Arbitrary Any Decision
+
+PureYAML does not expose `loadAny`, `dumpAny`, or dictionary-and-array `Any`
+entry points. That is a deliberate compatibility boundary, not a missing
+wrapper.
+
+The research implementation's arbitrary-value constructor is useful to study,
+but its observable shape conflicts with PureYAML's first principles:
+
+- mapping conversion becomes dictionary-shaped, so duplicate keys and insertion
+  order are not a first-class contract;
+- merge keys may be flattened during construction instead of remaining visible
+  to validation;
+- scalar construction includes Foundation-specific values such as binary data,
+  dates, and null objects;
+- custom constructors can hide whether a document was parsed, normalized,
+  flattened, or validated.
+
+For unknown schemas, use `PureYAML.Model.Value` and validate before projecting
+into project-specific values. For known schemas, use typed `Codable`. If a
+caller truly needs a JSON-like dictionary after validation, build that projection
+in the application layer where duplicate-key and unsupported-shape policies are
+explicit.
 
 ## Supported Today
 

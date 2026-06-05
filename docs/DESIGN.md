@@ -27,6 +27,8 @@ blocking browser deployment.
 - No C source in the public package.
 - No external SwiftPM dependency.
 - No JavaScript parser or build-time generator.
+- No arbitrary `Any` load or dump API that collapses YAML mappings into
+  dictionary-shaped values before validation.
 - No claim of complete YAML 1.2 coverage until the test corpus proves it.
 
 ## Current Architecture
@@ -135,6 +137,21 @@ throw exact path-aware typed coding errors.
 Typed decoding runs default validation before Swift `Decodable` construction.
 That keeps ambiguous YAML states, such as duplicate mapping keys, from being
 silently collapsed by keyed property lookup.
+
+## Rejected API Shape: Arbitrary Any
+
+PureYAML does not provide a public arbitrary `Any` loader or dumper. Unknown YAML
+must stay in `PureYAML.Model.Value`; known YAML should use typed `Codable`.
+
+This is a deterministic validation decision. A Swift dictionary-shaped value
+cannot preserve all YAML mapping entries when keys repeat, cannot represent
+complex mapping keys with the current public model, and makes merge/tag
+normalization ambiguous. The research constructor also includes
+Foundation-specific scalar conversions, which would break the dependency-free
+and WASM-compatible library boundary.
+
+Application code may project `Model.Value` into JSON-like dictionaries after
+validation, but that projection must own the data-loss policy explicitly.
 
 ## Planned Compatibility Work
 
