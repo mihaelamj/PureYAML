@@ -52,10 +52,27 @@ jobs:
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
-      - name: Setup Swift
-        uses: SwiftyLab/setup-swift@v1.12.0
-        with:
-          swift-version: "6.3.1"
+      - name: Install Swift
+        shell: pwsh
+        run: |
+          $swift = Get-Command swift -ErrorAction SilentlyContinue
+          if (-not $swift) {
+            winget install --id Swift.Toolchain --exact --source winget --accept-source-agreements --accept-package-agreements --disable-interactivity
+            $roots = @(
+              "$env:ProgramFiles\Swift",
+              "${env:ProgramFiles(x86)}\Swift"
+            ) | Where-Object { $_ -and (Test-Path $_) }
+            $swift = $roots |
+              ForEach-Object { Get-ChildItem -Path $_ -Recurse -Filter swift.exe -ErrorAction SilentlyContinue } |
+              Select-Object -First 1
+            if (-not $swift) {
+              throw "Swift executable not found after WinGet installation"
+            }
+            $bin = $swift.Directory.FullName
+            Add-Content -Path $env:GITHUB_PATH -Value $bin
+            $env:Path = "$bin;$env:Path"
+          }
+          swift --version
       - name: Build and test
         shell: pwsh
         run: ./scripts/check-windows.ps1
