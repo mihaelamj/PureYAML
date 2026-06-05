@@ -18,6 +18,8 @@ public extension PureYAML.Validation {
         public var kind: DiagnosticKind
         public var severity: Severity
         public var file: String?
+        public var line: Int?
+        public var column: Int?
         public var documentIndex: Int?
         public var path: Path?
         public var reason: String
@@ -26,6 +28,8 @@ public extension PureYAML.Validation {
             kind: DiagnosticKind,
             severity: Severity,
             file: String? = nil,
+            line: Int? = nil,
+            column: Int? = nil,
             documentIndex: Int? = nil,
             path: Path? = nil,
             reason: String,
@@ -33,6 +37,8 @@ public extension PureYAML.Validation {
             self.kind = kind
             self.severity = severity
             self.file = file
+            self.line = line
+            self.column = column
             self.documentIndex = documentIndex
             self.path = path
             self.reason = reason
@@ -42,6 +48,13 @@ public extension PureYAML.Validation {
             var parts: [String] = []
             if let file {
                 parts.append(file)
+            }
+            if let line, let column {
+                parts.append("line \(line), column \(column)")
+            } else if let line {
+                parts.append("line \(line)")
+            } else if let column {
+                parts.append("column \(column)")
             }
             if let documentIndex {
                 parts.append("document[\(documentIndex)]")

@@ -38,6 +38,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add non-throwing single-source and batch validation reports with exact parse
   and validation diagnostics, optional warning-as-failure status, and Markdown,
   YAML, and JSON rendering for application-owned report files.
+- Add diagnostic-first validation reports, a raw-source preflight scanner, and
+  `Validation.ReportError` so production tools can return structured JSON or
+  YAML error bodies for damaged YAML without claiming parsed artifacts exist.
 
 ### Changed
 

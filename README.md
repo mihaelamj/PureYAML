@@ -219,6 +219,23 @@ let yaml = report.yamlDescription(title: "YAML Validation")
 let json = report.jsonDescription(title: "YAML Validation")
 ```
 
+For production tools that need an error body for damaged YAML, use the
+diagnostic-first APIs. They scan the raw source for common spacing and control
+character problems before parsing, then include parser and model-validation
+diagnostics in the same report. `parseValidated(_:)` and
+`parseValidatedStream(_:)` throw `PureYAML.Validation.ReportError` when the
+input cannot safely produce parsed artifacts:
+
+```swift
+do {
+    let document = try PureYAML.parseValidated(yaml, file: "openapi.yaml")
+    try PureYAML.validate(document)
+} catch let error as PureYAML.Validation.ReportError {
+    let body = error.report.jsonDescription(title: "YAML Validation")
+    // Return body from the application-owned CLI or HTTP error response.
+}
+```
+
 Custom validation rules can be layered onto the default validator or attached to
 a blank validator when callers want only project-specific checks. Validation
 tests pin exact issue paths, descriptions, severity handling, rule traversal

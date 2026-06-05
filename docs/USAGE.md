@@ -43,6 +43,7 @@ Those tests are the executable contract for the short-form examples.
 |---|---|---|
 | Parse YAML into an ordered value tree | `PureYAML.parse(_:)` | `PureYAML.Model.Value` |
 | Parse a YAML stream into indexed documents | `PureYAML.parseStream(_:)` | `[PureYAML.Stream.Document]` |
+| Parse and validate with a report-carrying failure | `PureYAML.parseValidated(_:)` or `PureYAML.parseValidatedStream(_:)` | Parsed artifacts or `PureYAML.Validation.ReportError` |
 | Parse YAML while preserving explicit tags | `PureYAML.parseTagged(_:)` | `PureYAML.Tagged.Node` |
 | Parse a YAML stream while preserving explicit tags | `PureYAML.parseTaggedStream(_:)` | `[PureYAML.Tagged.Document]` |
 | Construct typed values from tagged nodes | `PureYAML.Tagged.Constructor` | Caller-owned output type |
@@ -51,6 +52,7 @@ Those tests are the executable contract for the short-form examples.
 | Validate a value tree | `PureYAML.validate(_:using:strict:)` | `[PureYAML.Validation.Issue]` or a thrown issue collection |
 | Validate stream documents | `PureYAML.validate(_:using:strict:)` with `[PureYAML.Stream.Document]` | `[PureYAML.Stream.Issue]` or a thrown stream issue collection |
 | Produce non-throwing validation diagnostics | `PureYAML.validationReport(_:)` or `PureYAML.validationReports(_:)` | `PureYAML.Validation.Report` or `PureYAML.Validation.BatchReport` |
+| Produce diagnostic-first reports for damaged YAML | `PureYAML.diagnosticValidationReport(_:)` or `PureYAML.diagnosticValidationReports(_:)` | Reports with preflight, parse, and validation diagnostics |
 | Decode a typed value from YAML | `PureYAML.decode(_:from:)` | `Decodable` value |
 | Encode a typed value to a value tree | `PureYAML.encode(_:)` | `PureYAML.Model.Value` |
 | Encode a typed value to YAML | `PureYAML.encodeToYAML(_:options:)` | `String` |
@@ -300,6 +302,42 @@ let json = report.jsonDescription(title: "YAML Validation")
 PureYAML does not write files from the library target. Applications that need a
 validation document should write `markdown`, `yaml`, or `json` through their
 own file IO layer.
+
+Use diagnostic-first reports when the source may be too damaged for the parser
+to build a value tree. `PureYAML.Validation.PreflightScanner` scans the full raw
+string first and reports common line-level failures such as tab indentation,
+missing spaces after mapping or sequence indicators, trailing whitespace, and
+invalid control characters. Parsing still runs afterward, but if parsing fails
+the report contains the preflight diagnostics plus the parser diagnostic instead
+of pretending a parsed artifact exists.
+
+```swift
+let report = PureYAML.diagnosticValidationReport(
+    """
+    title: "open
+    summary:Missing
+    \tmetadata:
+    """,
+    file: "openapi.yaml",
+)
+
+let json = report.jsonDescription(title: "YAML Validation")
+```
+
+Production tools that prefer throwing control flow can use
+`parseValidated(_:)` or `parseValidatedStream(_:)`. On failure, catch
+`PureYAML.Validation.ReportError` and serialize its embedded report into the
+tool-owned error body:
+
+```swift
+do {
+    let document = try PureYAML.parseValidated(yaml, file: "openapi.yaml")
+    // Continue with application-owned semantic validation.
+} catch let error as PureYAML.Validation.ReportError {
+    let body = error.report.jsonDescription(title: "YAML Validation")
+    // Return body from the application-owned CLI or HTTP error response.
+}
+```
 
 ## Cross-Platform Verification
 

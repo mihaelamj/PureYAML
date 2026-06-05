@@ -45,6 +45,37 @@ public extension PureYAML.Validation {
         public func modelValue() -> PureYAML.Model.Value {
             .sequence(diagnostics.map(\.modelValue))
         }
+
+        public func modelValue(
+            title: String = "PureYAML Validation Report",
+        ) -> PureYAML.Model.Value {
+            .mapping(.init([
+                .init(key: "title", value: .string(title)),
+                .init(key: "summary", value: summaryModelValue),
+                .init(key: "diagnostics", value: modelValue()),
+            ]))
+        }
+
+        public func yamlDescription(
+            title: String = "PureYAML Validation Report",
+        ) -> String {
+            PureYAML.dump(modelValue(title: title))
+        }
+
+        public func jsonDescription(
+            title: String = "PureYAML Validation Report",
+        ) -> String {
+            modelValue(title: title).jsonDescription + "\n"
+        }
+
+        private var summaryModelValue: PureYAML.Model.Value {
+            .mapping(.init([
+                .init(key: "valid", value: .bool(isValid)),
+                .init(key: "diagnostics", value: .int(diagnostics.count)),
+                .init(key: "errors", value: .int(errors.count)),
+                .init(key: "warnings", value: .int(warnings.count)),
+            ]))
+        }
     }
 
     /// Validation result for one named source in a batch.
@@ -182,15 +213,24 @@ public extension PureYAML.Validation {
 
 private extension PureYAML.Validation.Diagnostic {
     var modelValue: PureYAML.Model.Value {
-        .mapping(.init([
+        var pairs: [PureYAML.Model.Pair] = [
             .init(key: "kind", value: .string(kind.description)),
             .init(key: "severity", value: .string(severity.description)),
             .init(key: "file", value: file.map(PureYAML.Model.Value.string) ?? .null),
+        ]
+        if let line {
+            pairs.append(.init(key: "line", value: .int(line)))
+        }
+        if let column {
+            pairs.append(.init(key: "column", value: .int(column)))
+        }
+        pairs.append(contentsOf: [
             .init(key: "documentIndex", value: documentIndex.map(PureYAML.Model.Value.int) ?? .null),
             .init(key: "path", value: path.map { .string($0.isRoot ? "root" : $0.description) } ?? .null),
             .init(key: "reason", value: .string(reason)),
             .init(key: "description", value: .string(description)),
-        ]))
+        ])
+        return .mapping(.init(pairs))
     }
 }
 
