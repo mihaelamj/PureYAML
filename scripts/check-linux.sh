@@ -10,6 +10,8 @@ run_linux_gate() {
   swift --version
   swift build
   swift test
+  swift build -c release
+  swift test -c release
 }
 
 if [ "$(uname -s)" = "Linux" ]; then
@@ -40,4 +42,4 @@ rsync -a --delete \
   --exclude '.git' \
   ./ "$HOST:$REMOTE_DIR/"
 
-ssh "$HOST" "limactl start '$LIMA_INSTANCE' >/tmp/pureyaml-lima-start.log 2>&1 || true; limactl shell '$LIMA_INSTANCE' -- bash -lc 'export SWIFTLY_HOME_DIR=\"$REMOTE_SWIFTLY_HOME\" SWIFTLY_BIN_DIR=\"$REMOTE_SWIFTLY_BIN\"; [ -f \"\$SWIFTLY_HOME_DIR/env.sh\" ] && . \"\$SWIFTLY_HOME_DIR/env.sh\"; cd \"$REMOTE_DIR\" && swift --version && swift build && swift test'"
+ssh "$HOST" "limactl start '$LIMA_INSTANCE' >/tmp/pureyaml-lima-start.log 2>&1 || true; limactl shell '$LIMA_INSTANCE' -- bash -lc 'export SWIFTLY_HOME_DIR=\"$REMOTE_SWIFTLY_HOME\" SWIFTLY_BIN_DIR=\"$REMOTE_SWIFTLY_BIN\"; [ -f \"\$SWIFTLY_HOME_DIR/env.sh\" ] && . \"\$SWIFTLY_HOME_DIR/env.sh\"; cd \"$REMOTE_DIR\" && swift --version && swift build && swift test && swift build -c release && swift test -c release'"

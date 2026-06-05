@@ -20,3 +20,4 @@ if ! swift_command sdk list | grep -qx "$SDK_ID"; then
 fi
 
 swift_command build --swift-sdk "$SDK_ID"
+swift_command build -c release --swift-sdk "$SDK_ID"
