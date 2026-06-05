@@ -1,6 +1,6 @@
 # PureYAML
 
-[![Linux](https://img.shields.io/badge/Linux-CI-34C759?style=for-the-badge&logo=linux&logoColor=white&labelColor=1D1D1F)](https://github.com/mihaelamj/PureYAML/actions/workflows/ci.yml)
+[![Linux](https://img.shields.io/github/actions/workflow/status/mihaelamj/PureYAML/ci.yml?branch=main&label=Linux&logo=linux)](https://github.com/mihaelamj/PureYAML/actions/workflows/ci.yml)
 
 PureYAML is a dependency-free YAML package written entirely in Swift.
 
@@ -18,14 +18,18 @@ The package is intentionally strict about portability:
 
 Mermaid status legend:
 
+The roadmap uses colors from apple.com CSS: web button blue for active,
+link blue for next, green for done, orange for review, deep orange for partial,
+and secondary gray for todo.
+
 ```mermaid
 flowchart TB
-  classDef done fill:#34C759,color:#000,stroke:#248A3D,stroke-width:2px
-  classDef review fill:#FFCC00,color:#000,stroke:#B58B00,stroke-width:2px
-  classDef active fill:#FF9500,color:#000,stroke:#B36200,stroke-width:2px
-  classDef next fill:#007AFF,color:#fff,stroke:#005BBB,stroke-width:2px
-  classDef partial fill:#AF52DE,color:#fff,stroke:#7D3CAF,stroke-width:2px
-  classDef todo fill:#8E8E93,color:#fff,stroke:#6B6B70,stroke-width:2px
+  classDef done fill:#03A10E,color:#1D1D1F,stroke:#1D1D1F,stroke-width:2px
+  classDef review fill:#FF791B,color:#1D1D1F,stroke:#1D1D1F,stroke-width:2px
+  classDef active fill:#0071E3,color:#FFFFFF,stroke:#1D1D1F,stroke-width:2px
+  classDef next fill:#0066CC,color:#FFFFFF,stroke:#1D1D1F,stroke-width:2px
+  classDef partial fill:#B64400,color:#FFFFFF,stroke:#1D1D1F,stroke-width:2px
+  classDef todo fill:#86868B,color:#1D1D1F,stroke:#6E6E73,stroke-width:2px
   LDone[Done]:::done
   LReview[Review]:::review
   LActive[Active]:::active
@@ -43,12 +47,12 @@ Epics overview:
 
 ```mermaid
 flowchart TB
-  classDef done fill:#34C759,color:#000,stroke:#248A3D,stroke-width:2px
-  classDef review fill:#FFCC00,color:#000,stroke:#B58B00,stroke-width:2px
-  classDef active fill:#FF9500,color:#000,stroke:#B36200,stroke-width:2px
-  classDef next fill:#007AFF,color:#fff,stroke:#005BBB,stroke-width:2px
-  classDef partial fill:#AF52DE,color:#fff,stroke:#7D3CAF,stroke-width:2px
-  classDef todo fill:#8E8E93,color:#fff,stroke:#6B6B70,stroke-width:2px
+  classDef done fill:#03A10E,color:#1D1D1F,stroke:#1D1D1F,stroke-width:2px
+  classDef review fill:#FF791B,color:#1D1D1F,stroke:#1D1D1F,stroke-width:2px
+  classDef active fill:#0071E3,color:#FFFFFF,stroke:#1D1D1F,stroke-width:2px
+  classDef next fill:#0066CC,color:#FFFFFF,stroke:#1D1D1F,stroke-width:2px
+  classDef partial fill:#B64400,color:#FFFFFF,stroke:#1D1D1F,stroke-width:2px
+  classDef todo fill:#86868B,color:#1D1D1F,stroke:#6E6E73,stroke-width:2px
   SuperEpic8["#8 Parser Replacement Roadmap - Active"]:::active
   Epic1["#1 Pure Swift Parse Core - Next"]:::next
   SuperEpic8 --> Epic1
@@ -58,12 +62,12 @@ Parse core detailed roadmap:
 
 ```mermaid
 flowchart TB
-  classDef done fill:#34C759,color:#000,stroke:#248A3D,stroke-width:2px
-  classDef review fill:#FFCC00,color:#000,stroke:#B58B00,stroke-width:2px
-  classDef active fill:#FF9500,color:#000,stroke:#B36200,stroke-width:2px
-  classDef next fill:#007AFF,color:#fff,stroke:#005BBB,stroke-width:2px
-  classDef partial fill:#AF52DE,color:#fff,stroke:#7D3CAF,stroke-width:2px
-  classDef todo fill:#8E8E93,color:#fff,stroke:#6B6B70,stroke-width:2px
+  classDef done fill:#03A10E,color:#1D1D1F,stroke:#1D1D1F,stroke-width:2px
+  classDef review fill:#FF791B,color:#1D1D1F,stroke:#1D1D1F,stroke-width:2px
+  classDef active fill:#0071E3,color:#FFFFFF,stroke:#1D1D1F,stroke-width:2px
+  classDef next fill:#0066CC,color:#FFFFFF,stroke:#1D1D1F,stroke-width:2px
+  classDef partial fill:#B64400,color:#FFFFFF,stroke:#1D1D1F,stroke-width:2px
+  classDef todo fill:#86868B,color:#1D1D1F,stroke:#6E6E73,stroke-width:2px
   Issue2["#2 Event Model and Golden Tests - Next"]:::next
   Issue3["#3 UTF-8 Reader and Scanner - Todo"]:::todo
   Issue4["#4 Token Stream to Events - Todo"]:::todo
@@ -120,7 +124,7 @@ PureYAML must stay dependency-free and portable. Before merging changes:
 bash scripts/check-style.sh
 bash scripts/check-namespacing.sh
 bash scripts/check-changelog-touched.sh
-python3 scripts/check-roadmap.py
+bash scripts/check-roadmap.sh
 swiftformat . --config .swiftformat --lint
 swiftlint --config .swiftlint.yml --strict
 swift build
