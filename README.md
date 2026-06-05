@@ -46,7 +46,7 @@ flowchart TB
   classDef todo fill:#f2f4f7,stroke:#8e8e93,color:#111827
   SuperEpic8["#8 Parser Replacement Roadmap"]:::epic
   Epic1["#1 Pure Swift Parse Core"]:::done
-  Epic9["#9 Deterministic Emitter Core"]:::todo
+  Epic9["#9 Deterministic Emitter Core"]:::done
   Epic10["#10 Typed Decoding and Encoding"]:::todo
   Epic11["#11 YAML Compatibility Corpus"]:::todo
   Epic12["#12 Usage and Migration Docs"]:::todo
@@ -59,22 +59,7 @@ flowchart TB
   Epic12 --> Epic13
 ```
 
-Emitter detailed roadmap:
-
-```mermaid
-flowchart TB
-  classDef done fill:#ddf9e4,stroke:#34c759,color:#111827
-  classDef review fill:#fff7d6,stroke:#ffcc00,color:#111827
-  classDef epic fill:#f2e5ff,stroke:#af52de,color:#111827
-  classDef todo fill:#f2f4f7,stroke:#8e8e93,color:#111827
-  Issue14["#14 Emitter Options and Scalar Policy"]:::done
-  Issue15["#15 Multiline Block Scalars"]:::todo
-  Issue16["#16 Flow Collection Emission"]:::todo
-  Issue17["#17 Emitter Corpus and Release Evidence"]:::todo
-  Issue14 --> Issue15
-  Issue15 --> Issue16
-  Issue16 --> Issue17
-```
+#9 Deterministic Emitter Core is complete in main.
 
 ## Status
 
@@ -82,8 +67,8 @@ This repository starts with the first real parser milestone: block mappings,
 block sequences, ordered mappings, common scalars, quoted strings, comments,
 flow collections, literal and folded block scalars, anchors, aliases, YAML
 directives, document markers, explicit built-in scalar tags, and a matching
-dumper. It also includes path-aware validation for structural YAML checks such
-as duplicate mapping keys.
+dumper with block and flow output policies. It also includes path-aware
+validation for structural YAML checks such as duplicate mapping keys.
 
 It is not yet a full YAML 1.2 implementation. The internal event parser now
 recognizes anchors, aliases, tags, flow collections, and block scalar styles from
@@ -115,6 +100,25 @@ let yaml = PureYAML.dump(document)
 
 try PureYAML.validate(document)
 ```
+
+Emitter options are explicit. The default is deterministic block-style output
+with quoted strings. Callers can opt into conservative plain strings, safe
+literal block scalars for multiline strings, and compact flow collections:
+
+```swift
+let readable = PureYAML.Emitting.Options(
+    scalarStyle: .literalBlockWhenMultiline
+)
+
+let compact = PureYAML.Emitting.Options(collectionStyle: .flow)
+
+let yaml = PureYAML.dump(document, options: readable)
+let compactYAML = PureYAML.dump(document, options: compact)
+```
+
+Literal block emission is intentionally conservative: multiline strings whose
+lines would not round-trip through the current parser are emitted as quoted
+strings instead. Flow collections always use inline scalar output.
 
 ## Development Contract
 

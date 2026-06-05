@@ -43,6 +43,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add opt-in literal block scalar emission for safe multiline strings, including
   `|-` parsing support for stripped final newlines.
 - Add opt-in flow collection emission for compact mapping and sequence output.
+- Add emitter corpus tests and document the current emitter policy.
 - Add Yams and CYaml attribution without copying their implementation into
   `Sources/`.
 

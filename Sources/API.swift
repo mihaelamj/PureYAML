@@ -4,7 +4,7 @@ public extension PureYAML {
         try Parsing.Parser().parse(yaml)
     }
 
-    /// Serializes a ``Model/Value`` tree into block-style YAML.
+    /// Serializes a ``Model/Value`` tree into YAML with the selected options.
     static func dump(
         _ value: Model.Value,
         options: Emitting.Options = .default,

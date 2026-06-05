@@ -49,7 +49,8 @@ PureYAML
 │   ├── Mark
 │   └── ParseError
 ├── Emitting
-│   └── Dumper
+│   ├── Dumper
+│   └── Options
 └── Validation
     ├── Validator
     ├── Rule
@@ -103,7 +104,12 @@ scalars. `Parsing.EventComposer` consumes those events into
 alias-resolved values, and explicit built-in scalar tags where the current model
 can represent them.
 
-The initial dumper emits block-style YAML from the model.
+The dumper emits deterministic YAML from the model. The default policy is
+block-style collections with quoted strings. `Emitting.Options` can opt into
+conservative plain scalars, safe literal block scalars for multiline strings,
+and flow-style collections. Literal block scalar emission is intentionally
+limited to strings whose lines round-trip through the current parser; other
+multiline strings stay quoted. Flow collections always use inline scalars.
 
 The initial validator traverses parsed YAML values and reports path-aware
 issues. The default rule rejects duplicate mapping keys, and callers can build a
