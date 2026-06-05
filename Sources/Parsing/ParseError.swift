@@ -10,6 +10,8 @@ public extension PureYAML.Parsing {
         case expectedAliasName(line: Int)
         case expectedNode(line: Int, column: Int)
         case expectedScalarKey(line: Int, column: Int)
+        case incompatibleYAMLDirective(line: Int)
+        case invalidTaggedScalar(tag: String, value: String, line: Int, column: Int)
         case unterminatedTag(line: Int)
         case unterminatedQuotedString(line: Int)
         case undefinedAlias(anchor: String, line: Int, column: Int)
@@ -36,6 +38,10 @@ public extension PureYAML.Parsing {
                 "expected a YAML node at line \(line), column \(column)"
             case let .expectedScalarKey(line, column):
                 "expected a scalar mapping key at line \(line), column \(column)"
+            case let .incompatibleYAMLDirective(line):
+                "incompatible YAML directive at line \(line)"
+            case let .invalidTaggedScalar(tag, value, line, column):
+                "invalid scalar '\(value)' for tag '\(tag)' at line \(line), column \(column)"
             case let .unterminatedTag(line):
                 "unterminated tag at line \(line)"
             case let .unterminatedQuotedString(line):

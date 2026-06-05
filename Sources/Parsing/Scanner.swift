@@ -21,6 +21,9 @@ extension PureYAML.Parsing {
                     if isLineBreak(state.reader.peek()) {
                         continue
                     }
+                    if try scanDirectiveOrDocumentMarker(&state) {
+                        continue
+                    }
                     state.isAtLineStart = false
                 }
 
@@ -41,6 +44,10 @@ extension PureYAML.Parsing.Scanner {
         var indentation: [Int] = [0]
         var isAtLineStart = true
         var flowDepth = 0
+        var tagHandles = [
+            "!": "!",
+            "!!": "tag:yaml.org,2002:",
+        ]
 
         mutating func append(_ kind: PureYAML.Parsing.TokenKind) {
             let mark = reader.mark
@@ -339,6 +346,7 @@ extension PureYAML.Parsing.Scanner {
             value += state.reader.consume { character in
                 !isTokenTerminator(character)
             }
+            value = expandTag(value, state: state)
         }
         state.append(.tag(value), mark: start, endMark: state.reader.mark)
     }

@@ -79,6 +79,9 @@ The initial parser supports:
 - flow sequences and mappings
 - literal and folded block scalars
 - anchors and aliases
+- YAML directives and document markers for single-document streams
+- explicit built-in scalar tags for strings, integers, floats, booleans, and
+  nulls
 
 The parser layer also has an internal event contract. `Parsing.Event` can
 represent stream, document, scalar, sequence, mapping, and alias events, with
@@ -91,12 +94,14 @@ The parser layer now also has an internal reader/scanner/event contract.
 indexes, lines, and columns. `Parsing.Scanner` emits lexical `Parsing.Token`
 values for comments, indentation, block entries, mapping indicators, flow
 delimiters, quoted scalar starts, block scalar headers, anchors, aliases, tags,
-and source mark ranges. `Parsing.TokenEventParser` consumes that token stream
-and emits `Parsing.Event` values for block collections, flow collections,
-aliases, anchors, tags, and scalars. `Parsing.EventComposer` consumes those
-events into `PureYAML.Model.Value`, preserving ordered mapping pairs, block
-scalar text, and alias-resolved values where the current model can represent
-them.
+YAML directives, document markers, and source mark ranges. `Parsing.Scanner`
+also expands tag handles from `%TAG` directives before emitting tag tokens.
+`Parsing.TokenEventParser` consumes that token stream and emits `Parsing.Event`
+values for block collections, flow collections, aliases, anchors, tags, and
+scalars. `Parsing.EventComposer` consumes those events into
+`PureYAML.Model.Value`, preserving ordered mapping pairs, block scalar text,
+alias-resolved values, and explicit built-in scalar tags where the current model
+can represent them.
 
 The initial dumper emits block-style YAML from the model.
 
@@ -108,7 +113,7 @@ blank validator plus custom rules for project-specific checks.
 
 Compatibility should be added in small, test-backed slices:
 
-1. Tag-aware scalar and collection handling.
+1. Tag-aware collection handling and merge keys.
 2. Validation rules beyond duplicate-key behavior.
 3. Codable-style decoding and encoding.
 4. Yams corpus comparison tests in a separate compatibility suite.

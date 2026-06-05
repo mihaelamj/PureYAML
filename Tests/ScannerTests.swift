@@ -135,6 +135,34 @@ struct ScannerTests {
         ])
     }
 
+    @Test("Scans directives and document markers without value tokens")
+    func test_directivesAndDocumentMarkers() throws {
+        let tokens = try scanKinds(
+            """
+            %YAML 1.2
+            %TAG !yaml! tag:yaml.org,2002:
+            ---
+            value: !yaml!str true
+            ...
+            """,
+        )
+
+        expectKinds(tokens, [
+            "streamStart",
+            "mappingKey",
+            "scalar value=\"value\" style=plain",
+            "mappingValue",
+            "tag value=tag:yaml.org,2002:str",
+            "scalar value=\"true\" style=plain",
+            "streamEnd",
+        ])
+        expectDoesNotContain(tokens, [
+            "scalar value=\"%YAML 1.2\" style=plain",
+            "scalar value=\"---\" style=plain",
+            "scalar value=\"...\" style=plain",
+        ])
+    }
+
     @Test("Tracks UTF-8 source marks")
     func test_utf8SourceMarks() throws {
         let tokens = try PureYAML.Parsing.Scanner().scan("caf\u{00E9}: yes")
@@ -177,6 +205,7 @@ struct ScannerTests {
         expectScannerError("anchor: &", .expectedAnchorName(line: 1))
         expectScannerError("alias: *", .expectedAliasName(line: 1))
         expectScannerError("tag: !<tag:example.com,2026:thing", .unterminatedTag(line: 1))
+        expectScannerError("%YAML 1.3\n---\nvalue: yes", .incompatibleYAMLDirective(line: 1))
     }
 }
 

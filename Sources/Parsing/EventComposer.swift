@@ -67,9 +67,14 @@ extension PureYAML.Parsing.EventComposer {
             let value = try composeMapping()
             store(value, anchor: anchor)
             return value
-        case let .scalar(value, anchor, _, style, mark):
+        case let .scalar(value, anchor, tag, style, mark):
             index += 1
-            let model = try composeScalar(value, style: style, line: mark.line)
+            let model = try composeScalar(
+                value,
+                tag: tag,
+                style: style,
+                mark: mark,
+            )
             store(model, anchor: anchor)
             return model
         case let .sequenceStart(anchor, _, _, _):
@@ -128,17 +133,102 @@ extension PureYAML.Parsing.EventComposer {
 
     func composeScalar(
         _ value: String,
+        tag: String?,
         style: PureYAML.Parsing.ScalarStyle,
-        line: Int,
+        mark: PureYAML.Parsing.Mark,
     ) throws -> PureYAML.Model.Value {
+        if let tagged = try composeTaggedScalar(value, tag: tag, mark: mark) {
+            return tagged
+        }
+
         switch style {
         case .folded, .literal:
-            .string(value)
+            return .string(value)
         case .plain:
-            try scalarParser.parseScalar(value, line: line)
+            return try scalarParser.parseScalar(value, line: mark.line)
         case .doubleQuoted, .singleQuoted:
-            .string(value)
+            return .string(value)
         }
+    }
+
+    func composeTaggedScalar(
+        _ value: String,
+        tag: String?,
+        mark: PureYAML.Parsing.Mark,
+    ) throws -> PureYAML.Model.Value? {
+        guard let tag = normalizedScalarTag(tag) else {
+            return nil
+        }
+        switch tag {
+        case "tag:yaml.org,2002:str":
+            return .string(value)
+        case "tag:yaml.org,2002:int":
+            guard let int = Int(scalarParser.trim(value)) else {
+                throw invalidTaggedScalar(tag: "tag:yaml.org,2002:int", value: value, mark: mark)
+            }
+            return .int(int)
+        case "tag:yaml.org,2002:float":
+            guard let double = Double(scalarParser.trim(value)) else {
+                throw invalidTaggedScalar(tag: "tag:yaml.org,2002:float", value: value, mark: mark)
+            }
+            return .double(double)
+        case "tag:yaml.org,2002:bool":
+            return try composeTaggedBool(value, mark: mark)
+        case "tag:yaml.org,2002:null":
+            return .null
+        default:
+            return nil
+        }
+    }
+
+    func composeTaggedBool(
+        _ value: String,
+        mark: PureYAML.Parsing.Mark,
+    ) throws -> PureYAML.Model.Value {
+        switch scalarParser.trim(value) {
+        case "true", "True", "TRUE":
+            return .bool(true)
+        case "false", "False", "FALSE":
+            return .bool(false)
+        default:
+            throw invalidTaggedScalar(tag: "tag:yaml.org,2002:bool", value: value, mark: mark)
+        }
+    }
+
+    func normalizedScalarTag(_ tag: String?) -> String? {
+        guard let tag else {
+            return nil
+        }
+        if tag.hasPrefix("!<"), tag.hasSuffix(">") {
+            return String(tag.dropFirst(2).dropLast())
+        }
+        switch tag {
+        case "!!str":
+            return "tag:yaml.org,2002:str"
+        case "!!int":
+            return "tag:yaml.org,2002:int"
+        case "!!float":
+            return "tag:yaml.org,2002:float"
+        case "!!bool":
+            return "tag:yaml.org,2002:bool"
+        case "!!null":
+            return "tag:yaml.org,2002:null"
+        default:
+            return tag
+        }
+    }
+
+    func invalidTaggedScalar(
+        tag: String,
+        value: String,
+        mark: PureYAML.Parsing.Mark,
+    ) -> PureYAML.Parsing.ParseError {
+        PureYAML.Parsing.ParseError.invalidTaggedScalar(
+            tag: tag,
+            value: value,
+            line: mark.line,
+            column: mark.column,
+        )
     }
 }
 

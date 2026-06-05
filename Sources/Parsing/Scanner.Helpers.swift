@@ -1,4 +1,16 @@
 extension PureYAML.Parsing.Scanner {
+    func startsWith(
+        _ prefix: String,
+        _ reader: PureYAML.Parsing.Reader,
+    ) -> Bool {
+        for (offset, character) in prefix.enumerated() {
+            guard reader.peek(offset: offset) == character else {
+                return false
+            }
+        }
+        return true
+    }
+
     func isLineBreak(_ character: Character?) -> Bool {
         character == "\n" || character == "\r" || character == "\r\n"
     }
@@ -60,6 +72,26 @@ extension PureYAML.Parsing.Scanner {
             end = previous
         }
         return String(value[..<end])
+    }
+
+    func skipLine(_ state: inout State) {
+        _ = state.reader.consume { character in
+            !isLineBreak(character)
+        }
+    }
+
+    func expandTag(
+        _ tag: String,
+        state: State,
+    ) -> String {
+        let handles = state.tagHandles.keys.sorted { first, second in
+            first.count > second.count
+        }
+        for handle in handles where tag.hasPrefix(handle) {
+            let suffix = tag.dropFirst(handle.count)
+            return (state.tagHandles[handle] ?? handle) + suffix
+        }
+        return tag
     }
 
     func shouldEndPlainScalar(

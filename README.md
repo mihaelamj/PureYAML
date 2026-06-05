@@ -61,7 +61,7 @@ flowchart TB
   Issue3["#3 UTF-8 Reader and Scanner"]:::done
   Issue4["#4 Token Stream to Events"]:::done
   Issue5["#5 Events to PureYAML Values"]:::done
-  Issue6["#6 Scalars Tags and Aliases"]:::todo
+  Issue6["#6 Scalars Tags and Aliases"]:::done
   Issue7["#7 macOS Linux and WASM Hardening"]:::todo
   Issue2 --> Issue3
   Issue3 --> Issue4
@@ -74,15 +74,17 @@ flowchart TB
 
 This repository starts with the first real parser milestone: block mappings,
 block sequences, ordered mappings, common scalars, quoted strings, comments,
-flow collections, literal and folded block scalars, anchors, aliases, and a
-matching dumper. It also includes path-aware validation for structural YAML
-checks such as duplicate mapping keys.
+flow collections, literal and folded block scalars, anchors, aliases, YAML
+directives, document markers, explicit built-in scalar tags, and a matching
+dumper. It also includes path-aware validation for structural YAML checks such
+as duplicate mapping keys.
 
 It is not yet a full YAML 1.2 implementation. The internal event parser now
 recognizes anchors, aliases, tags, flow collections, and block scalar styles from
 scanner tokens, and the public value parser composes those events into
-`PureYAML.Model.Value`. Tag-specific scalar and collection semantics,
-directives, and custom decoding are planned work.
+`PureYAML.Model.Value`. Full tag-specific collection semantics, multi-document
+streams, merge keys, directives beyond the selected compatibility subset, and
+custom decoding are planned work.
 
 ## Attribution
 
