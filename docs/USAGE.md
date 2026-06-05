@@ -50,6 +50,7 @@ Those tests are the executable contract for the short-form examples.
 | Emit YAML from stream documents | `PureYAML.dump(_:options:)` with `[PureYAML.Stream.Document]` | `String` |
 | Validate a value tree | `PureYAML.validate(_:using:strict:)` | `[PureYAML.Validation.Issue]` or a thrown issue collection |
 | Validate stream documents | `PureYAML.validate(_:using:strict:)` with `[PureYAML.Stream.Document]` | `[PureYAML.Stream.Issue]` or a thrown stream issue collection |
+| Produce non-throwing validation diagnostics | `PureYAML.validationReport(_:)` or `PureYAML.validationReports(_:)` | `PureYAML.Validation.Report` or `PureYAML.Validation.BatchReport` |
 | Decode a typed value from YAML | `PureYAML.decode(_:from:)` | `Decodable` value |
 | Encode a typed value to a value tree | `PureYAML.encode(_:)` | `PureYAML.Model.Value` |
 | Encode a typed value to YAML | `PureYAML.encodeToYAML(_:options:)` | `String` |
@@ -276,6 +277,26 @@ do {
 
 The issue descriptions include `document[0]`, `document[1]`, and so on, while
 the nested validation path still describes the location inside that document.
+
+Use validation reports when a caller needs to process many faulty files without
+throwing away the rest of the batch. Parse failures become diagnostics, ordinary
+validation issues keep document indexes and paths, and warnings can optionally
+mark a source invalid:
+
+```swift
+let report = PureYAML.validationReports(
+    [
+        .init(name: "valid.yaml", yaml: "title: Ready"),
+        .init(name: "broken.yaml", yaml: "title: \"open"),
+    ],
+    failOnWarnings: true
+)
+
+let markdown = report.markdownDescription(title: "YAML Validation")
+```
+
+PureYAML does not write files from the library target. Applications that need a
+validation document should write `markdown` through their own file IO layer.
 
 ## Cross-Platform Verification
 

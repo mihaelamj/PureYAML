@@ -5,9 +5,6 @@ import Testing
 struct ParsingErrorTests {
     @Test("Reports exact parser errors")
     func test_errorReporting() {
-        expectParseError("", .emptyDocument)
-        expectParseError("# comment only", .emptyDocument)
-        expectParseError("\tkey: value", .tabIndentation(line: 1))
         expectParseError("root:\n    child: yes\n  wrong: no", .unexpectedIndentation(line: 3))
         expectParseError("- one\nkey: value", .mixedCollectionStyles(line: 2))
         expectParseError("root:\n  child: value\n  dangling", .unexpectedToken(
@@ -26,6 +23,25 @@ struct ParsingErrorTests {
             line: 1,
             column: 8,
         ))
+    }
+
+    @Test("Parses empty and comment-only documents as null")
+    func test_emptyAndCommentOnlyDocumentsParseAsNull() throws {
+        #expect(try PureYAML.parse("") == .null)
+        #expect(try PureYAML.parse("# comment only") == .null)
+        #expect(try PureYAML.parse("   \n# comment only\n") == .null)
+    }
+
+    @Test("Parses tab indentation with permissive tab stops")
+    func test_tabIndentationUsesPermissiveTabStops() throws {
+        let root = try requireMapping(PureYAML.parse(
+            """
+            root:
+            \tchild: value
+            """,
+        ))
+
+        #expect(root?.mapping("root")?["child"] == .string("value"))
     }
 
     @Test("Parser errors describe returned failures")

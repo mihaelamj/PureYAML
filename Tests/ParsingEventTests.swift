@@ -105,6 +105,32 @@ struct ParsingEventTests {
         #expect(!descriptions.contains { $0.contains("it''s") })
     }
 
+    @Test("Parses JSON-style flow mapping pairs")
+    func test_jsonStyleFlowMappingPairs() throws {
+        let root = try requireMapping(PureYAML.parse(
+            """
+            value:
+              {
+              "version" : "7",
+              "fields" : [
+                {
+                  "key" : "productType",
+                  "required" : true
+                }
+              ]
+              }
+            """,
+        ))
+
+        let value = root?.mapping("value")
+        let field = value?.sequence("fields")?.first?.mapping
+
+        #expect(value?["version"] == .string("7"))
+        #expect(field?["key"] == .string("productType"))
+        #expect(field?["required"] == .bool(true))
+        #expect(value?["missing"] == nil)
+    }
+
     @Test("Emits golden events for block scalar headers")
     func test_blockScalarHeaders() throws {
         let events = try PureYAML.Parsing.Parser().parseEvents(
@@ -141,9 +167,6 @@ struct ParsingEventTests {
 
     @Test("Reports parse-event errors")
     func test_errorReporting() {
-        expectError(PureYAML.Parsing.ParseError.emptyDocument) {
-            try PureYAML.Parsing.Parser().parseEvents("")
-        }
         expectError(PureYAML.Parsing.ParseError.unexpectedIndentation(line: 3)) {
             try PureYAML.Parsing.Parser().parseEvents("root:\n    child: yes\n  wrong: no")
         }
@@ -165,6 +188,19 @@ struct ParsingEventTests {
             ),
             description: "expected flow entry or flow sequence end at line 1, column 17, found streamEnd",
         )
+    }
+
+    @Test("Emits null-document events for empty input")
+    func test_emptyInputEmitsNullDocumentEvents() throws {
+        let events = try PureYAML.Parsing.Parser().parseEvents("")
+
+        #expect(events.map(\.description) == [
+            "streamStart @1:1@0",
+            "documentStart @1:1@0",
+            "scalar value=\"\" anchor=- tag=- style=plain @1:1@0",
+            "documentEnd @1:1@0",
+            "streamEnd @1:1@0",
+        ])
     }
 }
 

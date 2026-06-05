@@ -3,6 +3,38 @@ import Testing
 
 @Suite("Parsing Indentation Regressions")
 struct ParsingIndentationRegressionTests {
+    @Test("Parses indented root mapping fragments")
+    func test_indentedRootMappingFragments() throws {
+        let root = try requireMapping(PureYAML.parse(
+            """
+              title: OpenAPI Generation Demo
+              version: 1.0.0
+              contact:
+                name: API Support
+                email: support@example.com
+            """,
+        ))
+
+        #expect(root?["title"] == .string("OpenAPI Generation Demo"))
+        #expect(root?["version"] == .string("1.0.0"))
+        #expect(root?.mapping("contact")?["name"] == .string("API Support"))
+        #expect(root?.mapping("contact")?["email"] == .string("support@example.com"))
+        #expect(root?["missing"] == nil)
+    }
+
+    @Test("Parses indented root mapping fragments with leading blank lines")
+    func test_indentedRootMappingFragmentsWithLeadingBlankLines() throws {
+        let root = try requireMapping(PureYAML.parse(
+            """
+
+              securitySchemes:
+            """,
+        ))
+
+        #expect(root?["securitySchemes"] == .null)
+        #expect(root?["missing"] == nil)
+    }
+
     @Test("Parses compact sequence item mappings without swallowing lower-column siblings")
     func test_compactSequenceItemMappingsDoNotSwallowLowerColumnSiblings() throws {
         let root = try requireMapping(PureYAML.parse(

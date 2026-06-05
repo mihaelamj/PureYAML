@@ -73,11 +73,33 @@ extension PureYAML.Parsing.TokenEventParser {
                 _ = cursor.advance()
                 continue
             }
-            endMark = try parseMappingPair().endMark
+            endMark = try parseFlowMappingPair().endMark
             if cursor.current?.kind.isFlowTerminator == false {
                 throw unexpectedToken(expected: "flow entry or flow mapping end")
             }
         }
         throw unexpectedToken(expected: "flow mapping end")
+    }
+
+    mutating func parseFlowMappingPair() throws -> PureYAML.Parsing.NodeResult {
+        if cursor.current?.kind.isMappingKey == true {
+            return try parseMappingPair()
+        }
+
+        _ = try parseNode()
+        let valueIndicator = try expect("mapping value") { kind in
+            if case .mappingValue = kind {
+                return true
+            }
+            return false
+        }
+
+        let properties = consumeProperties()
+        guard properties != .none || cursor.current?.kind.isFlowTerminator == false else {
+            let mark = valueIndicator.endMark
+            events.append(.scalar(value: "", anchor: nil, tag: nil, style: .plain, mark: mark))
+            return PureYAML.Parsing.NodeResult(kind: .scalar, endMark: mark)
+        }
+        return try parseNode(properties: properties)
     }
 }

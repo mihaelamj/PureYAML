@@ -27,8 +27,11 @@ extension PureYAML.Parsing {
                 try parseDocument()
                 didParseDocument = true
             }
-            guard didParseDocument else {
-                throw ParseError.emptyDocument
+            if !didParseDocument {
+                let mark = cursor.current?.mark ?? streamStart.endMark
+                events.append(.documentStart(mark: mark))
+                appendEmptyDocument(at: mark)
+                events.append(.documentEnd(mark: mark))
             }
             let streamEnd = try expect("stream end") { kind in
                 if case .streamEnd = kind {
@@ -60,8 +63,7 @@ extension PureYAML.Parsing.TokenEventParser {
             return
         }
 
-        let result = try parseNode()
-        var endMark = result.endMark
+        var endMark = try parseDocumentRootNode().endMark
         while cursor.current?.kind.isDedent == true {
             let dedent = try expect("dedent") { $0.isDedent }
             endMark = dedent.endMark
@@ -79,6 +81,18 @@ extension PureYAML.Parsing.TokenEventParser {
             )
         }
         events.append(.documentEnd(mark: endMark))
+    }
+
+    mutating func parseDocumentRootNode() throws -> PureYAML.Parsing.NodeResult {
+        guard cursor.current?.kind.isIndent == true else {
+            return try parseNode()
+        }
+        _ = try expect("indent") { $0.isIndent }
+        let result = try parseNode()
+        if cursor.current?.kind.isDedent == true {
+            _ = try expect("dedent") { $0.isDedent }
+        }
+        return result
     }
 
     mutating func parseDocumentStartMark() -> PureYAML.Parsing.Mark {

@@ -37,12 +37,17 @@ extension PureYAML.Parsing.Scanner {
                 width += 1
                 state.reader.advance()
             } else if character == "\t" {
-                throw PureYAML.Parsing.ParseError.tabIndentation(line: state.reader.mark.line)
+                width = nextTabStop(after: width)
+                state.reader.advance()
             } else {
                 return width
             }
         }
         return width
+    }
+
+    func nextTabStop(after width: Int) -> Int {
+        ((width / 4) + 1) * 4
     }
 
     func shouldProcessIndentation(_ state: State) -> Bool {

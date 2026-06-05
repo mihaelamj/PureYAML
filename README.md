@@ -204,6 +204,19 @@ errors still throw.
 let issues = try PureYAML.validate(document, strict: false)
 ```
 
+For production-style validation over many YAML inputs, use the non-throwing
+report API. It validates every source, turns parse failures into diagnostics,
+and can render Markdown that a consuming tool writes to disk:
+
+```swift
+let report = PureYAML.validationReports([
+    .init(name: "valid.yaml", yaml: "title: Ready"),
+    .init(name: "broken.yaml", yaml: "title: \"open"),
+])
+
+let markdown = report.markdownDescription(title: "YAML Validation")
+```
+
 Custom validation rules can be layered onto the default validator or attached to
 a blank validator when callers want only project-specific checks. Validation
 tests pin exact issue paths, descriptions, severity handling, rule traversal
