@@ -55,6 +55,7 @@ Before claiming completion, run:
 ```sh
 bash scripts/check-style.sh
 bash scripts/check-namespacing.sh
+bash scripts/check-forbidden-patterns.sh
 bash scripts/check-changelog-touched.sh
 swiftformat . --config .swiftformat --lint
 swiftlint --config .swiftlint.yml --strict

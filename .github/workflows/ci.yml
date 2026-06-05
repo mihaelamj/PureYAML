@@ -25,6 +25,7 @@ jobs:
         run: |
           bash scripts/check-style.sh
           bash scripts/check-namespacing.sh
+          bash scripts/check-forbidden-patterns.sh
           git fetch origin main --depth=1 || true
           BASE_REF=origin/main bash scripts/check-changelog-touched.sh
       - name: Format and lint

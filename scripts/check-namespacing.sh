@@ -20,6 +20,18 @@ while IFS= read -r f; do
     echo "namespacing: $count file-scope types in $f (one per file)" >&2
     FAIL=1
   fi
+
+  public_types=$(grep -nE "^public (actor|struct|enum|protocol|class|final class) [A-Z]" "$f" || true)
+  if [ -n "$public_types" ]; then
+    if [ "$f" = "Sources/PureYAML.swift" ] &&
+      [ "$public_types" = "2:public enum PureYAML {" ]; then
+      :
+    else
+      echo "namespacing: public file-scope type in $f (wrap it under PureYAML)" >&2
+      printf '%s\n' "$public_types" | sed 's/^/  /' >&2
+      FAIL=1
+    fi
+  fi
 done < <(find "$SRC" -name "*.swift")
 
 if [ "$FAIL" -ne 0 ]; then

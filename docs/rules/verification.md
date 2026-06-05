@@ -10,6 +10,7 @@ Run this before committing or reporting completion:
 ```sh
 bash scripts/check-style.sh
 bash scripts/check-namespacing.sh
+bash scripts/check-forbidden-patterns.sh
 bash scripts/check-changelog-touched.sh
 swiftformat . --config .swiftformat --lint
 swiftlint --config .swiftlint.yml --strict
@@ -25,6 +26,7 @@ bash scripts/check-wasm.sh
 |---|---|
 | Style clean | `scripts/check-style.sh` exits 0 |
 | Namespace clean | `scripts/check-namespacing.sh` exits 0 |
+| Forbidden-pattern clean | `scripts/check-forbidden-patterns.sh` exits 0 |
 | Format clean | `swiftformat . --config .swiftformat --lint` exits 0 |
 | Lint clean | `swiftlint --config .swiftlint.yml --strict` exits 0 |
 | Builds on macOS | `swift build` exits 0 |

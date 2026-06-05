@@ -3,6 +3,29 @@ import Testing
 
 @Suite("Unkeyed Coding")
 struct UnkeyedCodingTests {
+    @Test("Fixture corpus decodes YAML and model sequences", arguments: sequenceDecodeFixtures)
+    func test_fixtureCorpusDecodesYAMLAndModelSequences(
+        fixture: SequenceDecodeFixture,
+    ) throws {
+        try fixture.expectDecodedFromYAML()
+        try fixture.expectDecodedFromValue()
+    }
+
+    @Test("Fixture corpus encodes exact sequence values and YAML", arguments: sequenceEncodeFixtures)
+    func test_fixtureCorpusEncodesExactSequenceValuesAndYAML(
+        fixture: SequenceEncodeFixture,
+    ) throws {
+        try fixture.expectEncodedValue()
+        try fixture.expectEncodedYAML()
+    }
+
+    @Test("Fixture corpus reports exact sequence failures", arguments: sequenceFailureFixtures)
+    func test_fixtureCorpusReportsExactSequenceFailures(
+        fixture: SequenceFailureFixture,
+    ) {
+        fixture.expectFailure()
+    }
+
     @Test("Decodes unkeyed sequences with scalars optionals nesting and keyed elements")
     func test_decodesUnkeyedSequencesWithScalarsOptionalsNestingAndKeyedElements() throws {
         #expect(try PureYAML.decode([Int].self, from: .sequence([.int(1), .int(2)])) == [1, 2])

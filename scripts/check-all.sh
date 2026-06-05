@@ -15,6 +15,7 @@ run_gate() {
 
 run_gate "style" bash scripts/check-style.sh
 run_gate "namespacing" bash scripts/check-namespacing.sh
+run_gate "forbidden patterns" bash scripts/check-forbidden-patterns.sh
 run_gate "changelog" bash scripts/check-changelog-touched.sh
 run_gate "roadmap" bash scripts/check-roadmap.sh
 run_gate "swiftformat" swiftformat . --config .swiftformat --lint

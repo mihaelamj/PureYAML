@@ -56,6 +56,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   deterministically.
 - Add unkeyed typed Decodable and Encodable conversion for sequences, including
   nested sequences and sequence properties on keyed structs.
+- Add a fixture-backed sequence typed-conversion test corpus and a
+  forbidden-pattern verification gate for package, source, and test contracts.
 
 ### Changed
 
