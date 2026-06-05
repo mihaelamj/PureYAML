@@ -1,0 +1,38 @@
+# Package and Repository Structure
+
+PureYAML is a root Swift package.
+
+## Required Layout
+
+```text
+PureYAML/
+├── Package.swift
+├── Sources/
+│   ├── PureYAML.swift
+│   ├── Model/
+│   ├── Parsing/
+│   └── Emitting/
+├── Tests/
+│   └── PureYAMLTests/
+├── docs/
+└── scripts/
+```
+
+## Rules
+
+- Keep `Package.swift` at repository root.
+- Do not create a `Packages/` folder.
+- Keep production code directly under `Sources`.
+- Keep tests in `Tests/PureYAMLTests`.
+- Keep `Package.swift` dependency-free.
+- Add new targets only when a responsibility genuinely needs isolation.
+
+## Namespace Mapping
+
+The namespace tree mirrors the source tree:
+
+- `Sources/Model/Value.swift` -> `PureYAML.Model.Value`
+- `Sources/Parsing/Parser.swift` -> `PureYAML.Parsing.Parser`
+- `Sources/Emitting/Dumper.swift` -> `PureYAML.Emitting.Dumper`
+
+The root namespace file, `Sources/PureYAML.swift`, is a map of namespaces only.
