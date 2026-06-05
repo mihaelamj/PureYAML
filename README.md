@@ -1,6 +1,9 @@
 # PureYAML
 
-[![CI](https://img.shields.io/github/actions/workflow/status/mihaelamj/PureYAML/ci.yml?branch=main&label=macOS%20Linux%20Windows%20WASM)](https://github.com/mihaelamj/PureYAML/actions/workflows/ci.yml)
+[![macOS CI](https://img.shields.io/github/actions/workflow/status/mihaelamj/PureYAML/ci.yml?branch=main&label=macOS)](https://github.com/mihaelamj/PureYAML/actions/workflows/ci.yml)
+[![Linux CI](https://img.shields.io/github/actions/workflow/status/mihaelamj/PureYAML/ci.yml?branch=main&label=Linux)](https://github.com/mihaelamj/PureYAML/actions/workflows/ci.yml)
+[![Windows CI](https://img.shields.io/github/actions/workflow/status/mihaelamj/PureYAML/ci.yml?branch=main&label=Windows)](https://github.com/mihaelamj/PureYAML/actions/workflows/ci.yml)
+[![WASI CI](https://img.shields.io/github/actions/workflow/status/mihaelamj/PureYAML/ci.yml?branch=main&label=WASI)](https://github.com/mihaelamj/PureYAML/actions/workflows/ci.yml)
 
 PureYAML is a dependency-free YAML package written entirely in Swift.
 
