@@ -63,26 +63,7 @@ flowchart TB
 
 #10 Typed Decoding and Encoding is complete in main.
 
-#11 YAML Compatibility Corpus is active:
-
-```mermaid
-flowchart TB
-  classDef done fill:#ddf9e4,stroke:#34c759,color:#111827
-  classDef review fill:#fff7d6,stroke:#ffcc00,color:#111827
-  classDef epic fill:#f2e5ff,stroke:#af52de,color:#111827
-  classDef todo fill:#f2f4f7,stroke:#8e8e93,color:#111827
-  Epic11["#11 YAML Compatibility Corpus"]:::epic
-  Scalar24["#24 Scalar and Tag Corpus"]:::done
-  Collection25["#25 Collection and Anchor Corpus"]:::done
-  Gaps27["#27 Unsupported YAML Gaps"]:::done
-  Literal19["#19 Literal Block Emission"]:::done
-  Downstream26["#26 Downstream Document Fixtures"]:::todo
-  Epic11 --> Scalar24
-  Scalar24 --> Collection25
-  Collection25 --> Gaps27
-  Gaps27 --> Literal19
-  Literal19 --> Downstream26
-```
+#11 YAML Compatibility Corpus is complete in main.
 
 ## Status
 

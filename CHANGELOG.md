@@ -74,6 +74,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   fallback behavior, and direct value-tree validation.
 - Add fixture-backed literal block emission coverage for newly supported
   multiline content and exact quoted fallbacks.
+- Add downstream-shaped document fixtures for API-style documents, service
+  configuration decoding, and unsupported merge-key fallback behavior.
 
 ### Changed
 
