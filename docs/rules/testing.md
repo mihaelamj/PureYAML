@@ -8,10 +8,9 @@ The `withDependencies` overrides shown in the patterns below assume the Point-Fr
 
 ## Core rules
 
-### Rule 0: OpenAPIKit discipline, Swift Testing syntax
+### Rule 0: Exact Diagnostics Discipline
 
-PureYAML tests must follow the OpenAPIKit testing approach, translated to Swift
-Testing instead of XCTest:
+PureYAML tests must use Swift Testing and pin exact behavior:
 
 - Use focused `test_...` method names inside `@Suite` groups.
 - Use direct equality checks for concrete values, rendered output, token/event
@@ -49,7 +48,7 @@ Control dependencies in tests:
 
 Structure tests clearly:
 - MUST use `@Suite` for logical grouping
-- MUST name test methods with the `test_...` convention used by OpenAPIKit
+- MUST name test methods with the `test_...` convention
 - MUST keep `@Test("...")` descriptions clear and user-readable
 - MUST test one behavior per test
 - MUST NOT create kitchen sink tests
