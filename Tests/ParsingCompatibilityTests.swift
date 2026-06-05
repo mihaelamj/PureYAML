@@ -4,6 +4,72 @@ import Testing
 @Suite("Parsing Compatibility")
 struct ParsingCompatibilityTests {
     @Test(
+        "Parses fixture-backed block flow and anchor collections",
+        arguments: CollectionCompatibilityFixtures.supportedCollections,
+    )
+    func test_collectionCompatibilityFixtures(testCase: CollectionCompatibilityFixtures.SuccessCase) throws {
+        let value = try PureYAML.parse(testCase.yaml)
+
+        #expect(value == testCase.expected)
+        expectAbsentRootKeys(testCase.absentRootKeys, in: value)
+        #expect(PureYAML.Validation.Validator().collect(value) == PureYAML.Validation.Result())
+    }
+
+    @Test(
+        "Reports exact collection parse errors",
+        arguments: CollectionCompatibilityFixtures.parseErrors,
+    )
+    func test_collectionParseErrors(testCase: CollectionCompatibilityFixtures.ParseErrorCase) {
+        expectParseError(testCase.yaml, testCase.expected)
+        #expect(testCase.expected.description == testCase.expectedDescription)
+    }
+
+    @Test(
+        "Validates collection duplicate keys exactly",
+        arguments: CollectionCompatibilityFixtures.duplicateKeyValidation,
+    )
+    func test_collectionDuplicateKeyValidation(testCase: CollectionCompatibilityFixtures.ValidationCase) throws {
+        let value = try PureYAML.parse(testCase.yaml)
+        let result = PureYAML.Validation.Validator().collect(value)
+
+        #expect(result.issues == testCase.expectedIssues)
+        #expect(result.errors == testCase.expectedIssues)
+        #expect(result.warnings.isEmpty)
+        expectValidationError(value) { collection in
+            #expect(collection.issues == testCase.expectedIssues)
+            #expect(collection.description == testCase.expectedIssues.map(\.description).joined(separator: "\n"))
+        }
+    }
+
+    @Test("Pins merge keys as unsupported unflattened mappings")
+    func test_mergeKeysRemainUnflattenedUntilExplicitlySupported() throws {
+        let root = try requireMapping(PureYAML.parse(
+            """
+            defaults: &defaults {enabled: true, retries: 3}
+            service:
+              <<: *defaults
+              name: API
+            """,
+        ))
+
+        guard
+            case let .mapping(service)? = root?["service"],
+            case let .mapping(mergedDefaults)? = service["<<"]
+        else {
+            recordIssue("expected unflattened merge-key mapping")
+            return
+        }
+
+        #expect(mergedDefaults["enabled"] == .bool(true))
+        #expect(mergedDefaults["retries"] == .int(3))
+        #expect(service["name"] == .string("API"))
+        #expect(service["enabled"] == nil)
+        #expect(service["retries"] == nil)
+        #expect(root?["enabled"] == nil)
+        #expect(root?["missing"] == nil)
+    }
+
+    @Test(
         "Resolves selected Yams-compatible scalar spellings",
         arguments: ScalarCompatibilityFixtures.resolvedScalars,
     )
@@ -114,6 +180,22 @@ struct ParsingCompatibilityTests {
             #expect(actual.isNaN)
         case let .string(expected):
             #expect(value == .string(expected))
+        }
+    }
+
+    private func expectAbsentRootKeys(
+        _ keys: [String],
+        in value: PureYAML.Model.Value,
+    ) {
+        guard !keys.isEmpty else {
+            return
+        }
+        guard case let .mapping(mapping) = value else {
+            recordIssue("expected root mapping for absence checks")
+            return
+        }
+        for key in keys {
+            #expect(mapping[key] == nil)
         }
     }
 }

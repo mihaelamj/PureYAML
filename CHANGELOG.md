@@ -66,6 +66,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   without copying implementation code.
 - Add a fixture-backed scalar and explicit-tag compatibility corpus with exact
   success, string-preservation, unsupported-spelling, and invalid-tag errors.
+- Add a fixture-backed collection and anchor compatibility corpus with exact
+  parsed values, parse errors, duplicate-key validation diagnostics, and pinned
+  unsupported merge-key behavior.
 
 ### Changed
 

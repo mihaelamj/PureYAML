@@ -73,7 +73,7 @@ flowchart TB
   classDef todo fill:#f2f4f7,stroke:#8e8e93,color:#111827
   Epic11["#11 YAML Compatibility Corpus"]:::epic
   Scalar24["#24 Scalar and Tag Corpus"]:::done
-  Collection25["#25 Collection and Anchor Corpus"]:::todo
+  Collection25["#25 Collection and Anchor Corpus"]:::done
   Gaps27["#27 Unsupported YAML Gaps"]:::todo
   Literal19["#19 Literal Block Emission"]:::todo
   Downstream26["#26 Downstream Document Fixtures"]:::todo
