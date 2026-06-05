@@ -8,7 +8,7 @@ and typed-converting the YAML subset currently covered by the test corpus.
 Depend on the tagged package version:
 
 ```swift
-.package(url: "https://github.com/mihaelamj/PureYAML.git", .upToNextMinor(from: "0.1.0"))
+.package(url: "https://github.com/mihaelamj/PureYAML.git", .upToNextMinor(from: "0.1.1"))
 ```
 
 For unreleased development snapshots, use the `main` branch:

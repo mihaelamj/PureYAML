@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+No changes yet.
+
+## [0.1.1] - 2026-06-06
+
+### Added
+
+- Add platform CI badges and an active production-hardening roadmap to the
+  README.
+
+### Changed
+
+- Add release-mode build and test gates to the macOS, Linux, Windows, and WASM
+  verification scripts.
+
 ### Fixed
 
 - Treat more-indented plain scalar continuation lines that start with `-` as

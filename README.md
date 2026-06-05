@@ -69,7 +69,7 @@ flowchart TB
 
 ## Status
 
-The current release is 0.1.0. It includes block mappings, block sequences,
+The current release is 0.1.1. It includes block mappings, block sequences,
 ordered mappings, common scalars, quoted strings, comments, flow collections,
 literal and folded block scalars, anchors, aliases, YAML directives, document
 markers, explicit built-in scalar tags, merge-key expansion, complex mapping keys,
