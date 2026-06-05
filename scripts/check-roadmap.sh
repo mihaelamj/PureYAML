@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Mermaid roadmap gate. Keeps README roadmap diagrams vertical, legend-first,
-# status-colored, and covered by live epic issues.
+# TileDown-palette colored, and covered by live epic issues.
+# See docs/rules/mermaid.md.
 
 set -u
 
@@ -14,18 +15,16 @@ fail() {
 
 expected_classes() {
   cat <<'EOF'
-  classDef done fill:#03A10E,color:#1D1D1F,stroke:#1D1D1F,stroke-width:2px
-  classDef review fill:#FF791B,color:#1D1D1F,stroke:#1D1D1F,stroke-width:2px
-  classDef active fill:#0071E3,color:#FFFFFF,stroke:#1D1D1F,stroke-width:2px
-  classDef next fill:#0066CC,color:#FFFFFF,stroke:#1D1D1F,stroke-width:2px
-  classDef partial fill:#B64400,color:#FFFFFF,stroke:#1D1D1F,stroke-width:2px
-  classDef todo fill:#86868B,color:#1D1D1F,stroke:#6E6E73,stroke-width:2px
+  classDef done fill:#ddf9e4,stroke:#34c759,color:#111827
+  classDef review fill:#fff7d6,stroke:#ffcc00,color:#111827
+  classDef epic fill:#f2e5ff,stroke:#af52de,color:#111827
+  classDef todo fill:#f2f4f7,stroke:#8e8e93,color:#111827
 EOF
 }
 
 known_class() {
   case "$1" in
-    done|review|active|next|partial|todo) return 0 ;;
+    done|review|epic|todo) return 0 ;;
     *) return 1 ;;
   esac
 }
@@ -68,7 +67,7 @@ validate_block() {
 
   grep '^  classDef ' "$block" > "$defs" || true
   if ! diff -u "$expected" "$defs" >/dev/null; then
-    fail "mermaid block $index must use the apple.com web color classDefs"
+    fail "mermaid block $index must use the TileDown Mermaid color classDefs"
   fi
 
   : > "$defined_nodes"
@@ -175,7 +174,7 @@ if [ "$count" -eq 0 ]; then
 fi
 
 first="$tmp/block-001.mmd"
-if ! grep -Fq 'LDone[Done]' "$first" || ! grep -Fq 'LTodo[Todo]' "$first"; then
+if ! grep -Fq 'LDone["In main now"]' "$first" || ! grep -Fq 'LTodo["Open issue, no PR"]' "$first"; then
   fail "first Mermaid block must be the shared legend"
 fi
 

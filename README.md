@@ -18,43 +18,34 @@ The package is intentionally strict about portability:
 
 Mermaid status legend:
 
-The roadmap uses colors from apple.com CSS: web button blue for active,
-link blue for next, green for done, orange for review, deep orange for partial,
-and secondary gray for todo.
+The roadmap uses the TileDown Mermaid palette: green for merged work, yellow for
+review, purple for epic grouping, and gray for open work with no PR.
 
 ```mermaid
 flowchart TB
-  classDef done fill:#03A10E,color:#1D1D1F,stroke:#1D1D1F,stroke-width:2px
-  classDef review fill:#FF791B,color:#1D1D1F,stroke:#1D1D1F,stroke-width:2px
-  classDef active fill:#0071E3,color:#FFFFFF,stroke:#1D1D1F,stroke-width:2px
-  classDef next fill:#0066CC,color:#FFFFFF,stroke:#1D1D1F,stroke-width:2px
-  classDef partial fill:#B64400,color:#FFFFFF,stroke:#1D1D1F,stroke-width:2px
-  classDef todo fill:#86868B,color:#1D1D1F,stroke:#6E6E73,stroke-width:2px
-  LDone[Done]:::done
-  LReview[Review]:::review
-  LActive[Active]:::active
-  LNext[Next]:::next
-  LPartial[Partial]:::partial
-  LTodo[Todo]:::todo
+  classDef done fill:#ddf9e4,stroke:#34c759,color:#111827
+  classDef review fill:#fff7d6,stroke:#ffcc00,color:#111827
+  classDef epic fill:#f2e5ff,stroke:#af52de,color:#111827
+  classDef todo fill:#f2f4f7,stroke:#8e8e93,color:#111827
+  LDone["In main now"]:::done
+  LReview["PR in review"]:::review
+  LEpic["Epic grouping"]:::epic
+  LTodo["Open issue, no PR"]:::todo
   LDone ~~~ LReview
-  LReview ~~~ LActive
-  LActive ~~~ LNext
-  LNext ~~~ LPartial
-  LPartial ~~~ LTodo
+  LReview ~~~ LEpic
+  LEpic ~~~ LTodo
 ```
 
 Epics overview:
 
 ```mermaid
 flowchart TB
-  classDef done fill:#03A10E,color:#1D1D1F,stroke:#1D1D1F,stroke-width:2px
-  classDef review fill:#FF791B,color:#1D1D1F,stroke:#1D1D1F,stroke-width:2px
-  classDef active fill:#0071E3,color:#FFFFFF,stroke:#1D1D1F,stroke-width:2px
-  classDef next fill:#0066CC,color:#FFFFFF,stroke:#1D1D1F,stroke-width:2px
-  classDef partial fill:#B64400,color:#FFFFFF,stroke:#1D1D1F,stroke-width:2px
-  classDef todo fill:#86868B,color:#1D1D1F,stroke:#6E6E73,stroke-width:2px
-  SuperEpic8["#8 Parser Replacement Roadmap - Active"]:::active
-  Epic1["#1 Pure Swift Parse Core - Next"]:::next
+  classDef done fill:#ddf9e4,stroke:#34c759,color:#111827
+  classDef review fill:#fff7d6,stroke:#ffcc00,color:#111827
+  classDef epic fill:#f2e5ff,stroke:#af52de,color:#111827
+  classDef todo fill:#f2f4f7,stroke:#8e8e93,color:#111827
+  SuperEpic8["#8 Parser Replacement Roadmap"]:::epic
+  Epic1["#1 Pure Swift Parse Core"]:::epic
   SuperEpic8 --> Epic1
 ```
 
@@ -62,18 +53,16 @@ Parse core detailed roadmap:
 
 ```mermaid
 flowchart TB
-  classDef done fill:#03A10E,color:#1D1D1F,stroke:#1D1D1F,stroke-width:2px
-  classDef review fill:#FF791B,color:#1D1D1F,stroke:#1D1D1F,stroke-width:2px
-  classDef active fill:#0071E3,color:#FFFFFF,stroke:#1D1D1F,stroke-width:2px
-  classDef next fill:#0066CC,color:#FFFFFF,stroke:#1D1D1F,stroke-width:2px
-  classDef partial fill:#B64400,color:#FFFFFF,stroke:#1D1D1F,stroke-width:2px
-  classDef todo fill:#86868B,color:#1D1D1F,stroke:#6E6E73,stroke-width:2px
-  Issue2["#2 Event Model and Golden Tests - Next"]:::next
-  Issue3["#3 UTF-8 Reader and Scanner - Todo"]:::todo
-  Issue4["#4 Token Stream to Events - Todo"]:::todo
-  Issue5["#5 Events to PureYAML Values - Todo"]:::todo
-  Issue6["#6 Scalars Tags and Aliases - Todo"]:::todo
-  Issue7["#7 macOS Linux and WASM Hardening - Todo"]:::todo
+  classDef done fill:#ddf9e4,stroke:#34c759,color:#111827
+  classDef review fill:#fff7d6,stroke:#ffcc00,color:#111827
+  classDef epic fill:#f2e5ff,stroke:#af52de,color:#111827
+  classDef todo fill:#f2f4f7,stroke:#8e8e93,color:#111827
+  Issue2["#2 Event Model and Golden Tests"]:::todo
+  Issue3["#3 UTF-8 Reader and Scanner"]:::todo
+  Issue4["#4 Token Stream to Events"]:::todo
+  Issue5["#5 Events to PureYAML Values"]:::todo
+  Issue6["#6 Scalars Tags and Aliases"]:::todo
+  Issue7["#7 macOS Linux and WASM Hardening"]:::todo
   Issue2 --> Issue3
   Issue3 --> Issue4
   Issue4 --> Issue5
