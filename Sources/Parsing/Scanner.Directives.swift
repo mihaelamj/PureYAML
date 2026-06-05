@@ -7,13 +7,27 @@ extension PureYAML.Parsing.Scanner {
             try scanDirective(&state)
             return true
         }
+        if state.reader.peek() == "#" {
+            return false
+        }
         if startsWith("---", state.reader), isIndicatorBoundary(state.reader.peek(offset: 3)) {
+            guard !state.hasDocumentContent, !state.hasDocumentStartMarker, !state.isDocumentClosed else {
+                throw PureYAML.Parsing.ParseError.unsupportedMultiDocumentStream(line: state.reader.mark.line)
+            }
+            state.hasDocumentStartMarker = true
             skipLine(&state)
             return true
         }
         if startsWith("...", state.reader), isIndicatorBoundary(state.reader.peek(offset: 3)) {
+            guard !state.isDocumentClosed else {
+                throw PureYAML.Parsing.ParseError.unsupportedMultiDocumentStream(line: state.reader.mark.line)
+            }
+            state.isDocumentClosed = true
             skipLine(&state)
             return true
+        }
+        guard !state.isDocumentClosed else {
+            throw PureYAML.Parsing.ParseError.unsupportedMultiDocumentStream(line: state.reader.mark.line)
         }
         return false
     }
@@ -27,6 +41,9 @@ extension PureYAML.Parsing.Scanner {
         guard let name = parts.first else {
             return
         }
+        guard !state.hasDocumentContent, !state.hasDocumentStartMarker, !state.isDocumentClosed else {
+            throw PureYAML.Parsing.ParseError.unsupportedDirective(name: name, line: start.line)
+        }
         switch name {
         case "%YAML":
             guard parts.indices.contains(1), parts[1] == "1.1" || parts[1] == "1.2" else {
@@ -38,7 +55,7 @@ extension PureYAML.Parsing.Scanner {
             }
             state.tagHandles[parts[1]] = parts[2]
         default:
-            return
+            throw PureYAML.Parsing.ParseError.unsupportedDirective(name: name, line: start.line)
         }
     }
 }

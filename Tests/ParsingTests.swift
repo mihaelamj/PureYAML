@@ -244,6 +244,8 @@ struct ParsingTests {
         #expect(PureYAML.Parsing.ParseError.unterminatedTag(line: 8).description == "unterminated tag at line 8")
         #expect(PureYAML.Parsing.ParseError.unterminatedQuotedString(line: 9).description == "unterminated quoted string at line 9")
         #expect(PureYAML.Parsing.ParseError.incompatibleYAMLDirective(line: 10).description == "incompatible YAML directive at line 10")
+        #expect(PureYAML.Parsing.ParseError.unsupportedDirective(name: "%FOO", line: 10).description == "unsupported directive '%FOO' at line 10")
+        #expect(PureYAML.Parsing.ParseError.unsupportedMultiDocumentStream(line: 10).description == "multi-document streams are not supported at line 10")
         #expect(PureYAML.Parsing.ParseError.expectedNode(line: 10, column: 2).description == "expected a YAML node at line 10, column 2")
         #expect(PureYAML.Parsing.ParseError.expectedScalarKey(line: 11, column: 3).description == "expected a scalar mapping key at line 11, column 3")
         #expect(PureYAML.Parsing.ParseError.undefinedAlias(anchor: "item", line: 12, column: 4).description == "undefined alias 'item' at line 12, column 4")

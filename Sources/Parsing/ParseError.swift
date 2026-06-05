@@ -14,6 +14,8 @@ public extension PureYAML.Parsing {
         case invalidTaggedScalar(tag: String, value: String, line: Int, column: Int)
         case unterminatedTag(line: Int)
         case unterminatedQuotedString(line: Int)
+        case unsupportedDirective(name: String, line: Int)
+        case unsupportedMultiDocumentStream(line: Int)
         case undefinedAlias(anchor: String, line: Int, column: Int)
         case unexpectedEvent(expected: String, actual: String, line: Int, column: Int)
         case unexpectedToken(expected: String, actual: String, line: Int, column: Int)
@@ -46,6 +48,10 @@ public extension PureYAML.Parsing {
                 "unterminated tag at line \(line)"
             case let .unterminatedQuotedString(line):
                 "unterminated quoted string at line \(line)"
+            case let .unsupportedDirective(name, line):
+                "unsupported directive '\(name)' at line \(line)"
+            case let .unsupportedMultiDocumentStream(line):
+                "multi-document streams are not supported at line \(line)"
             case let .undefinedAlias(anchor, line, column):
                 "undefined alias '\(anchor)' at line \(line), column \(column)"
             case let .unexpectedEvent(expected, actual, line, column):

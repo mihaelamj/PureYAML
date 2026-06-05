@@ -69,6 +69,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add a fixture-backed collection and anchor compatibility corpus with exact
   parsed values, parse errors, duplicate-key validation diagnostics, and pinned
   unsupported merge-key behavior.
+- Add executable unsupported-gap fixtures for multi-document streams, complex
+  mapping keys, unsupported directives, unsupported built-in tags, merge-key
+  fallback behavior, and direct value-tree validation.
 
 ### Changed
 

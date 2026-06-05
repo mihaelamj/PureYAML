@@ -43,6 +43,9 @@ extension PureYAML.Parsing.Scanner {
         var tokens: [PureYAML.Parsing.Token] = []
         var indentation: [Int] = [0]
         var isAtLineStart = true
+        var hasDocumentContent = false
+        var hasDocumentStartMarker = false
+        var isDocumentClosed = false
         var flowDepth = 0
         var tagHandles = [
             "!": "!",
@@ -52,6 +55,7 @@ extension PureYAML.Parsing.Scanner {
         mutating func append(_ kind: PureYAML.Parsing.TokenKind) {
             let mark = reader.mark
             tokens.append(PureYAML.Parsing.Token(kind: kind, mark: mark, endMark: mark))
+            markDocumentContentIfNeeded(kind)
         }
 
         mutating func append(
@@ -60,6 +64,16 @@ extension PureYAML.Parsing.Scanner {
             endMark: PureYAML.Parsing.Mark,
         ) {
             tokens.append(PureYAML.Parsing.Token(kind: kind, mark: mark, endMark: endMark))
+            markDocumentContentIfNeeded(kind)
+        }
+
+        mutating func markDocumentContentIfNeeded(_ kind: PureYAML.Parsing.TokenKind) {
+            switch kind {
+            case .comment, .dedent, .indent, .streamEnd, .streamStart:
+                return
+            default:
+                hasDocumentContent = true
+            }
         }
     }
 }

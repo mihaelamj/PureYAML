@@ -206,6 +206,10 @@ struct ScannerTests {
         expectScannerError("alias: *", .expectedAliasName(line: 1))
         expectScannerError("tag: !<tag:example.com,2026:thing", .unterminatedTag(line: 1))
         expectScannerError("%YAML 1.3\n---\nvalue: yes", .incompatibleYAMLDirective(line: 1))
+        expectScannerError("%FOO bar\nvalue: yes", .unsupportedDirective(name: "%FOO", line: 1))
+        expectScannerError("---\n%TAG !e! tag:example.com,2026:", .unsupportedDirective(name: "%TAG", line: 2))
+        expectScannerError("---\n- one\n---\n- two", .unsupportedMultiDocumentStream(line: 3))
+        expectScannerError("value: one\n...\nvalue: two", .unsupportedMultiDocumentStream(line: 3))
     }
 }
 

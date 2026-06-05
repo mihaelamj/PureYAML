@@ -74,7 +74,7 @@ flowchart TB
   Epic11["#11 YAML Compatibility Corpus"]:::epic
   Scalar24["#24 Scalar and Tag Corpus"]:::done
   Collection25["#25 Collection and Anchor Corpus"]:::done
-  Gaps27["#27 Unsupported YAML Gaps"]:::todo
+  Gaps27["#27 Unsupported YAML Gaps"]:::done
   Literal19["#19 Literal Block Emission"]:::todo
   Downstream26["#26 Downstream Document Fixtures"]:::todo
   Epic11 --> Scalar24
@@ -98,7 +98,9 @@ recognizes anchors, aliases, tags, flow collections, and block scalar styles fro
 scanner tokens, and the public value parser composes those events into
 `PureYAML.Model.Value`. Full tag-specific collection semantics, multi-document
 streams, merge keys, directives beyond the selected compatibility subset, and
-custom decoding are planned work.
+custom decoding are planned work. Unsupported gaps are pinned by executable
+tests so they produce exact errors or exact fallback value trees instead of
+silent parser drift.
 
 ## Attribution
 

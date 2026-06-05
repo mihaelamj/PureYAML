@@ -41,6 +41,51 @@ struct ParsingCompatibilityTests {
         }
     }
 
+    @Test(
+        "Reports exact unsupported YAML gap errors",
+        arguments: UnsupportedYAMLGapsFixtures.parseErrors,
+    )
+    func test_unsupportedYAMLGapParseErrors(testCase: UnsupportedYAMLGapsFixtures.ParseErrorCase) {
+        expectParseError(testCase.yaml, testCase.expected)
+        #expect(testCase.expected.description == testCase.expectedDescription)
+    }
+
+    @Test(
+        "Keeps unsupported YAML gaps as exact fallback values",
+        arguments: UnsupportedYAMLGapsFixtures.fallbackValues,
+    )
+    func test_unsupportedYAMLGapFallbackValues(testCase: UnsupportedYAMLGapsFixtures.FallbackValueCase) throws {
+        let value = try PureYAML.parse(testCase.yaml)
+
+        #expect(value == testCase.expected)
+        expectAbsentRootKeys(testCase.absentRootKeys, in: value)
+        #expect(PureYAML.Validation.Validator().collect(value) == PureYAML.Validation.Result())
+    }
+
+    @Test("Validates direct values for gaps ordinary loaders may collapse")
+    func test_directUnsupportedGapValueValidation() {
+        let value = UnsupportedYAMLGapsFixtures.directPreservedValue
+        let result = PureYAML.Validation.Validator().collect(value)
+
+        guard case let .mapping(mapping) = value else {
+            recordIssue("expected direct mapping value")
+            return
+        }
+
+        #expect(mapping.pairs.map(\.key) == ["<<", "title", "title"])
+        #expect(mapping["<<"] == .mapping(.init([
+            .init(key: "enabled", value: .bool(true)),
+        ])))
+        #expect(result.issues == UnsupportedYAMLGapsFixtures.directPreservedIssues)
+        #expect(result.issues.map(\.description) == [
+            "error: Duplicate mapping key 'title' at $.title",
+        ])
+        expectValidationError(value) { collection in
+            #expect(collection.issues == UnsupportedYAMLGapsFixtures.directPreservedIssues)
+            #expect(collection.description == "error: Duplicate mapping key 'title' at $.title")
+        }
+    }
+
     @Test("Pins merge keys as unsupported unflattened mappings")
     func test_mergeKeysRemainUnflattenedUntilExplicitlySupported() throws {
         let root = try requireMapping(PureYAML.parse(
