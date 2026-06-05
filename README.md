@@ -27,6 +27,7 @@ flowchart TB
   classDef review fill:#fff7d6,stroke:#ffcc00,color:#111827
   classDef epic fill:#f2e5ff,stroke:#af52de,color:#111827
   classDef todo fill:#f2f4f7,stroke:#8e8e93,color:#111827
+  %% Completed parser replacement epics: #1 #8 #9 #10 #11 #12 #13
   LDone["In main now"]:::done
   LReview["PR in review"]:::review
   LEpic["Epic grouping"]:::epic
@@ -36,38 +37,7 @@ flowchart TB
   LEpic ~~~ LTodo
 ```
 
-Epics overview:
-
-```mermaid
-flowchart TB
-  classDef done fill:#ddf9e4,stroke:#34c759,color:#111827
-  classDef review fill:#fff7d6,stroke:#ffcc00,color:#111827
-  classDef epic fill:#f2e5ff,stroke:#af52de,color:#111827
-  classDef todo fill:#f2f4f7,stroke:#8e8e93,color:#111827
-  SuperEpic8["#8 Parser Replacement Roadmap"]:::epic
-  Epic1["#1 Pure Swift Parse Core"]:::done
-  Epic9["#9 Deterministic Emitter Core"]:::done
-  Epic10["#10 Typed Decoding and Encoding"]:::done
-  Epic11["#11 YAML Compatibility Corpus"]:::done
-  Epic12["#12 Usage and Migration Docs"]:::done
-  Epic13["#13 Release Readiness"]:::done
-  SuperEpic8 --> Epic1
-  Epic1 --> Epic9
-  Epic9 --> Epic10
-  Epic10 --> Epic11
-  Epic11 --> Epic12
-  Epic12 --> Epic13
-```
-
-#9 Deterministic Emitter Core is complete in main.
-
-#10 Typed Decoding and Encoding is complete in main.
-
-#11 YAML Compatibility Corpus is complete in main.
-
-#12 Usage and Migration Docs is complete in main.
-
-#13 Release Readiness is complete in main.
+Parser Replacement Roadmap #8 is complete in main.
 
 ## Status
 
