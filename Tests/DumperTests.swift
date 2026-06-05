@@ -95,6 +95,10 @@ struct DumperTests {
     func test_emptyCollections() {
         #expect(PureYAML.dump(.mapping(.init())) == "\n")
         #expect(PureYAML.dump(.sequence([])) == "\n")
+
+        let options = PureYAML.Emitting.Options(collectionStyle: .flow)
+        #expect(PureYAML.dump(.mapping(.init()), options: options) == "{}\n")
+        #expect(PureYAML.dump(.sequence([]), options: options) == "[]\n")
     }
 
     @Test("Dumps plain strings only when selected and safe")
@@ -190,6 +194,82 @@ struct DumperTests {
         leading: "one\\n next"
 
         """)
+        #expect(try PureYAML.parse(yaml) == value)
+    }
+
+    @Test("Dumps selected sequences as flow collections")
+    func test_flowCollectionPolicySequence() throws {
+        let value = PureYAML.Model.Value.sequence([
+            .string("one"),
+            .int(2),
+            .bool(false),
+        ])
+        let options = PureYAML.Emitting.Options(collectionStyle: .flow)
+        let yaml = PureYAML.dump(value, options: options)
+
+        #expect(yaml == "[\"one\", 2, false]\n")
+        #expect(!yaml.contains("\n- "))
+        #expect(try PureYAML.parse(yaml) == value)
+    }
+
+    @Test("Dumps selected mappings as flow collections")
+    func test_flowCollectionPolicyMapping() throws {
+        let value = PureYAML.Model.Value.mapping(.init([
+            .init(key: "name", value: .string("Example")),
+            .init(key: "tags", value: .sequence([
+                .string("Swift"),
+                .string("YAML"),
+            ])),
+            .init(key: "meta", value: .mapping(.init([
+                .init(key: "enabled", value: .bool(true)),
+            ]))),
+        ]))
+        let options = PureYAML.Emitting.Options(collectionStyle: .flow)
+        let yaml = PureYAML.dump(value, options: options)
+
+        #expect(yaml == """
+        {"name": "Example", "tags": ["Swift", "YAML"], "meta": {"enabled": true}}
+
+        """)
+        #expect(!yaml.contains("\n  "))
+        #expect(try PureYAML.parse(yaml) == value)
+    }
+
+    @Test("Dumps flow scalars with escaping")
+    func test_flowCollectionPolicyEscapesScalars() throws {
+        let value = PureYAML.Model.Value.mapping(.init([
+            .init(key: "a:b", value: .string("quote \" slash \\ comma, bracket [x]")),
+            .init(key: "lines", value: .string("one\ntwo")),
+        ]))
+        let options = PureYAML.Emitting.Options(collectionStyle: .flow)
+        let yaml = PureYAML.dump(value, options: options)
+
+        #expect(yaml == """
+        {"a:b": "quote \\" slash \\\\ comma, bracket [x]", "lines": "one\\ntwo"}
+
+        """)
+        #expect(try PureYAML.parse(yaml) == value)
+    }
+
+    @Test("Dumps flow plain strings only when selected and safe")
+    func test_flowCollectionPolicyPlainScalarPolicy() throws {
+        let value = PureYAML.Model.Value.sequence([
+            .string("Example title"),
+            .string("a, b"),
+            .string("true"),
+            .string("bracket [x]"),
+        ])
+        let options = PureYAML.Emitting.Options(
+            scalarStyle: .plainWhenSafe,
+            collectionStyle: .flow,
+        )
+        let yaml = PureYAML.dump(value, options: options)
+
+        #expect(yaml == """
+        [Example title, "a, b", "true", "bracket [x]"]
+
+        """)
+        #expect(!yaml.contains("\"Example title\""))
         #expect(try PureYAML.parse(yaml) == value)
     }
 

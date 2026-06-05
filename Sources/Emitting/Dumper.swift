@@ -8,7 +8,12 @@ public extension PureYAML.Emitting {
         }
 
         public func dump(_ value: PureYAML.Model.Value) -> String {
-            render(value, indent: 0).joined(separator: "\n") + "\n"
+            switch options.collectionStyle {
+            case .block:
+                render(value, indent: 0).joined(separator: "\n") + "\n"
+            case .flow:
+                renderFlowDocument(value)
+            }
         }
     }
 }
@@ -55,6 +60,59 @@ extension PureYAML.Emitting.Dumper {
             default:
                 renderSequenceScalarItem(value, indent: indent)
             }
+        }
+    }
+
+    func renderFlowDocument(_ value: PureYAML.Model.Value) -> String {
+        switch value {
+        case .mapping, .sequence:
+            renderFlow(value) + "\n"
+        default:
+            renderScalarNode(value, indent: 0).joined(separator: "\n") + "\n"
+        }
+    }
+
+    func renderFlow(_ value: PureYAML.Model.Value) -> String {
+        switch value {
+        case let .mapping(mapping):
+            renderFlowMapping(mapping)
+        case let .sequence(values):
+            renderFlowSequence(values)
+        default:
+            renderFlowScalar(value)
+        }
+    }
+
+    func renderFlowMapping(_ mapping: PureYAML.Model.Mapping) -> String {
+        let pairs = mapping.pairs
+            .map { pair in
+                "\(quote(pair.key)): \(renderFlow(pair.value))"
+            }
+            .joined(separator: ", ")
+        return "{\(pairs)}"
+    }
+
+    func renderFlowSequence(_ values: [PureYAML.Model.Value]) -> String {
+        let items = values
+            .map(renderFlow)
+            .joined(separator: ", ")
+        return "[\(items)]"
+    }
+
+    func renderFlowScalar(_ value: PureYAML.Model.Value) -> String {
+        switch value {
+        case .null:
+            "null"
+        case let .bool(value):
+            value ? "true" : "false"
+        case let .int(value):
+            String(value)
+        case let .double(value):
+            String(value)
+        case let .string(value):
+            renderFlowString(value)
+        case .sequence, .mapping:
+            ""
         }
     }
 
@@ -116,6 +174,15 @@ extension PureYAML.Emitting.Dumper {
         case .plainWhenSafe:
             canRenderPlainString(value) ? value : quote(value)
         case .literalBlockWhenMultiline:
+            quote(value)
+        }
+    }
+
+    func renderFlowString(_ value: String) -> String {
+        switch options.scalarStyle {
+        case .plainWhenSafe:
+            canRenderFlowPlainString(value) ? value : quote(value)
+        case .quoted, .literalBlockWhenMultiline:
             quote(value)
         }
     }
@@ -186,6 +253,18 @@ extension PureYAML.Emitting.Dumper {
             return false
         }
         return !containsColonSpace(value) && !value.contains("#")
+    }
+
+    func canRenderFlowPlainString(_ value: String) -> Bool {
+        canRenderPlainString(value) && !containsFlowDelimiter(value)
+    }
+
+    func containsFlowDelimiter(_ value: String) -> Bool {
+        value.contains(",")
+            || value.contains("[")
+            || value.contains("]")
+            || value.contains("{")
+            || value.contains("}")
     }
 
     func containsColonSpace(_ value: String) -> Bool {

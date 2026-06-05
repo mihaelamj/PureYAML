@@ -42,6 +42,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   conservative plain-string output.
 - Add opt-in literal block scalar emission for safe multiline strings, including
   `|-` parsing support for stripped final newlines.
+- Add opt-in flow collection emission for compact mapping and sequence output.
 - Add Yams and CYaml attribution without copying their implementation into
   `Sources/`.
 
