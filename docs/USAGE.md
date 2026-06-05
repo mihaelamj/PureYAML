@@ -293,10 +293,13 @@ let report = PureYAML.validationReports(
 )
 
 let markdown = report.markdownDescription(title: "YAML Validation")
+let yaml = report.yamlDescription(title: "YAML Validation")
+let json = report.jsonDescription(title: "YAML Validation")
 ```
 
 PureYAML does not write files from the library target. Applications that need a
-validation document should write `markdown` through their own file IO layer.
+validation document should write `markdown`, `yaml`, or `json` through their
+own file IO layer.
 
 ## Cross-Platform Verification
 

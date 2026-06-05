@@ -206,7 +206,7 @@ let issues = try PureYAML.validate(document, strict: false)
 
 For production-style validation over many YAML inputs, use the non-throwing
 report API. It validates every source, turns parse failures into diagnostics,
-and can render Markdown that a consuming tool writes to disk:
+and can render Markdown, YAML, or JSON that a consuming tool writes to disk:
 
 ```swift
 let report = PureYAML.validationReports([
@@ -215,6 +215,8 @@ let report = PureYAML.validationReports([
 ])
 
 let markdown = report.markdownDescription(title: "YAML Validation")
+let yaml = report.yamlDescription(title: "YAML Validation")
+let json = report.jsonDescription(title: "YAML Validation")
 ```
 
 Custom validation rules can be layered onto the default validator or attached to

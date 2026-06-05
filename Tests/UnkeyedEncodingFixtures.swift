@@ -99,7 +99,7 @@ let sequenceEncodeFixtures: [SequenceEncodeFixture] = [
         -
           - 1
           - 2
-        -
+        - []
 
         """,
         forbiddenYAMLFragments: ["null"],
@@ -140,7 +140,7 @@ let sequenceEncodeFixtures: [SequenceEncodeFixture] = [
         featured:
           - "Typed YAML"
           - null
-        empty:
+        empty: []
 
         """,
         forbiddenYAMLFragments: ["missing:", "- 0"],

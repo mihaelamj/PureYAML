@@ -41,6 +41,10 @@ public extension PureYAML.Validation {
         public var description: String {
             diagnostics.map(\.description).joined(separator: "\n")
         }
+
+        public func modelValue() -> PureYAML.Model.Value {
+            .sequence(diagnostics.map(\.modelValue))
+        }
     }
 
     /// Validation result for one named source in a batch.
@@ -53,6 +57,15 @@ public extension PureYAML.Validation {
             self.name = name
             self.report = report
             self.invalid = invalid
+        }
+
+        public func modelValue() -> PureYAML.Model.Value {
+            .mapping(.init([
+                .init(key: "name", value: .string(name)),
+                .init(key: "status", value: .string(invalid ? "invalid" : "valid")),
+                .init(key: "invalid", value: .bool(invalid)),
+                .init(key: "diagnostics", value: report.modelValue()),
+            ]))
         }
     }
 
@@ -132,6 +145,149 @@ public extension PureYAML.Validation {
 
             return lines.joined(separator: "\n")
         }
+
+        public func modelValue(
+            title: String = "PureYAML Validation Report",
+        ) -> PureYAML.Model.Value {
+            .mapping(.init([
+                .init(key: "title", value: .string(title)),
+                .init(key: "summary", value: summaryModelValue),
+                .init(key: "sources", value: .sequence(sourceReports.map { $0.modelValue() })),
+            ]))
+        }
+
+        public func yamlDescription(
+            title: String = "PureYAML Validation Report",
+        ) -> String {
+            PureYAML.dump(modelValue(title: title))
+        }
+
+        public func jsonDescription(
+            title: String = "PureYAML Validation Report",
+        ) -> String {
+            modelValue(title: title).jsonDescription + "\n"
+        }
+
+        private var summaryModelValue: PureYAML.Model.Value {
+            .mapping(.init([
+                .init(key: "files", value: .int(fileCount)),
+                .init(key: "valid", value: .int(validCount)),
+                .init(key: "invalid", value: .int(invalidCount)),
+                .init(key: "diagnostics", value: .int(diagnosticCount)),
+                .init(key: "warningsFail", value: .bool(failOnWarnings)),
+            ]))
+        }
+    }
+}
+
+private extension PureYAML.Validation.Diagnostic {
+    var modelValue: PureYAML.Model.Value {
+        .mapping(.init([
+            .init(key: "kind", value: .string(kind.description)),
+            .init(key: "severity", value: .string(severity.description)),
+            .init(key: "file", value: file.map(PureYAML.Model.Value.string) ?? .null),
+            .init(key: "documentIndex", value: documentIndex.map(PureYAML.Model.Value.int) ?? .null),
+            .init(key: "path", value: path.map { .string($0.isRoot ? "root" : $0.description) } ?? .null),
+            .init(key: "reason", value: .string(reason)),
+            .init(key: "description", value: .string(description)),
+        ]))
+    }
+}
+
+private extension PureYAML.Model.Value {
+    var jsonDescription: String {
+        jsonDescription(indentation: 0)
+    }
+
+    func jsonDescription(indentation: Int) -> String {
+        switch self {
+        case .null:
+            "null"
+        case let .bool(value):
+            value ? "true" : "false"
+        case let .int(value):
+            String(value)
+        case let .double(value):
+            value.isFinite ? String(value) : "null"
+        case let .string(value):
+            value.jsonEscaped
+        case let .sequence(values):
+            values.jsonDescription(indentation: indentation)
+        case let .mapping(mapping):
+            mapping.jsonDescription(indentation: indentation)
+        }
+    }
+}
+
+private extension [PureYAML.Model.Value] {
+    func jsonDescription(indentation: Int) -> String {
+        guard !isEmpty else {
+            return "[]"
+        }
+
+        let nextIndentation = indentation + 2
+        let lines = map { value in
+            "\(String.spaces(nextIndentation))\(value.jsonDescription(indentation: nextIndentation))"
+        }
+        return "[\n\(lines.joined(separator: ",\n"))\n\(String.spaces(indentation))]"
+    }
+}
+
+private extension PureYAML.Model.Mapping {
+    func jsonDescription(indentation: Int) -> String {
+        guard !pairs.isEmpty else {
+            return "{}"
+        }
+
+        let nextIndentation = indentation + 2
+        let lines = pairs.map { pair in
+            let value = pair.value.jsonDescription(indentation: nextIndentation)
+            return "\(String.spaces(nextIndentation))\(pair.key.jsonEscaped): \(value)"
+        }
+        return "{\n\(lines.joined(separator: ",\n"))\n\(String.spaces(indentation))}"
+    }
+}
+
+private extension String {
+    static func spaces(_ count: Int) -> String {
+        String(repeating: " ", count: count)
+    }
+
+    var jsonEscaped: String {
+        var output = "\""
+        for scalar in unicodeScalars {
+            switch scalar.value {
+            case 0x08:
+                output += "\\b"
+            case 0x09:
+                output += "\\t"
+            case 0x0A:
+                output += "\\n"
+            case 0x0C:
+                output += "\\f"
+            case 0x0D:
+                output += "\\r"
+            case 0x22:
+                output += "\\\""
+            case 0x5C:
+                output += "\\\\"
+            case 0x00 ... 0x1F:
+                output += scalar.value.jsonControlEscape
+            default:
+                output.unicodeScalars.append(scalar)
+            }
+        }
+        output += "\""
+        return output
+    }
+}
+
+private extension UInt32 {
+    var jsonControlEscape: String {
+        let digits = Array("0123456789abcdef")
+        return "\\u" + stride(from: 12, through: 0, by: -4).map { shift in
+            String(digits[Int((self >> UInt32(shift)) & 0xF)])
+        }.joined()
     }
 }
 

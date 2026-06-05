@@ -3,7 +3,12 @@ extension PureYAML.Emitting.Dumper {
         _ mapping: PureYAML.Model.Mapping,
         indent: Int,
     ) -> [String] {
-        mapping.pairs.flatMap { pair in
+        let prefix = String(repeating: " ", count: indent)
+        guard !mapping.pairs.isEmpty else {
+            return [prefix + "{}"]
+        }
+
+        return mapping.pairs.flatMap { pair in
             renderMappingPair(pair, indent: indent)
         }
     }
@@ -25,6 +30,10 @@ extension PureYAML.Emitting.Dumper {
         indent: Int,
     ) -> [String] {
         let prefix = String(repeating: " ", count: indent)
+        if let emptyCollection = renderEmptyCollectionLiteral(pair.value) {
+            return [prefix + escapeKey(pair.key) + ": " + emptyCollection]
+        }
+
         switch pair.value {
         case .mapping, .sequence:
             return [prefix + escapeKey(pair.key) + ":"] + render(pair.value, indent: indent + 2)
@@ -38,6 +47,11 @@ extension PureYAML.Emitting.Dumper {
         indent: Int,
     ) -> [String] {
         let prefix = String(repeating: " ", count: indent)
+        if let emptyCollection = renderEmptyCollectionLiteral(pair.value) {
+            return [prefix + "? " + pair.keyNode.flowDescription]
+                + [prefix + ": " + emptyCollection]
+        }
+
         return [prefix + "? " + pair.keyNode.flowDescription]
             + [prefix + ":"]
             + render(pair.value, indent: indent + 2)

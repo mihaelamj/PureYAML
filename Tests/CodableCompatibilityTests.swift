@@ -72,7 +72,7 @@ struct CodableCompatibilityTests {
               - "two"
           -
             heading: "Outro"
-            items:
+            items: []
 
         """)
         #expect(yaml.contains("sections:"))

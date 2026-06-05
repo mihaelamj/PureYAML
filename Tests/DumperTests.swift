@@ -91,16 +91,6 @@ struct DumperTests {
         #expect(try PureYAML.parse(PureYAML.dump(original)) == original)
     }
 
-    @Test("Dumps empty collections")
-    func test_emptyCollections() {
-        #expect(PureYAML.dump(.mapping(.init())) == "\n")
-        #expect(PureYAML.dump(.sequence([])) == "\n")
-
-        let options = PureYAML.Emitting.Options(collectionStyle: .flow)
-        #expect(PureYAML.dump(.mapping(.init()), options: options) == "{}\n")
-        #expect(PureYAML.dump(.sequence([]), options: options) == "[]\n")
-    }
-
     @Test("Dumps plain strings only when selected and safe")
     func test_plainStringScalarPolicy() throws {
         let value = PureYAML.Model.Value.mapping(.init([

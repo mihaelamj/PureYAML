@@ -177,6 +177,27 @@ struct ValidationReportTests {
 
         #expect(try writeAndRead(report: report) == expected)
     }
+
+    @Test("Batch reports render machine-readable YAML and JSON files")
+    func test_batchReportsRenderMachineReadableYAMLAndJSONFiles() throws {
+        let report = makeMarkdownValidationReport()
+        let title = "YAML Production Validation"
+
+        #expect(report.modelValue(title: title) == expectedReportModelValue)
+        #expect(try PureYAML.parse(report.yamlDescription(title: title)) == expectedReportModelValue)
+        #expect(try jsonSummary(report.jsonDescription(title: title)) == [
+            "diagnostics": 2,
+            "files": 3,
+            "invalid": 2,
+            "valid": 1,
+        ])
+
+        let outputs = try writeAndReadMachineReports(report: report, title: title)
+
+        #expect(try PureYAML.parse(outputs.yaml) == expectedReportModelValue)
+        #expect(outputs.json == report.jsonDescription(title: title))
+        #expect(outputs.json.contains(#""reason": "Duplicate mapping key 'title'""#))
+    }
 }
 
 private func makeMarkdownValidationReport() -> PureYAML.Validation.BatchReport {
@@ -211,6 +232,46 @@ private func writeAndRead(report: PureYAML.Validation.BatchReport) throws -> Str
     return try String(contentsOf: file, encoding: .utf8)
 }
 
+private func writeAndReadMachineReports(
+    report: PureYAML.Validation.BatchReport,
+    title: String,
+) throws -> (yaml: String, json: String) {
+    let directory = try temporaryValidationReportDirectory()
+    defer {
+        try? FileManager.default.removeItem(at: directory)
+    }
+
+    let yamlFile = directory.appendingPathComponent("validation-report.yaml")
+    let jsonFile = directory.appendingPathComponent("validation-report.json")
+    try report.yamlDescription(title: title).write(to: yamlFile, atomically: true, encoding: .utf8)
+    try report.jsonDescription(title: title).write(to: jsonFile, atomically: true, encoding: .utf8)
+    return try (
+        String(contentsOf: yamlFile, encoding: .utf8),
+        String(contentsOf: jsonFile, encoding: .utf8)
+    )
+}
+
+private func temporaryValidationReportDirectory() throws -> URL {
+    let directory = FileManager.default.temporaryDirectory.appendingPathComponent(
+        "PureYAMLValidationReport-\(UUID().uuidString)",
+        isDirectory: true,
+    )
+    try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+    return directory
+}
+
+private func jsonSummary(_ json: String) throws -> [String: Int] {
+    let data = Data(json.utf8)
+    let object = try #require(JSONSerialization.jsonObject(with: data) as? [String: Any])
+    let summary = try #require(object["summary"] as? [String: Any])
+    return try [
+        "diagnostics": #require(summary["diagnostics"] as? Int),
+        "files": #require(summary["files"] as? Int),
+        "invalid": #require(summary["invalid"] as? Int),
+        "valid": #require(summary["valid"] as? Int),
+    ]
+}
+
 private let expectedMarkdownValidationReport = """
 # YAML Production Validation
 
@@ -243,3 +304,62 @@ duplicates.yaml: document[0]: $.title: error: validation: Duplicate mapping key 
 ```
 
 """
+
+private let expectedReportModelValue = PureYAML.Model.Value.mapping(.init([
+    .init(key: "title", value: .string("YAML Production Validation")),
+    .init(key: "summary", value: .mapping(.init([
+        .init(key: "files", value: .int(3)),
+        .init(key: "valid", value: .int(1)),
+        .init(key: "invalid", value: .int(2)),
+        .init(key: "diagnostics", value: .int(2)),
+        .init(key: "warningsFail", value: .bool(false)),
+    ]))),
+    .init(key: "sources", value: .sequence([
+        .mapping(.init([
+            .init(key: "name", value: .string("valid.yaml")),
+            .init(key: "status", value: .string("valid")),
+            .init(key: "invalid", value: .bool(false)),
+            .init(key: "diagnostics", value: .sequence([])),
+        ])),
+        .mapping(.init([
+            .init(key: "name", value: .string("broken.yaml")),
+            .init(key: "status", value: .string("invalid")),
+            .init(key: "invalid", value: .bool(true)),
+            .init(key: "diagnostics", value: .sequence([
+                .mapping(.init([
+                    .init(key: "kind", value: .string("parse")),
+                    .init(key: "severity", value: .string("error")),
+                    .init(key: "file", value: .string("broken.yaml")),
+                    .init(key: "documentIndex", value: .null),
+                    .init(key: "path", value: .null),
+                    .init(key: "reason", value: .string("unterminated quoted string at line 1")),
+                    .init(
+                        key: "description",
+                        value: .string("broken.yaml: error: parse: unterminated quoted string at line 1"),
+                    ),
+                ])),
+            ])),
+        ])),
+        .mapping(.init([
+            .init(key: "name", value: .string("duplicates.yaml")),
+            .init(key: "status", value: .string("invalid")),
+            .init(key: "invalid", value: .bool(true)),
+            .init(key: "diagnostics", value: .sequence([
+                .mapping(.init([
+                    .init(key: "kind", value: .string("validation")),
+                    .init(key: "severity", value: .string("error")),
+                    .init(key: "file", value: .string("duplicates.yaml")),
+                    .init(key: "documentIndex", value: .int(0)),
+                    .init(key: "path", value: .string("$.title")),
+                    .init(key: "reason", value: .string("Duplicate mapping key 'title'")),
+                    .init(
+                        key: "description",
+                        value: .string(
+                            "duplicates.yaml: document[0]: $.title: error: validation: Duplicate mapping key 'title'",
+                        ),
+                    ),
+                ])),
+            ])),
+        ])),
+    ])),
+]))

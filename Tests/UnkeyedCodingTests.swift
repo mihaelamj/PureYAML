@@ -73,7 +73,7 @@ struct UnkeyedCodingTests {
         - 2
 
         """)
-        #expect(try PureYAML.encodeToYAML([Int]()) == "\n")
+        #expect(try PureYAML.encodeToYAML([Int]()) == "[]\n")
     }
 
     @Test("Unkeyed super encoders reserve distinct indexes before values are written")

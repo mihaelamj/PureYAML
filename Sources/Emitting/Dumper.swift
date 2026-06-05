@@ -38,12 +38,20 @@ extension PureYAML.Emitting.Dumper {
         indent: Int,
     ) -> [String] {
         let prefix = String(repeating: " ", count: indent)
+        guard !values.isEmpty else {
+            return [prefix + "[]"]
+        }
+
         return values.flatMap { value in
+            if let emptyCollection = renderEmptyCollectionLiteral(value) {
+                return [prefix + "- " + emptyCollection]
+            }
+
             switch value {
             case .mapping, .sequence:
-                [prefix + "-"] + render(value, indent: indent + 2)
+                return [prefix + "-"] + render(value, indent: indent + 2)
             default:
-                renderSequenceScalarItem(value, indent: indent)
+                return renderSequenceScalarItem(value, indent: indent)
             }
         }
     }
@@ -73,6 +81,17 @@ extension PureYAML.Emitting.Dumper {
             .map(renderFlow)
             .joined(separator: ", ")
         return "[\(items)]"
+    }
+
+    func renderEmptyCollectionLiteral(_ value: PureYAML.Model.Value) -> String? {
+        switch value {
+        case let .mapping(mapping) where mapping.pairs.isEmpty:
+            "{}"
+        case let .sequence(values) where values.isEmpty:
+            "[]"
+        default:
+            nil
+        }
     }
 
     func renderFlowScalar(_ value: PureYAML.Model.Value) -> String {

@@ -36,8 +36,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add deliberately failing YAML fixtures that demonstrate exact validation
   diagnostics, strict failures, and non-strict warning returns.
 - Add non-throwing single-source and batch validation reports with exact parse
-  and validation diagnostics, optional warning-as-failure status, and Markdown
-  rendering for application-owned report files.
+  and validation diagnostics, optional warning-as-failure status, and Markdown,
+  YAML, and JSON rendering for application-owned report files.
 
 ### Changed
 
@@ -56,6 +56,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Harden real-world parsing for empty documents, indented root fragments,
   JSON-style flow mapping pairs, and tab-indented files encountered in corpus
   validation.
+- Emit empty block collections as `[]` and `{}` so dumped YAML round-trips
+  without turning empty arrays or mappings into null values.
 
 ## [0.1.0] - 2026-06-05
 
