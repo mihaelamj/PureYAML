@@ -98,6 +98,8 @@ but it does not copy their implementation into `Sources/`. See
   cross-platform gates.
 - [Migration and support boundaries](docs/MIGRATION.md): what PureYAML can
   replace today and which YAML features are deliberately unsupported.
+- [Release process](docs/RELEASE.md): 0.1.0 checklist, verification commands,
+  tag commands, and release-publishing steps.
 
 ## Usage
 
