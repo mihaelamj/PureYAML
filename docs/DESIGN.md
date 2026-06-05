@@ -59,6 +59,10 @@ PureYAML
 ├── Encoding
 │   ├── Encoder
 │   └── Error
+├── Stream
+│   ├── Document
+│   ├── Issue
+│   └── Result
 └── Validation
     ├── Validator
     ├── Rule
@@ -66,10 +70,11 @@ PureYAML
     └── Path
 ```
 
-`PureYAML.parse(_:)` and `PureYAML.dump(_:)` are convenience entry points.
-Parsing runs through the scanner, token-event parser, and event composer before
-returning `PureYAML.Model.Value`. The implementation lives in namespaced parser,
-dumper, scalar typed coder, and validator types.
+`PureYAML.parse(_:)`, `PureYAML.parseStream(_:)`, and `PureYAML.dump(_:)` are
+convenience entry points. Parsing runs through the scanner, token-event parser,
+and event composer before returning `PureYAML.Model.Value` for one document or
+`PureYAML.Stream.Document` values for a stream. The implementation lives in
+namespaced parser, dumper, scalar typed coder, stream, and validator types.
 
 ## First Milestone
 
@@ -88,7 +93,7 @@ The initial parser supports:
 - flow sequences and mappings
 - literal and folded block scalars
 - anchors and aliases
-- YAML directives and document markers for single-document streams
+- YAML directives, document markers, and multi-document streams
 - explicit built-in scalar tags for strings, integers, floats, booleans, and
   nulls
 
@@ -112,6 +117,11 @@ scalars. `Parsing.EventComposer` consumes those events into
 alias-resolved values, and explicit built-in scalar tags where the current model
 can represent them.
 
+`PureYAML.parse(_:)` remains a single-document API and rejects a second document
+with `unsupportedMultiDocumentStream`. `PureYAML.parseStream(_:)` parses all
+documents in the stream, including empty explicit documents as `null`, and
+returns `PureYAML.Stream.Document` values with stable zero-based indexes.
+
 The dumper emits deterministic YAML from the model. The default policy is
 block-style collections with quoted strings. `Emitting.Options` can opt into
 conservative plain scalars, safe literal block scalars for multiline strings,
@@ -126,6 +136,8 @@ project-specific checks only. Strict validation treats warnings as failures;
 non-strict validation returns warnings while still throwing for errors. The
 validation corpus pins exact issue paths, descriptions, severity splits,
 strict/non-strict behavior, rule traversal order, and duplicate-key diagnostics.
+The stream validation API wraps document-local issues in `PureYAML.Stream.Issue`
+so callers keep both the document index and the exact path inside that document.
 
 Typed conversion supports scalar single-value Decodable and Encodable values,
 keyed mapping-backed structs with scalar, optional scalar, nested keyed struct,
@@ -158,9 +170,10 @@ validation, but that projection must own the data-loss policy explicitly.
 Compatibility should be added in small, test-backed slices:
 
 1. Tag-aware collection handling and merge keys.
-2. Additional built-in validation rules beyond duplicate-key behavior.
-3. Broader Codable compatibility beyond scalar, keyed, and unkeyed containers.
-4. Yams corpus comparison tests in a separate compatibility suite.
+2. Multi-document stream dumping.
+3. Additional built-in validation rules beyond duplicate-key behavior.
+4. Broader Codable compatibility beyond scalar, keyed, and unkeyed containers.
+5. Yams corpus comparison tests in a separate compatibility suite.
 
 The private `PureYAMLResearch` repository may be used to study Yams behavior, but
 the public implementation must be written in Swift and must not copy C parser

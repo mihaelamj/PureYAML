@@ -11,25 +11,46 @@ extension PureYAML.Parsing.Scanner {
             return false
         }
         if startsWith("---", state.reader), isIndicatorBoundary(state.reader.peek(offset: 3)) {
-            guard !state.hasDocumentContent, !state.hasDocumentStartMarker, !state.isDocumentClosed else {
-                throw PureYAML.Parsing.ParseError.unsupportedMultiDocumentStream(line: state.reader.mark.line)
-            }
-            state.hasDocumentStartMarker = true
-            skipLine(&state)
+            scanDocumentMarker(.documentStart, state: &state)
+            resetForDocumentStart(&state)
             return true
         }
         if startsWith("...", state.reader), isIndicatorBoundary(state.reader.peek(offset: 3)) {
             guard !state.isDocumentClosed else {
                 throw PureYAML.Parsing.ParseError.unsupportedMultiDocumentStream(line: state.reader.mark.line)
             }
-            state.isDocumentClosed = true
-            skipLine(&state)
+            scanDocumentMarker(.documentEnd, state: &state)
+            resetForDocumentEnd(&state)
             return true
         }
         guard !state.isDocumentClosed else {
             throw PureYAML.Parsing.ParseError.unsupportedMultiDocumentStream(line: state.reader.mark.line)
         }
         return false
+    }
+
+    func scanDocumentMarker(
+        _ kind: PureYAML.Parsing.TokenKind,
+        state: inout State,
+    ) {
+        let start = state.reader.mark
+        state.reader.advance()
+        state.reader.advance()
+        state.reader.advance()
+        state.append(kind, mark: start, endMark: state.reader.mark)
+        skipLine(&state)
+    }
+
+    func resetForDocumentStart(_ state: inout State) {
+        state.hasDocumentContent = false
+        state.hasDocumentStartMarker = true
+        state.isDocumentClosed = false
+    }
+
+    func resetForDocumentEnd(_ state: inout State) {
+        state.hasDocumentContent = false
+        state.hasDocumentStartMarker = false
+        state.isDocumentClosed = true
     }
 
     func scanDirective(_ state: inout State) throws {

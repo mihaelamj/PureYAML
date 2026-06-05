@@ -45,18 +45,18 @@ This repository has completed readiness for the first tagged release, version
 0.1.0. Current main includes block mappings, block sequences, ordered mappings,
 common scalars, quoted strings, comments, flow collections, literal and folded
 block scalars, anchors, aliases, YAML directives, document markers, explicit
-built-in scalar tags, and a matching dumper with block and flow output policies.
-It also includes path-aware validation for structural YAML checks such as
-duplicate mapping keys.
+built-in scalar tags, multi-document stream parsing, and a matching dumper with
+block and flow output policies. It also includes path-aware validation for
+structural YAML checks such as duplicate mapping keys, plus stream validation
+that preserves document indexes.
 
 It is not yet a full YAML 1.2 implementation. The internal event parser now
 recognizes anchors, aliases, tags, flow collections, and block scalar styles from
 scanner tokens, and the public value parser composes those events into
-`PureYAML.Model.Value`. Full tag-specific collection semantics, multi-document
-streams, merge keys, directives beyond the selected compatibility subset, and
-custom decoding are planned work. Unsupported gaps are pinned by executable
-tests so they produce exact errors or exact fallback value trees instead of
-silent parser drift.
+`PureYAML.Model.Value`. Full tag-specific collection semantics, merge keys,
+directives beyond the selected compatibility subset, and custom decoding are
+planned work. Unsupported gaps are pinned by executable tests so they produce
+exact errors or exact fallback value trees instead of silent parser drift.
 
 ## Attribution
 
@@ -92,6 +92,22 @@ servers:
 let yaml = PureYAML.dump(document)
 
 try PureYAML.validate(document)
+```
+
+Use `parseStream(_:)` when the input may contain more than one YAML document.
+Each returned document carries its stream index, and validation preserves that
+index when reporting issues:
+
+```swift
+let documents = try PureYAML.parseStream("""
+---
+title: First
+---
+- Swift
+- YAML
+""")
+
+try PureYAML.validate(documents)
 ```
 
 Typed conversion is available for scalar values, keyed mapping-backed structs,

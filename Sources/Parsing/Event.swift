@@ -53,6 +53,13 @@ extension PureYAML.Parsing.Event {
         return false
     }
 
+    var isStreamEnd: Bool {
+        if case .streamEnd = self {
+            return true
+        }
+        return false
+    }
+
     var mark: PureYAML.Parsing.Mark {
         switch self {
         case let .alias(_, mark),

@@ -21,10 +21,12 @@ See [../ATTRIBUTION.md](../ATTRIBUTION.md) for the project attribution.
 | Existing need | PureYAML path | Notes |
 |---|---|---|
 | Compose YAML into a native YAML tree | `PureYAML.parse(_:)` | Returns `PureYAML.Model.Value`, preserving mapping order and duplicate keys. |
+| Compose all YAML documents in a stream | `PureYAML.parseStream(_:)` | Returns indexed `PureYAML.Stream.Document` values. |
 | Serialize a YAML tree | `PureYAML.dump(_:options:)` | Emits deterministic YAML with explicit block, flow, and scalar policies. |
 | Decode a `Decodable` type from YAML | `PureYAML.decode(_:from:)` | Runs default validation before typed decoding. |
 | Encode an `Encodable` value to YAML | `PureYAML.encodeToYAML(_:options:)` | Encodes through `PureYAML.Model.Value`, then dumps. |
 | Validate document structure | `PureYAML.validate(_:using:strict:)` | Default rule reports duplicate mapping keys with exact paths. |
+| Validate every document in a stream | `PureYAML.validate(_:using:strict:)` with stream documents | Reports `PureYAML.Stream.Issue` values that preserve document indexes. |
 | Load arbitrary `Any` dictionaries and arrays | Use `Model.Value` or typed `Codable` | There is deliberately no public arbitrary `Any` conversion API. Dictionary-shaped values erase YAML diagnostics. |
 
 ## Arbitrary Any Decision
@@ -65,7 +67,9 @@ add a fixture beside the closest existing suite.
 | Flow collections | Flow sequences and flow mappings compose into model values. | `ParsingTests`, `CollectionCompatibilityFixtures` |
 | Literal and folded blocks | Block scalar text is preserved according to current parser rules. | `ParsingTests`, `DumperTests` |
 | Anchors and aliases | Scalar and mapping anchors can be reused through aliases. Undefined aliases throw exact parse errors. | `ParsingTests`, `CollectionCompatibilityFixtures` |
-| YAML directives and document markers | `%YAML 1.2`, selected `%TAG` expansion, `---`, and `...` are supported for single-document streams. | `ParsingCompatibilityTests` |
+| YAML directives and document markers | `%YAML 1.2`, selected `%TAG` expansion, `---`, and `...` are supported. | `ParsingCompatibilityTests`, `StreamParsingTests` |
+| Multi-document streams | `PureYAML.parseStream(_:)` parses implicit and explicit documents, empty explicit documents as `null`, `...` document ends, and trailing comments before the next `---`. | `StreamParsingTests` |
+| Stream validation | Stream validation preserves document indexes while keeping validation paths document-local. | `StreamParsingTests` |
 | Built-in scalar tags | `!!str`, `!!int`, `!!float`, `!!bool`, and `!!null` are applied when valid. | `ScalarCompatibilityFixtures` |
 | Emitting | Deterministic block output by default, with opt-in flow collections and conservative literal blocks. | `DumperTests`, `EmitterCorpusTests` |
 | Typed conversion | Scalar, keyed, unkeyed, nested, sequence, dynamic-key, and super-coder cases are covered. | `CodingTests`, `CodableCompatibilityTests` |
@@ -79,7 +83,7 @@ explicit fallback value tree. This avoids silent compatibility drift.
 
 | YAML pattern | Current PureYAML behavior | Test coverage |
 |---|---|---|
-| Multi-document streams | Throws `unsupportedMultiDocumentStream`. | `UnsupportedYAMLGapsFixtures.parseErrors` |
+| Passing a multi-document stream to `PureYAML.parse(_:)` | Throws `unsupportedMultiDocumentStream`; use `PureYAML.parseStream(_:)` when multiple documents are expected. | `UnsupportedYAMLGapsFixtures.parseErrors`, `StreamParsingTests` |
 | Content after explicit document end | Throws `unsupportedMultiDocumentStream`; trailing comments after `...` remain non-content. | `UnsupportedYAMLGapsFixtures` |
 | Complex mapping keys such as `? [a, b]` or `? {name: Example}` | Throws `expectedScalarKey`. | `UnsupportedYAMLGapsFixtures.parseErrors` |
 | Unknown directives such as `%FOO` | Throws `unsupportedDirective`. | `UnsupportedYAMLGapsFixtures.parseErrors` |
@@ -108,7 +112,7 @@ explicit fallback value tree. This avoids silent compatibility drift.
 
 Do not migrate a caller yet if it requires:
 
-- multi-document stream loading or dumping;
+- multi-document stream dumping;
 - YAML merge-key flattening;
 - complex mapping keys as first-class keys;
 - binary or timestamp conversion into Foundation types;

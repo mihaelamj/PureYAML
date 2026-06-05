@@ -55,6 +55,20 @@ extension PureYAML.Parsing.TokenKind {
         return false
     }
 
+    var isDocumentEnd: Bool {
+        if case .documentEnd = self {
+            return true
+        }
+        return false
+    }
+
+    var isDocumentStart: Bool {
+        if case .documentStart = self {
+            return true
+        }
+        return false
+    }
+
     var isFlowTerminator: Bool {
         switch self {
         case .flowEntry, .flowMappingEnd, .flowSequenceEnd:
@@ -86,6 +100,6 @@ extension PureYAML.Parsing.TokenKind {
     }
 
     var isTerminator: Bool {
-        isDedent || isFlowTerminator || isStreamEnd
+        isDedent || isDocumentEnd || isDocumentStart || isFlowTerminator || isStreamEnd
     }
 }

@@ -42,8 +42,10 @@ Those tests are the executable contract for the short-form examples.
 | Need | API | Result |
 |---|---|---|
 | Parse YAML into an ordered value tree | `PureYAML.parse(_:)` | `PureYAML.Model.Value` |
+| Parse a YAML stream into indexed documents | `PureYAML.parseStream(_:)` | `[PureYAML.Stream.Document]` |
 | Emit YAML from a value tree | `PureYAML.dump(_:options:)` | `String` |
 | Validate a value tree | `PureYAML.validate(_:using:strict:)` | `[PureYAML.Validation.Issue]` or a thrown issue collection |
+| Validate stream documents | `PureYAML.validate(_:using:strict:)` with `[PureYAML.Stream.Document]` | `[PureYAML.Stream.Issue]` or a thrown stream issue collection |
 | Decode a typed value from YAML | `PureYAML.decode(_:from:)` | `Decodable` value |
 | Encode a typed value to a value tree | `PureYAML.encode(_:)` | `PureYAML.Model.Value` |
 | Encode a typed value to YAML | `PureYAML.encodeToYAML(_:options:)` | `String` |
@@ -71,6 +73,23 @@ The model currently represents:
 Mappings preserve insertion order and retain duplicate keys. That is deliberate:
 validation can report duplicate-key diagnostics instead of losing information by
 collapsing a mapping into a Swift dictionary too early.
+
+Use `PureYAML.parseStream(_:)` when an input can contain multiple YAML
+documents. The result is an array of `PureYAML.Stream.Document` values:
+
+```swift
+let documents = try PureYAML.parseStream("""
+---
+title: First
+---
+- Swift
+- YAML
+""")
+```
+
+`PureYAML.parse(_:)` remains the single-document API. It accepts one implicit or
+explicit document, including an explicit empty document, and throws
+`unsupportedMultiDocumentStream` when a second document is present.
 
 If a caller needs a JSON-like dictionary after validation, build that projection
 in application code after deciding how duplicate keys, unsupported tags, merge
@@ -122,6 +141,30 @@ warnings but still throws when errors are present.
 
 Use `PureYAML.Validation.Validator.blank` when the caller wants only
 project-specific validation rules.
+
+Stream validation preserves document indexes without changing document-local
+paths:
+
+```swift
+let documents = try PureYAML.parseStream("""
+---
+title: First
+title: Second
+---
+routes:
+  - name: Users
+    name: People
+""")
+
+do {
+    try PureYAML.validate(documents)
+} catch let collection as PureYAML.Stream.Issue.Collection {
+    print(collection.description)
+}
+```
+
+The issue descriptions include `document[0]`, `document[1]`, and so on, while
+the nested validation path still describes the location inside that document.
 
 ## Cross-Platform Verification
 

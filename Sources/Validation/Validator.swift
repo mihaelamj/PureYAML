@@ -34,6 +34,30 @@ public extension PureYAML.Validation {
             return Result(issues)
         }
 
+        @discardableResult
+        public func validate(
+            _ documents: [PureYAML.Stream.Document],
+            strict: Bool = true,
+        ) throws -> [PureYAML.Stream.Issue] {
+            let result = collect(documents)
+            let failures = strict ? result.issues : result.errors
+            if !failures.isEmpty {
+                throw PureYAML.Stream.Issue.Collection(failures)
+            }
+            return strict ? [] : result.warnings
+        }
+
+        public func collect(_ documents: [PureYAML.Stream.Document]) -> PureYAML.Stream.Result {
+            var issues: [PureYAML.Stream.Issue] = []
+            for document in documents {
+                let result = collect(document.value)
+                issues.append(contentsOf: result.issues.map { issue in
+                    PureYAML.Stream.Issue(documentIndex: document.index, issue: issue)
+                })
+            }
+            return PureYAML.Stream.Result(issues)
+        }
+
         public func validating(_ rule: Rule) -> Self {
             var copy = self
             copy.rules.append(rule)

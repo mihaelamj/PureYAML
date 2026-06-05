@@ -14,6 +14,8 @@ extension PureYAML.Parsing {
     enum TokenKind: Equatable {
         case streamStart
         case streamEnd
+        case documentStart
+        case documentEnd
         case indent(width: Int)
         case dedent(width: Int)
         case blockEntry
@@ -40,6 +42,10 @@ extension PureYAML.Parsing.TokenKind: CustomStringConvertible {
             "streamStart"
         case .streamEnd:
             "streamEnd"
+        case .documentStart:
+            "documentStart"
+        case .documentEnd:
+            "documentEnd"
         case let .indent(width):
             "indent width=\(width)"
         case let .dedent(width):

@@ -149,15 +149,55 @@ struct ScannerTests {
 
         expectKinds(tokens, [
             "streamStart",
+            "documentStart",
             "mappingKey",
             "scalar value=\"value\" style=plain",
             "mappingValue",
             "tag value=tag:yaml.org,2002:str",
             "scalar value=\"true\" style=plain",
+            "documentEnd",
             "streamEnd",
         ])
         expectDoesNotContain(tokens, [
             "scalar value=\"%YAML 1.2\" style=plain",
+            "scalar value=\"---\" style=plain",
+            "scalar value=\"...\" style=plain",
+        ])
+    }
+
+    @Test("Scans multiple document boundaries as tokens")
+    func test_multipleDocumentBoundaries() throws {
+        let tokens = try scanKinds(
+            """
+            first: one
+            ---
+            - two
+            ...
+            # trailing
+            ---
+            """,
+        )
+
+        expectKinds(tokens, [
+            "streamStart",
+            "mappingKey",
+            "scalar value=\"first\" style=plain",
+            "mappingValue",
+            "scalar value=\"one\" style=plain",
+            "documentStart",
+            "blockEntry",
+            "scalar value=\"two\" style=plain",
+            "documentEnd",
+            "comment value=\"trailing\"",
+            "documentStart",
+            "streamEnd",
+        ])
+        expectContains(tokens, [
+            "documentStart",
+            "documentEnd",
+            "comment value=\"trailing\"",
+        ])
+        expectDoesNotContain(tokens, [
             "scalar value=\"---\" style=plain",
             "scalar value=\"...\" style=plain",
         ])
@@ -208,7 +248,6 @@ struct ScannerTests {
         expectScannerError("%YAML 1.3\n---\nvalue: yes", .incompatibleYAMLDirective(line: 1))
         expectScannerError("%FOO bar\nvalue: yes", .unsupportedDirective(name: "%FOO", line: 1))
         expectScannerError("---\n%TAG !e! tag:example.com,2026:", .unsupportedDirective(name: "%TAG", line: 2))
-        expectScannerError("---\n- one\n---\n- two", .unsupportedMultiDocumentStream(line: 3))
         expectScannerError("value: one\n...\nvalue: two", .unsupportedMultiDocumentStream(line: 3))
     }
 }

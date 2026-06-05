@@ -4,6 +4,11 @@ public extension PureYAML {
         try Parsing.Parser().parse(yaml)
     }
 
+    /// Parses a YAML stream into indexed documents.
+    static func parseStream(_ yaml: String) throws -> [Stream.Document] {
+        try Parsing.Parser().parseStream(yaml)
+    }
+
     /// Serializes a ``Model/Value`` tree into YAML with the selected options.
     static func dump(
         _ value: Model.Value,
@@ -20,6 +25,16 @@ public extension PureYAML {
         strict: Bool = true,
     ) throws -> [Validation.Issue] {
         try validator.validate(value, strict: strict)
+    }
+
+    /// Validates parsed YAML stream documents while preserving document indexes.
+    @discardableResult
+    static func validate(
+        _ documents: [Stream.Document],
+        using validator: Validation.Validator = .init(),
+        strict: Bool = true,
+    ) throws -> [Stream.Issue] {
+        try validator.validate(documents, strict: strict)
     }
 
     /// Decodes a typed value from a YAML value tree.

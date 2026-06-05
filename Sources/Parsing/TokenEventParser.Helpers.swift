@@ -70,6 +70,8 @@ extension PureYAML.Parsing.TokenEventParser {
     func canEndBlockMapping(at token: PureYAML.Parsing.Token) -> Bool {
         token.kind.isBlockEntry
             || token.kind.isDedent
+            || token.kind.isDocumentEnd
+            || token.kind.isDocumentStart
             || token.kind.isFlowTerminator
             || token.kind.isStreamEnd
     }

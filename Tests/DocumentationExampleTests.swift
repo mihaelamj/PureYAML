@@ -69,6 +69,30 @@ struct DocumentationExampleTests {
         #expect(try PureYAML.decode(Info.self, from: yaml) == info)
     }
 
+    @Test("README stream parsing example stays executable")
+    func test_readmeStreamParsingExample() throws {
+        let documents = try PureYAML.parseStream(
+            """
+            ---
+            title: First
+            ---
+            - Swift
+            - YAML
+            """,
+        )
+
+        #expect(documents == [
+            .init(index: 0, value: .mapping(.init([
+                .init(key: "title", value: .string("First")),
+            ]))),
+            .init(index: 1, value: .sequence([
+                .string("Swift"),
+                .string("YAML"),
+            ])),
+        ])
+        #expect(try PureYAML.validate(documents).isEmpty)
+    }
+
     @Test("README emitter options example stays executable")
     func test_readmeEmitterOptionsExample() throws {
         let document = PureYAML.Model.Value.mapping(.init([

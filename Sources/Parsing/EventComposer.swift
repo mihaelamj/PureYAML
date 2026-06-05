@@ -35,13 +35,42 @@ extension PureYAML.Parsing {
                 }
                 return false
             }
-            _ = try expect("stream end") { event in
-                if case .streamEnd = event {
+            if case let .documentStart(mark)? = current {
+                throw PureYAML.Parsing.ParseError.unsupportedMultiDocumentStream(line: mark.line)
+            }
+            _ = try expectStreamEnd()
+            return value
+        }
+
+        mutating func composeStream() throws -> [PureYAML.Stream.Document] {
+            _ = try expect("stream start") { event in
+                if case .streamStart = event {
                     return true
                 }
                 return false
             }
-            return value
+
+            var documents: [PureYAML.Stream.Document] = []
+            while current?.isStreamEnd != true {
+                _ = try expect("document start") { event in
+                    if case .documentStart = event {
+                        return true
+                    }
+                    return false
+                }
+                anchors = [:]
+                let value = try composeNode()
+                _ = try expect("document end") { event in
+                    if case .documentEnd = event {
+                        return true
+                    }
+                    return false
+                }
+                documents.append(.init(index: documents.count, value: value))
+            }
+
+            _ = try expectStreamEnd()
+            return documents
         }
     }
 }
@@ -268,5 +297,14 @@ extension PureYAML.Parsing.EventComposer {
             line: mark.line,
             column: mark.column,
         )
+    }
+
+    mutating func expectStreamEnd() throws -> PureYAML.Parsing.Event {
+        try expect("stream end") { event in
+            if case .streamEnd = event {
+                return true
+            }
+            return false
+        }
     }
 }

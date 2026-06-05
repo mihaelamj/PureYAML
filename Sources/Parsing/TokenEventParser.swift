@@ -20,30 +20,79 @@ extension PureYAML.Parsing {
                 }
                 return false
             }
-            guard cursor.current?.kind.isStreamEnd != true else {
-                throw ParseError.emptyDocument
-            }
 
             events.append(.streamStart(mark: streamStart.mark))
-            events.append(.documentStart(mark: streamStart.mark))
-            let result = try parseNode()
-            guard cursor.current?.kind.isStreamEnd == true else {
-                throw unexpectedToken(expected: "stream end")
+            var didParseDocument = false
+            while cursor.current?.kind.isStreamEnd != true {
+                try parseDocument()
+                didParseDocument = true
             }
-            _ = try expect("stream end") { kind in
+            guard didParseDocument else {
+                throw ParseError.emptyDocument
+            }
+            let streamEnd = try expect("stream end") { kind in
                 if case .streamEnd = kind {
                     return true
                 }
                 return false
             }
-            events.append(.documentEnd(mark: result.endMark))
-            events.append(.streamEnd(mark: result.endMark))
+            events.append(.streamEnd(mark: streamEnd.mark))
             return events
         }
     }
 }
 
 extension PureYAML.Parsing.TokenEventParser {
+    mutating func parseDocument() throws {
+        let startMark = parseDocumentStartMark()
+        events.append(.documentStart(mark: startMark))
+
+        if cursor.current?.kind.isDocumentEnd == true {
+            let end = try expect("document end") { $0.isDocumentEnd }
+            appendEmptyDocument(at: end.mark)
+            events.append(.documentEnd(mark: end.endMark))
+            return
+        }
+
+        if cursor.current?.kind.isDocumentStart == true || cursor.current?.kind.isStreamEnd == true {
+            appendEmptyDocument(at: cursor.current?.mark ?? startMark)
+            events.append(.documentEnd(mark: cursor.current?.mark ?? startMark))
+            return
+        }
+
+        let result = try parseNode()
+        var endMark = result.endMark
+        if cursor.current?.kind.isDocumentEnd == true {
+            let end = try expect("document end") { $0.isDocumentEnd }
+            endMark = end.endMark
+        }
+        if let current = cursor.current, !canEndDocument(at: current) {
+            throw PureYAML.Parsing.ParseError.unexpectedToken(
+                expected: "document boundary or stream end",
+                actual: current.kind.description,
+                line: current.mark.line,
+                column: current.mark.column,
+            )
+        }
+        events.append(.documentEnd(mark: endMark))
+    }
+
+    mutating func parseDocumentStartMark() -> PureYAML.Parsing.Mark {
+        guard cursor.current?.kind.isDocumentStart == true else {
+            return cursor.current?.mark ?? cursor.previous?.endMark ?? .start
+        }
+        let start = cursor.advance()
+        return start?.mark ?? .start
+    }
+
+    mutating func appendEmptyDocument(at mark: PureYAML.Parsing.Mark) {
+        events.append(.scalar(value: "", anchor: nil, tag: nil, style: .plain, mark: mark))
+    }
+
+    func canEndDocument(at token: PureYAML.Parsing.Token) -> Bool {
+        token.kind.isDocumentStart || token.kind.isStreamEnd
+    }
+
     mutating func parseNode() throws -> PureYAML.Parsing.NodeResult {
         let properties = consumeProperties()
         guard let token = cursor.current, !token.kind.isTerminator else {

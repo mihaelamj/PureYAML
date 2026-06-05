@@ -17,4 +17,7 @@ public enum PureYAML {
 
     /// YAML validation types.
     public enum Validation {}
+
+    /// YAML stream types.
+    public enum Stream {}
 }

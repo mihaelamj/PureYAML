@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Add `PureYAML.parseStream(_:)` for multi-document YAML streams, including
+  explicit empty documents, document-end markers, and trailing comments before a
+  following document start.
+- Add `PureYAML.Stream.Document`, document-indexed stream validation issues, and
+  stream validation APIs that preserve document indexes without changing
+  document-local validation paths.
+
+### Changed
+
+- Tokenize YAML document start and end markers so scanner, event-parser, and
+  stream tests can pin exact document-boundary behavior.
+
 ## [0.1.0] - 2026-06-05
 
 ### Added

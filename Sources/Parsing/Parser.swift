@@ -8,5 +8,11 @@ public extension PureYAML.Parsing {
             var composer = PureYAML.Parsing.EventComposer(events: events, scalarParser: self)
             return try composer.compose()
         }
+
+        public func parseStream(_ yaml: String) throws -> [PureYAML.Stream.Document] {
+            let events = try parseEvents(yaml)
+            var composer = PureYAML.Parsing.EventComposer(events: events, scalarParser: self)
+            return try composer.composeStream()
+        }
     }
 }

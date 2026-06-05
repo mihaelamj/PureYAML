@@ -69,7 +69,7 @@ extension PureYAML.Parsing.Scanner {
 
         mutating func markDocumentContentIfNeeded(_ kind: PureYAML.Parsing.TokenKind) {
             switch kind {
-            case .comment, .dedent, .indent, .streamEnd, .streamStart:
+            case .comment, .dedent, .documentEnd, .documentStart, .indent, .streamEnd, .streamStart:
                 return
             default:
                 hasDocumentContent = true
