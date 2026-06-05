@@ -5,7 +5,14 @@ and typed-converting the YAML subset currently covered by the test corpus.
 
 ## Installation
 
-Until the first tagged release, use the `main` branch:
+The first release target is 0.1.0. After the tag is published, depend on the
+tagged package version:
+
+```swift
+.package(url: "https://github.com/mihaelamj/PureYAML.git", .upToNextMinor(from: "0.1.0"))
+```
+
+Until that tag exists, use the `main` branch:
 
 ```swift
 .package(url: "https://github.com/mihaelamj/PureYAML.git", branch: "main")

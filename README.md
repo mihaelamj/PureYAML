@@ -1,6 +1,6 @@
 # PureYAML
 
-[![Linux](https://img.shields.io/github/actions/workflow/status/mihaelamj/PureYAML/ci.yml?branch=main&label=Linux&logo=linux)](https://github.com/mihaelamj/PureYAML/actions/workflows/ci.yml)
+[![CI](https://img.shields.io/github/actions/workflow/status/mihaelamj/PureYAML/ci.yml?branch=main&label=macOS%20Linux%20WASM)](https://github.com/mihaelamj/PureYAML/actions/workflows/ci.yml)
 
 PureYAML is a dependency-free YAML package written entirely in Swift.
 
@@ -49,7 +49,7 @@ flowchart TB
   Epic9["#9 Deterministic Emitter Core"]:::done
   Epic10["#10 Typed Decoding and Encoding"]:::done
   Epic11["#11 YAML Compatibility Corpus"]:::done
-  Epic12["#12 Usage and Migration Docs"]:::todo
+  Epic12["#12 Usage and Migration Docs"]:::done
   Epic13["#13 Release Readiness"]:::todo
   SuperEpic8 --> Epic1
   Epic1 --> Epic9
@@ -65,14 +65,17 @@ flowchart TB
 
 #11 YAML Compatibility Corpus is complete in main.
 
+#12 Usage and Migration Docs is complete in main.
+
 ## Status
 
-This repository starts with the first real parser milestone: block mappings,
-block sequences, ordered mappings, common scalars, quoted strings, comments,
-flow collections, literal and folded block scalars, anchors, aliases, YAML
-directives, document markers, explicit built-in scalar tags, and a matching
-dumper with block and flow output policies. It also includes path-aware
-validation for structural YAML checks such as duplicate mapping keys.
+This repository is preparing the first tagged release, version 0.1.0. Current
+main includes block mappings, block sequences, ordered mappings, common scalars,
+quoted strings, comments, flow collections, literal and folded block scalars,
+anchors, aliases, YAML directives, document markers, explicit built-in scalar
+tags, and a matching dumper with block and flow output policies. It also
+includes path-aware validation for structural YAML checks such as duplicate
+mapping keys.
 
 It is not yet a full YAML 1.2 implementation. The internal event parser now
 recognizes anchors, aliases, tags, flow collections, and block scalar styles from
@@ -184,6 +187,11 @@ order, strict/non-strict behavior, and duplicate-key diagnostics.
 ## Development Contract
 
 PureYAML must stay dependency-free and portable. Before merging changes:
+
+- Swift tools version: 6.1
+- Package products: `PureYAML`
+- SwiftPM dependencies: none
+- Hosted CI matrix: macOS build and test, Linux build and test, WASM build
 
 ```sh
 bash scripts/check-all.sh
