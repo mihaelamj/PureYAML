@@ -120,6 +120,22 @@ Literal block emission is intentionally conservative: multiline strings whose
 lines would not round-trip through the current parser are emitted as quoted
 strings instead. Flow collections always use inline scalar output.
 
+## Validation
+
+Validation is path-aware and explicit. The default validator rejects duplicate
+mapping keys anywhere in a parsed document. Callers can use strict mode, where
+warnings fail validation, or non-strict mode, where warnings are returned while
+errors still throw.
+
+```swift
+let issues = try PureYAML.validate(document, strict: false)
+```
+
+Custom validation rules can be layered onto the default validator or attached to
+a blank validator when callers want only project-specific checks. Validation
+tests pin exact issue paths, descriptions, severity handling, rule traversal
+order, strict/non-strict behavior, and duplicate-key diagnostics.
+
 ## Development Contract
 
 PureYAML must stay dependency-free and portable. Before merging changes:

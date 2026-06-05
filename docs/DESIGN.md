@@ -111,16 +111,20 @@ and flow-style collections. Literal block scalar emission is intentionally
 limited to strings whose lines round-trip through the current parser; other
 multiline strings stay quoted. Flow collections always use inline scalars.
 
-The initial validator traverses parsed YAML values and reports path-aware
-issues. The default rule rejects duplicate mapping keys, and callers can build a
-blank validator plus custom rules for project-specific checks.
+The validator traverses parsed YAML values and reports path-aware issues. The
+default rule rejects duplicate mapping keys. Callers can compose custom rules on
+top of the default validator or start from `Validation.Validator.blank` for
+project-specific checks only. Strict validation treats warnings as failures;
+non-strict validation returns warnings while still throwing for errors. The
+validation corpus pins exact issue paths, descriptions, severity splits,
+strict/non-strict behavior, rule traversal order, and duplicate-key diagnostics.
 
 ## Planned Compatibility Work
 
 Compatibility should be added in small, test-backed slices:
 
 1. Tag-aware collection handling and merge keys.
-2. Validation rules beyond duplicate-key behavior.
+2. Additional built-in validation rules beyond duplicate-key behavior.
 3. Codable-style decoding and encoding.
 4. Yams corpus comparison tests in a separate compatibility suite.
 
