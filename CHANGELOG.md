@@ -22,6 +22,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   comments, indentation, block entries, mapping indicators, flow delimiters,
   quoted scalars, block scalar headers, anchors, aliases, tags, and source
   marks.
+- Add the internal scanner-token event parser for block collections, flow
+  collections, aliases, anchors, tags, and line/column parser failures.
 - Expand tests into focused parsing, dumping, model, validation, and parse-error
   suites.
 - Add macOS, Linux, and WASM verification gates and CI jobs, plus a local Linux

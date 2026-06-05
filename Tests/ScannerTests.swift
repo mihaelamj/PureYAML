@@ -171,6 +171,7 @@ struct ScannerTests {
     @Test("Reports scanner errors")
     func test_errorReporting() {
         expectScannerError("\tname: value", .tabIndentation(line: 1))
+        expectScannerError("root:\n    child: yes\n  wrong: no", .unexpectedIndentation(line: 3))
         expectScannerError("name: \"open", .unterminatedQuotedString(line: 1))
         expectScannerError("name: 'open", .unterminatedQuotedString(line: 1))
         expectScannerError("anchor: &", .expectedAnchorName(line: 1))

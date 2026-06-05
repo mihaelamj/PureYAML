@@ -59,7 +59,7 @@ flowchart TB
   classDef todo fill:#f2f4f7,stroke:#8e8e93,color:#111827
   Issue2["#2 Event Model and Golden Tests"]:::done
   Issue3["#3 UTF-8 Reader and Scanner"]:::done
-  Issue4["#4 Token Stream to Events"]:::todo
+  Issue4["#4 Token Stream to Events"]:::done
   Issue5["#5 Events to PureYAML Values"]:::todo
   Issue6["#6 Scalars Tags and Aliases"]:::todo
   Issue7["#7 macOS Linux and WASM Hardening"]:::todo
@@ -77,9 +77,11 @@ block sequences, ordered mappings, common scalars, quoted strings, comments, and
 a matching dumper. It also includes path-aware validation for structural YAML
 checks such as duplicate mapping keys.
 
-It is not yet a full YAML 1.2 implementation. Anchors, aliases, tags, flow
-collections, folded scalars, literal scalars, directives, and custom decoding
-are planned work.
+It is not yet a full YAML 1.2 implementation. The internal event parser now
+recognizes anchors, aliases, tags, and flow collections from scanner tokens, but
+the public value parser does not compose those events into `PureYAML.Model.Value`
+yet. Folded scalars, literal scalars, directives, and custom decoding are
+planned work.
 
 ## Attribution
 

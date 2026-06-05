@@ -75,6 +75,65 @@ struct ParsingEventTests {
         #expect(!events.map(\.description).contains("scalar value=\"\" anchor=- tag=- style=plain @1:1@0"))
     }
 
+    @Test("Emits golden events for flow collections aliases anchors and tags")
+    func test_flowCollectionsAliasesAnchorsAndTags() throws {
+        let events = try PureYAML.Parsing.Parser().parseEvents(
+            """
+            flow: [!Thing &item "value", *item, {tagged: !<tag:example.com,2026:thing> 'it''s'}]
+            """,
+        )
+
+        let descriptions = events.map(\.description)
+        #expect(descriptions == [
+            "streamStart @1:1@0",
+            "documentStart @1:1@0",
+            "mappingStart anchor=- tag=- style=block @1:1@0",
+            "scalar value=\"flow\" anchor=- tag=- style=plain @1:1@0",
+            "sequenceStart anchor=- tag=- style=flow @1:7@6",
+            "scalar value=\"value\" anchor=item tag=!Thing style=doubleQuoted @1:8@7",
+            "alias anchor=item @1:30@29",
+            "mappingStart anchor=- tag=- style=flow @1:37@36",
+            "scalar value=\"tagged\" anchor=- tag=- style=plain @1:38@37",
+            "scalar value=\"it's\" anchor=- tag=!<tag:example.com,2026:thing> style=singleQuoted @1:46@45",
+            "mappingEnd @1:84@83",
+            "sequenceEnd @1:85@84",
+            "mappingEnd @1:85@84",
+            "documentEnd @1:85@84",
+            "streamEnd @1:85@84",
+        ])
+        #expect(!descriptions.contains("sequenceStart anchor=- tag=- style=block @1:7@6"))
+        #expect(!descriptions.contains { $0.contains("it''s") })
+    }
+
+    @Test("Emits golden events for block scalar headers")
+    func test_blockScalarHeaders() throws {
+        let events = try PureYAML.Parsing.Parser().parseEvents(
+            """
+            text: |
+              one
+              two
+            folded: >
+              one
+              two
+            """,
+        )
+
+        let descriptions = events.map(\.description)
+        #expect(descriptions == [
+            "streamStart @1:1@0",
+            "documentStart @1:1@0",
+            "mappingStart anchor=- tag=- style=block @1:1@0",
+            "scalar value=\"text\" anchor=- tag=- style=plain @1:1@0",
+            "scalar value=\"one\\ntwo\\n\" anchor=- tag=- style=plain @1:7@6",
+            "scalar value=\"folded\" anchor=- tag=- style=plain @4:1@20",
+            "scalar value=\"one two\\n\" anchor=- tag=- style=plain @4:9@28",
+            "mappingEnd @6:6@41",
+            "documentEnd @6:6@41",
+            "streamEnd @6:6@41",
+        ])
+        #expect(!descriptions.contains { $0.contains("one\\ntwo") && $0.contains("@4:9@28") })
+    }
+
     @Test("Reports parse-event errors")
     func test_errorReporting() {
         expectError(PureYAML.Parsing.ParseError.emptyDocument) {
@@ -83,8 +142,39 @@ struct ParsingEventTests {
         expectError(PureYAML.Parsing.ParseError.unexpectedIndentation(line: 3)) {
             try PureYAML.Parsing.Parser().parseEvents("root:\n    child: yes\n  wrong: no")
         }
-        expectError(PureYAML.Parsing.ParseError.expectedMappingKey(line: 3)) {
+        expectError(PureYAML.Parsing.ParseError.unexpectedToken(
+            expected: "mapping key",
+            actual: "scalar value=\"dangling\" style=plain",
+            line: 3,
+            column: 3,
+        )) {
             try PureYAML.Parsing.Parser().parseEvents("root:\n  child: value\n  dangling")
         }
+        expectParseEventError(
+            "items: [one, two",
+            PureYAML.Parsing.ParseError.unexpectedToken(
+                expected: "flow entry or flow sequence end",
+                actual: "streamEnd",
+                line: 1,
+                column: 17,
+            ),
+            description: "expected flow entry or flow sequence end at line 1, column 17, found streamEnd",
+        )
+    }
+}
+
+private func expectParseEventError(
+    _ yaml: String,
+    _ expected: PureYAML.Parsing.ParseError,
+    description: String,
+) {
+    do {
+        _ = try PureYAML.Parsing.Parser().parseEvents(yaml)
+        recordIssue("expected error \(expected)")
+    } catch let error as PureYAML.Parsing.ParseError {
+        #expect(error == expected)
+        #expect(error.description == description)
+    } catch {
+        recordIssue("unexpected error \(error)")
     }
 }

@@ -8,8 +8,10 @@ public extension PureYAML.Parsing {
         case expectedMappingKey(line: Int)
         case expectedAnchorName(line: Int)
         case expectedAliasName(line: Int)
+        case expectedNode(line: Int, column: Int)
         case unterminatedTag(line: Int)
         case unterminatedQuotedString(line: Int)
+        case unexpectedToken(expected: String, actual: String, line: Int, column: Int)
 
         public var description: String {
             switch self {
@@ -27,10 +29,14 @@ public extension PureYAML.Parsing {
                 "expected an anchor name at line \(line)"
             case let .expectedAliasName(line):
                 "expected an alias name at line \(line)"
+            case let .expectedNode(line, column):
+                "expected a YAML node at line \(line), column \(column)"
             case let .unterminatedTag(line):
                 "unterminated tag at line \(line)"
             case let .unterminatedQuotedString(line):
                 "unterminated quoted string at line \(line)"
+            case let .unexpectedToken(expected, actual, line, column):
+                "expected \(expected) at line \(line), column \(column), found \(actual)"
             }
         }
     }

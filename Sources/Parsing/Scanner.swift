@@ -92,6 +92,9 @@ extension PureYAML.Parsing.Scanner {
                 state.indentation.removeLast()
                 state.append(.dedent(width: state.indentation.last ?? 0), mark: end, endMark: end)
             }
+            guard width == state.indentation.last else {
+                throw PureYAML.Parsing.ParseError.unexpectedIndentation(line: end.line)
+            }
         }
     }
 

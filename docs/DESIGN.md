@@ -42,6 +42,8 @@ PureYAML
 │   ├── Reader
 │   ├── Scanner
 │   ├── Token
+│   ├── TokenCursor
+│   ├── TokenEventParser
 │   ├── Event
 │   ├── Mark
 │   ├── Line
@@ -79,13 +81,16 @@ marks plus scalar and collection styles. Anchors and tags are carried as event
 metadata so the later scanner/composer work can add YAML feature coverage
 without changing the event shape.
 
-The parser layer now also has an internal reader/scanner contract.
+The parser layer now also has an internal reader/scanner/event contract.
 `Parsing.Reader` advances through Swift `String` input while tracking UTF-8 byte
 indexes, lines, and columns. `Parsing.Scanner` emits lexical `Parsing.Token`
 values for comments, indentation, block entries, mapping indicators, flow
 delimiters, quoted scalar starts, block scalar headers, anchors, aliases, tags,
-and source mark ranges. The scanner is not yet wired into `parse(_:)`; the next
-roadmap slice composes scanner tokens into parser events.
+and source mark ranges. `Parsing.TokenEventParser` consumes that token stream
+and emits `Parsing.Event` values for block collections, flow collections,
+aliases, anchors, tags, and scalars. The token event parser is not yet wired
+into `parse(_:)`; the next roadmap slice composes events into
+`PureYAML.Model.Value`.
 
 The initial dumper emits block-style YAML from the model.
 
@@ -97,10 +102,10 @@ blank validator plus custom rules for project-specific checks.
 
 Compatibility should be added in small, test-backed slices:
 
-1. Flow collections.
+1. Compose event streams into `PureYAML.Model.Value`.
 2. Literal and folded scalars.
-3. Anchors and aliases.
-4. Tags.
+3. Anchor and alias resolution.
+4. Tag-aware scalar and collection handling.
 5. Validation rules beyond duplicate-key behavior.
 6. Codable-style decoding and encoding.
 7. Yams corpus comparison tests in a separate compatibility suite.
