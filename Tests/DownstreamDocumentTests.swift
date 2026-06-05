@@ -101,22 +101,21 @@ struct DownstreamDocumentTests {
         )
     }
 
-    @Test("Pins unsupported downstream merge keys as unflattened fallback values")
-    func test_downstreamMergeKeyFallbackFixture() throws {
+    @Test("Expands downstream merge keys into effective service mappings")
+    func test_downstreamMergeKeyFixture() throws {
         let root = try requireRootMapping(downstreamMergeKeyYAML)
         let defaults = expectMapping(root["defaults"], "expected defaults mapping")
         let services = expectMapping(root["services"], "expected services mapping")
         let api = expectMapping(services?["api"], "expected api service mapping")
-        let merge = expectMapping(api?["<<"], "expected unflattened merge mapping")
 
         #expect(root.pairs.map(\.key) == ["defaults", "services"])
-        #expect(api?.pairs.map(\.key) == ["<<", "name"])
+        #expect(api?.pairs.map(\.key) == ["retries", "timeoutSeconds", "name"])
         #expect(defaults?["retries"] == .int(3))
         #expect(defaults?["timeoutSeconds"] == .int(30))
-        #expect(merge == defaults)
+        #expect(api?["<<"] == nil)
         #expect(api?["name"] == .string("API"))
-        #expect(api?["retries"] == nil)
-        #expect(api?["timeoutSeconds"] == nil)
+        #expect(api?["retries"] == .int(3))
+        #expect(api?["timeoutSeconds"] == .int(30))
         #expect(PureYAML.Validation.Validator().collect(.mapping(root)) == .init())
     }
 

@@ -12,6 +12,7 @@ public extension PureYAML.Parsing {
         case expectedScalarKey(line: Int, column: Int)
         case incompatibleYAMLDirective(line: Int)
         case invalidTaggedScalar(tag: String, value: String, line: Int, column: Int)
+        case invalidMergeValue(line: Int, column: Int)
         case unterminatedTag(line: Int)
         case unterminatedQuotedString(line: Int)
         case unsupportedDirective(name: String, line: Int)
@@ -44,6 +45,8 @@ public extension PureYAML.Parsing {
                 "incompatible YAML directive at line \(line)"
             case let .invalidTaggedScalar(tag, value, line, column):
                 "invalid scalar '\(value)' for tag '\(tag)' at line \(line), column \(column)"
+            case let .invalidMergeValue(line, column):
+                "expected merge value to be a mapping or sequence of mappings at line \(line), column \(column)"
             case let .unterminatedTag(line):
                 "unterminated tag at line \(line)"
             case let .unterminatedQuotedString(line):

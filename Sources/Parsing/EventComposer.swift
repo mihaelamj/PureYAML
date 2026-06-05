@@ -137,27 +137,37 @@ extension PureYAML.Parsing.EventComposer {
             }
             return false
         }
-        var pairs: [PureYAML.Model.Pair] = []
+        var mergeSources: [[PureYAML.Model.Pair]] = []
+        var localPairs: [PureYAML.Model.Pair] = []
         while current?.isMappingEnd != true {
             let key = try composeMappingKey()
-            let value = try composeNode()
-            pairs.append(PureYAML.Model.Pair(key: key, value: value))
+            if key.isMergeKey {
+                try mergeSources.append(contentsOf: composeMergeSources())
+            } else {
+                let value = try composeNode()
+                localPairs.append(PureYAML.Model.Pair(key: key.value, value: value))
+            }
         }
         _ = try expect("mapping end") { $0.isMappingEnd }
+        let pairs = mergedPairs(from: mergeSources, localPairs: localPairs)
         return .mapping(PureYAML.Model.Mapping(pairs))
     }
 
-    mutating func composeMappingKey() throws -> String {
+    mutating func composeMappingKey() throws -> ComposedMappingKey {
         guard let event = current else {
             throw unexpectedEvent(expected: "mapping key")
         }
-        guard case let .scalar(value, anchor, _, _, _) = event else {
+        guard case let .scalar(value, anchor, tag, style, _) = event else {
             let mark = event.mark
             throw PureYAML.Parsing.ParseError.expectedScalarKey(line: mark.line, column: mark.column)
         }
         index += 1
         store(.string(value), anchor: anchor)
-        return value
+        return ComposedMappingKey(
+            value: value,
+            tag: normalizedScalarTag(tag),
+            style: style,
+        )
     }
 
     func composeScalar(
@@ -238,6 +248,8 @@ extension PureYAML.Parsing.EventComposer {
             return "tag:yaml.org,2002:bool"
         case "!!null":
             return "tag:yaml.org,2002:null"
+        case "!!merge":
+            return "tag:yaml.org,2002:merge"
         default:
             return tag
         }

@@ -91,10 +91,16 @@ title: First
 explicit document, including an explicit empty document, and throws
 `unsupportedMultiDocumentStream` when a second document is present.
 
+Merge keys are expanded during parsing. Plain `<<` and explicit `!!merge` keys
+inherit mapping entries from a mapping or sequence of mappings; local keys
+override inherited keys, and duplicate local keys remain visible to validation.
+Quoted `"<<":` and explicitly string-tagged `!!str <<` keys remain ordinary
+string keys.
+
 If a caller needs a JSON-like dictionary after validation, build that projection
-in application code after deciding how duplicate keys, unsupported tags, merge
-keys, and complex keys should behave. Keeping that step outside PureYAML makes
-the lossy boundary explicit.
+in application code after deciding how duplicate keys, unsupported tags, and
+complex keys should behave. Keeping that step outside PureYAML makes the lossy
+boundary explicit.
 
 ## Typed Conversion
 

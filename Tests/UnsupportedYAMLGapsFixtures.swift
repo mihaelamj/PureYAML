@@ -133,28 +133,6 @@ enum UnsupportedYAMLGapsFixtures {
             ])),
         ),
         FallbackValueCase(
-            name: "merge key remains ordinary mapping entry",
-            yaml: """
-            defaults: &defaults {enabled: true, retries: 3}
-            service:
-              <<: *defaults
-              name: API
-            """,
-            expected: .mapping(.init([
-                .init(key: "defaults", value: .mapping(.init([
-                    .init(key: "enabled", value: .bool(true)),
-                    .init(key: "retries", value: .int(3)),
-                ]))),
-                .init(key: "service", value: .mapping(.init([
-                    .init(key: "<<", value: .mapping(.init([
-                        .init(key: "enabled", value: .bool(true)),
-                        .init(key: "retries", value: .int(3)),
-                    ]))),
-                    .init(key: "name", value: .string("API")),
-                ]))),
-            ])),
-        ),
-        FallbackValueCase(
             name: "comments after explicit document end stay non-content",
             yaml: """
             name: First

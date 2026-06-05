@@ -196,24 +196,29 @@ let validationCorpusIssueFixtures: [ValidationCorpusIssueFixture] = [
         ],
     ),
     .init(
-        name: "merge-like duplicate keys remain inspectable until merge support exists",
+        name: "merged mappings preserve duplicate local keys for validation",
         source: .yaml("""
         defaults: &defaults {retries: 1}
-        service: {<<: *defaults, <<: {retries: 2}}
+        service: {<<: *defaults, name: API, name: Backend}
         """),
         validator: .init(),
         expectedIssues: [
             .init(
                 severity: .error,
-                reason: "Duplicate mapping key '<<'",
-                path: .init([.key("service"), .key("<<")]),
+                reason: "Duplicate mapping key 'name'",
+                path: .init([.key("service"), .key("name")]),
             ),
         ],
         forbiddenIssues: [
             .init(
                 severity: .error,
                 reason: "Duplicate mapping key 'retries'",
-                path: .init([.key("service"), .key("<<"), .key("retries")]),
+                path: .init([.key("service"), .key("retries")]),
+            ),
+            .init(
+                severity: .error,
+                reason: "Duplicate mapping key '<<'",
+                path: .init([.key("service"), .key("<<")]),
             ),
         ],
     ),

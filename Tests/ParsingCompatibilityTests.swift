@@ -86,8 +86,8 @@ struct ParsingCompatibilityTests {
         }
     }
 
-    @Test("Pins merge keys as unsupported unflattened mappings")
-    func test_mergeKeysRemainUnflattenedUntilExplicitlySupported() throws {
+    @Test("Expands merge keys while keeping source mappings visible")
+    func test_mergeKeysExpandIntoEffectiveMappings() throws {
         let root = try requireMapping(PureYAML.parse(
             """
             defaults: &defaults {enabled: true, retries: 3}
@@ -97,19 +97,17 @@ struct ParsingCompatibilityTests {
             """,
         ))
 
-        guard
-            case let .mapping(service)? = root?["service"],
-            case let .mapping(mergedDefaults)? = service["<<"]
-        else {
-            recordIssue("expected unflattened merge-key mapping")
+        guard case let .mapping(service)? = root?["service"] else {
+            recordIssue("expected merged service mapping")
             return
         }
 
-        #expect(mergedDefaults["enabled"] == .bool(true))
-        #expect(mergedDefaults["retries"] == .int(3))
+        #expect(service.pairs.map(\.key) == ["enabled", "retries", "name"])
+        #expect(service["enabled"] == .bool(true))
+        #expect(service["retries"] == .int(3))
         #expect(service["name"] == .string("API"))
-        #expect(service["enabled"] == nil)
-        #expect(service["retries"] == nil)
+        #expect(service["<<"] == nil)
+        #expect(root?["defaults"] != nil)
         #expect(root?["enabled"] == nil)
         #expect(root?["missing"] == nil)
     }

@@ -93,6 +93,7 @@ The initial parser supports:
 - flow sequences and mappings
 - literal and folded block scalars
 - anchors and aliases
+- merge-key expansion for mappings and sequences of mappings
 - YAML directives, document markers, and multi-document streams
 - explicit built-in scalar tags for strings, integers, floats, booleans, and
   nulls
@@ -157,10 +158,11 @@ must stay in `PureYAML.Model.Value`; known YAML should use typed `Codable`.
 
 This is a deterministic validation decision. A Swift dictionary-shaped value
 cannot preserve all YAML mapping entries when keys repeat, cannot represent
-complex mapping keys with the current public model, and makes merge/tag
-normalization ambiguous. The research constructor also includes
-Foundation-specific scalar conversions, which would break the dependency-free
-and WASM-compatible library boundary.
+complex mapping keys with the current public model, and makes tag normalization
+ambiguous. Merge keys are handled explicitly by the parser instead of being
+hidden inside an arbitrary-value projection. The research constructor also
+includes Foundation-specific scalar conversions, which would break the
+dependency-free and WASM-compatible library boundary.
 
 Application code may project `Model.Value` into JSON-like dictionaries after
 validation, but that projection must own the data-loss policy explicitly.
@@ -169,11 +171,12 @@ validation, but that projection must own the data-loss policy explicitly.
 
 Compatibility should be added in small, test-backed slices:
 
-1. Tag-aware collection handling and merge keys.
+1. Tag-aware collection handling.
 2. Multi-document stream dumping.
-3. Additional built-in validation rules beyond duplicate-key behavior.
-4. Broader Codable compatibility beyond scalar, keyed, and unkeyed containers.
-5. Yams corpus comparison tests in a separate compatibility suite.
+3. First-class complex mapping keys.
+4. Additional built-in validation rules beyond duplicate-key behavior.
+5. Broader Codable compatibility beyond scalar, keyed, and unkeyed containers.
+6. Yams corpus comparison tests in a separate compatibility suite.
 
 The private `PureYAMLResearch` repository may be used to study Yams behavior, but
 the public implementation must be written in Swift and must not copy C parser

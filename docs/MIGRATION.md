@@ -40,8 +40,8 @@ but its observable shape conflicts with PureYAML's first principles:
 
 - mapping conversion becomes dictionary-shaped, so duplicate keys and insertion
   order are not a first-class contract;
-- merge keys may be flattened during construction instead of remaining visible
-  to validation;
+- merge-key behavior can be hidden inside construction rather than exposed as an
+  explicit parser contract;
 - scalar construction includes Foundation-specific values such as binary data,
   dates, and null objects;
 - custom constructors can hide whether a document was parsed, normalized,
@@ -67,6 +67,7 @@ add a fixture beside the closest existing suite.
 | Flow collections | Flow sequences and flow mappings compose into model values. | `ParsingTests`, `CollectionCompatibilityFixtures` |
 | Literal and folded blocks | Block scalar text is preserved according to current parser rules. | `ParsingTests`, `DumperTests` |
 | Anchors and aliases | Scalar and mapping anchors can be reused through aliases. Undefined aliases throw exact parse errors. | `ParsingTests`, `CollectionCompatibilityFixtures` |
+| Merge keys | Plain `<<` and explicit `!!merge` keys expand mapping values and sequence-of-mapping values. Local keys override inherited keys; duplicate local keys remain visible to validation. | `MergeKeyCompatibilityTests`, `ParsingCompatibilityTests`, `DownstreamDocumentTests` |
 | YAML directives and document markers | `%YAML 1.2`, selected `%TAG` expansion, `---`, and `...` are supported. | `ParsingCompatibilityTests`, `StreamParsingTests` |
 | Multi-document streams | `PureYAML.parseStream(_:)` parses implicit and explicit documents, empty explicit documents as `null`, `...` document ends, and trailing comments before the next `---`. | `StreamParsingTests` |
 | Stream validation | Stream validation preserves document indexes while keeping validation paths document-local. | `StreamParsingTests` |
@@ -90,7 +91,7 @@ explicit fallback value tree. This avoids silent compatibility drift.
 | `%TAG` after content or after document start | Throws `unsupportedDirective`. | `UnsupportedYAMLGapsFixtures.parseErrors` |
 | Undefined aliases | Throws `undefinedAlias`. | `CollectionCompatibilityFixtures.parseErrors` |
 | Invalid explicit scalar tag values | Throws `invalidTaggedScalar`. | `ScalarCompatibilityFixtures.invalidExplicitScalarTags` |
-| Merge keys | Keeps `<<` as an ordinary mapping entry; it does not flatten merged keys. | `UnsupportedYAMLGapsFixtures.fallbackValues`, `DownstreamDocumentTests` |
+| Invalid merge values | Throws `invalidMergeValue` when `<<` is not followed by a mapping or sequence of mappings. | `MergeKeyCompatibilityTests` |
 | Unsupported built-in tags such as `!!timestamp`, `!!binary`, `!!set`, and `!!omap` | Keeps parseable value trees without special tag semantics. | `UnsupportedYAMLGapsFixtures.fallbackValues` |
 | Sexagesimal-style scalars and date-looking plain scalars | Keep string values for currently unsupported spellings such as `1:20`, `2002-04-28`, and `09`. | `ScalarCompatibilityFixtures.unsupportedScalars` |
 | Custom constructors, custom resolvers, and environment expansion | Not implemented. Build project-specific conversion on top of `Model.Value` or typed `Codable`. | Planned future work |
@@ -113,7 +114,6 @@ explicit fallback value tree. This avoids silent compatibility drift.
 Do not migrate a caller yet if it requires:
 
 - multi-document stream dumping;
-- YAML merge-key flattening;
 - complex mapping keys as first-class keys;
 - binary or timestamp conversion into Foundation types;
 - arbitrary `Any` load and dump APIs;

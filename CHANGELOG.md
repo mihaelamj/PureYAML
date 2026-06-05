@@ -15,11 +15,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add `PureYAML.Stream.Document`, document-indexed stream validation issues, and
   stream validation APIs that preserve document indexes without changing
   document-local validation paths.
+- Add merge-key expansion for plain `<<` and explicit `!!merge` keys, including
+  scalar merge mappings, sequence-of-mapping merge values, local override
+  behavior, and exact errors for invalid merge values.
 
 ### Changed
 
 - Tokenize YAML document start and end markers so scanner, event-parser, and
   stream tests can pin exact document-boundary behavior.
+- Keep quoted `"<<":` and explicitly string-tagged `!!str <<` keys as ordinary
+  string keys while merge syntax is expanded during parsing.
 
 ## [0.1.0] - 2026-06-05
 
