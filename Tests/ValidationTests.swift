@@ -4,7 +4,7 @@ import Testing
 @Suite("Validation")
 struct ValidationTests {
     @Test("Validates documents with default rules")
-    func validatesDocumentsWithDefaultRules() throws {
+    func test_documentsWithDefaultRules() throws {
         let value = try PureYAML.parse(
             """
             title: Example
@@ -16,16 +16,13 @@ struct ValidationTests {
     }
 
     @Test("Reports duplicate mapping keys")
-    func reportsDuplicateMappingKeys() throws {
+    func test_duplicateMappingKeyError() {
         let value = PureYAML.Model.Value.mapping(.init([
             .init(key: "title", value: .string("First")),
             .init(key: "title", value: .string("Second")),
         ]))
 
-        do {
-            try PureYAML.validate(value)
-            recordIssue("expected duplicate key validation failure")
-        } catch let collection as PureYAML.Validation.Issue.Collection {
+        expectValidationError(value) { collection in
             #expect(collection.issues == [
                 PureYAML.Validation.Issue(
                     severity: .error,
@@ -33,13 +30,11 @@ struct ValidationTests {
                     path: .init([.key("title")]),
                 ),
             ])
-        } catch {
-            recordIssue("unexpected error \(error)")
         }
     }
 
     @Test("Reports nested validation paths")
-    func reportsNestedValidationPaths() throws {
+    func test_nestedValidationPaths() throws {
         let value = try PureYAML.parse(
             """
             routes:
@@ -54,7 +49,7 @@ struct ValidationTests {
     }
 
     @Test("Blank validator disables default rules")
-    func blankValidatorDisablesDefaultRules() throws {
+    func test_blankValidatorDisablesDefaultRules() throws {
         let value = PureYAML.Model.Value.mapping(.init([
             .init(key: "title", value: .string("First")),
             .init(key: "title", value: .string("Second")),
@@ -64,7 +59,7 @@ struct ValidationTests {
     }
 
     @Test("Custom validation rules can be added")
-    func customValidationRulesCanBeAdded() throws {
+    func test_customValidationRuleError() throws {
         let value = try PureYAML.parse(
             """
             mode: legacy
@@ -72,34 +67,24 @@ struct ValidationTests {
         )
         let validator = PureYAML.Validation.Validator.blank.validating(legacyModeRule(severity: .error))
 
-        do {
-            try PureYAML.validate(value, using: validator)
-            recordIssue("expected custom validation failure")
-        } catch let collection as PureYAML.Validation.Issue.Collection {
+        expectValidationError(value, using: validator) { collection in
             #expect(collection.issues.map(\.path.description) == ["$.mode"])
             #expect(collection.issues.map(\.reason) == ["Legacy mode is not allowed"])
-        } catch {
-            recordIssue("unexpected error \(error)")
         }
     }
 
     @Test("Strict validation treats warnings as failures")
-    func strictValidationTreatsWarningsAsFailures() throws {
+    func test_strictValidationTreatsWarningsAsFailures() throws {
         let value = try PureYAML.parse("mode: legacy")
         let validator = PureYAML.Validation.Validator.blank.validating(legacyModeRule(severity: .warning))
 
-        do {
-            try PureYAML.validate(value, using: validator)
-            recordIssue("expected warning to fail strict validation")
-        } catch let collection as PureYAML.Validation.Issue.Collection {
+        expectValidationError(value, using: validator) { collection in
             #expect(collection.issues.map(\.severity) == [.warning])
-        } catch {
-            recordIssue("unexpected error \(error)")
         }
     }
 
     @Test("Non-strict validation returns warnings")
-    func nonStrictValidationReturnsWarnings() throws {
+    func test_nonStrictValidationReturnsWarnings() throws {
         let value = try PureYAML.parse("mode: legacy")
         let validator = PureYAML.Validation.Validator.blank.validating(legacyModeRule(severity: .warning))
 
@@ -115,7 +100,7 @@ struct ValidationTests {
     }
 
     @Test("Validation result separates errors and warnings")
-    func validationResultSeparatesErrorsAndWarnings() {
+    func test_validationResultSeparatesErrorsAndWarnings() {
         let result = PureYAML.Validation.Result([
             .init(severity: .error, reason: "error"),
             .init(severity: .warning, reason: "warning"),
@@ -127,7 +112,7 @@ struct ValidationTests {
     }
 
     @Test("Validation paths describe roots, keys, and indexes")
-    func validationPathsDescribeRootsKeysAndIndexes() {
+    func test_validationPathsDescribeRootsKeysAndIndexes() {
         let path = PureYAML.Validation.Path.root
             .appending(.key("routes"))
             .appending(.index(1))
@@ -139,7 +124,7 @@ struct ValidationTests {
     }
 
     @Test("Validation issue descriptions include severity reason and path")
-    func validationIssueDescriptionsIncludeSeverityReasonAndPath() {
+    func test_validationIssueDescriptionsIncludeSeverityReasonAndPath() {
         let issue = PureYAML.Validation.Issue(
             severity: .error,
             reason: "Duplicate mapping key 'title'",
@@ -147,6 +132,19 @@ struct ValidationTests {
         )
 
         #expect(issue.description == "error: Duplicate mapping key 'title' at $.title")
+    }
+
+    @Test("Validation issue collection describes all failures")
+    func test_validationIssueCollectionDescription() {
+        let collection = PureYAML.Validation.Issue.Collection([
+            .init(severity: .error, reason: "first", path: .root),
+            .init(severity: .warning, reason: "second", path: .init([.key("name")])),
+        ])
+
+        #expect(collection.description == """
+        error: first at root
+        warning: second at $.name
+        """)
     }
 
     private func legacyModeRule(severity: PureYAML.Validation.Severity) -> PureYAML.Validation.Rule {
@@ -162,5 +160,20 @@ struct ValidationTests {
                 ),
             ]
         }
+    }
+}
+
+private func expectValidationError(
+    _ value: PureYAML.Model.Value,
+    using validator: PureYAML.Validation.Validator = .init(),
+    check: (PureYAML.Validation.Issue.Collection) -> Void,
+) {
+    do {
+        try PureYAML.validate(value, using: validator)
+        recordIssue("expected validation failure")
+    } catch let collection as PureYAML.Validation.Issue.Collection {
+        check(collection)
+    } catch {
+        recordIssue("unexpected error \(error)")
     }
 }

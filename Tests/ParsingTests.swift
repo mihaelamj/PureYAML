@@ -9,7 +9,7 @@ struct ParsingTests {
     }
 
     @Test("Parses block mappings with common scalars")
-    func parsesBlockMappingWithCommonScalars() throws {
+    func test_blockMappingWithCommonScalars() throws {
         let root = try requireMapping(PureYAML.parse(
             """
             openapi: 3.1.0
@@ -27,6 +27,7 @@ struct ParsingTests {
         #expect(root?["retries"] == .int(3))
         #expect(root?["ratio"] == .double(3.1))
         #expect(root?["missing"] == .null)
+        #expect(root?["unknown"] == nil)
     }
 
     @Test("Parses scalar spellings", arguments: [
@@ -39,14 +40,14 @@ struct ParsingTests {
         ScalarCase(yaml: "value: 1e3", expected: .double(1000)),
         ScalarCase(yaml: "value: plain text", expected: .string("plain text")),
     ])
-    func parsesScalarSpellings(testCase: ScalarCase) throws {
+    func test_scalarSpellings(testCase: ScalarCase) throws {
         let root = try requireMapping(PureYAML.parse(testCase.yaml))
 
         #expect(root?["value"] == testCase.expected)
     }
 
     @Test("Parses quoted strings and escapes")
-    func parsesQuotedStringsAndEscapes() throws {
+    func test_quotedStringsAndEscapes() throws {
         let root = try requireMapping(PureYAML.parse(
             """
             double: "line\\nnext\\tend"
@@ -61,7 +62,7 @@ struct ParsingTests {
     }
 
     @Test("Ignores comments outside quoted strings")
-    func ignoresCommentsOutsideQuotedStrings() throws {
+    func test_commentsOutsideQuotedStrings() throws {
         let root = try requireMapping(PureYAML.parse(
             """
             title: "Keep # inside" # remove outside
@@ -73,10 +74,11 @@ struct ParsingTests {
         #expect(root?["title"] == .string("Keep # inside"))
         #expect(root?["single"] == .string("Keep # inside"))
         #expect(root?["plain"] == .string("value#kept"))
+        #expect(root?["plain"] != .string("value"))
     }
 
     @Test("Parses nested mappings and sequences")
-    func parsesNestedMappingsAndSequences() throws {
+    func test_nestedMappingsAndSequences() throws {
         let root = try requireMapping(PureYAML.parse(
             """
             paths:
@@ -101,7 +103,7 @@ struct ParsingTests {
     }
 
     @Test("Parses sequences of mappings")
-    func parsesSequenceOfMappings() throws {
+    func test_sequenceOfMappings() throws {
         let root = try requireMapping(PureYAML.parse(
             """
             servers:
@@ -129,7 +131,7 @@ struct ParsingTests {
     }
 
     @Test("Parses top-level sequences")
-    func parsesTopLevelSequences() throws {
+    func test_topLevelSequences() throws {
         let value = try PureYAML.parse(
             """
             - one
@@ -146,7 +148,7 @@ struct ParsingTests {
     }
 
     @Test("Reports exact parser errors")
-    func reportsExactParserErrors() {
+    func test_errorReporting() {
         expectParseError("", .emptyDocument)
         expectParseError("# comment only", .emptyDocument)
         expectParseError("\tkey: value", .tabIndentation(line: 1))
@@ -155,5 +157,18 @@ struct ParsingTests {
         expectParseError("root:\n  child: value\n  dangling", .expectedMappingKey(line: 3))
         expectParseError("name: \"open", .unterminatedQuotedString(line: 1))
         expectParseError("name: 'open", .unterminatedQuotedString(line: 1))
+    }
+
+    @Test("Parser errors describe returned failures")
+    func test_errorDescriptions() {
+        #expect(PureYAML.Parsing.ParseError.emptyDocument.description == "document is empty")
+        #expect(PureYAML.Parsing.ParseError.tabIndentation(line: 2).description == "tabs are not allowed for indentation at line 2")
+        #expect(PureYAML.Parsing.ParseError.unexpectedIndentation(line: 3).description == "unexpected indentation at line 3")
+        #expect(PureYAML.Parsing.ParseError.mixedCollectionStyles(line: 4).description == "mapping and sequence entries are mixed at line 4")
+        #expect(PureYAML.Parsing.ParseError.expectedMappingKey(line: 5).description == "expected a mapping key at line 5")
+        #expect(PureYAML.Parsing.ParseError.expectedAnchorName(line: 6).description == "expected an anchor name at line 6")
+        #expect(PureYAML.Parsing.ParseError.expectedAliasName(line: 7).description == "expected an alias name at line 7")
+        #expect(PureYAML.Parsing.ParseError.unterminatedTag(line: 8).description == "unterminated tag at line 8")
+        #expect(PureYAML.Parsing.ParseError.unterminatedQuotedString(line: 9).description == "unterminated quoted string at line 9")
     }
 }

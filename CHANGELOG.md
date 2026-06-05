@@ -18,6 +18,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add the internal parse event model with marks, scalar styles, collection
   styles, alias events, anchor/tag metadata, and golden event tests for current
   parser behavior.
+- Add the internal UTF-8 reader and scanner token layer with tests for
+  comments, indentation, block entries, mapping indicators, flow delimiters,
+  quoted scalars, block scalar headers, anchors, aliases, tags, and source
+  marks.
 - Expand tests into focused parsing, dumping, model, validation, and parse-error
   suites.
 - Add macOS, Linux, and WASM verification gates and CI jobs, plus a local Linux

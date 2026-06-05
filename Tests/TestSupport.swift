@@ -35,10 +35,19 @@ func expectParseError(
     _ yaml: String,
     _ expected: PureYAML.Parsing.ParseError,
 ) {
-    do {
+    expectError(expected) {
         _ = try PureYAML.parse(yaml)
-        recordIssue("expected parse error \(expected)")
-    } catch let error as PureYAML.Parsing.ParseError {
+    }
+}
+
+func expectError<ExpectedError: Swift.Error & Equatable>(
+    _ expected: ExpectedError,
+    operation: () throws -> some Any,
+) {
+    do {
+        _ = try operation()
+        recordIssue("expected error \(expected)")
+    } catch let error as ExpectedError {
         #expect(error == expected)
     } catch {
         recordIssue("unexpected error \(error)")

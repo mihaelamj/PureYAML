@@ -4,7 +4,7 @@ import Testing
 @Suite("Dumper")
 struct DumperTests {
     @Test("Dumps scalar mapping values")
-    func dumpsScalarMappingValues() {
+    func test_scalarMappingValues() {
         let value = PureYAML.Model.Value.mapping(.init([
             .init(key: "missing", value: .null),
             .init(key: "enabled", value: .bool(true)),
@@ -24,7 +24,7 @@ struct DumperTests {
     }
 
     @Test("Escapes scalar strings and mapping keys")
-    func escapesScalarStringsAndMappingKeys() {
+    func test_escapesScalarStringsAndMappingKeys() {
         let value = PureYAML.Model.Value.mapping(.init([
             .init(key: "a:b", value: .string("quote \" slash \\ tab\t")),
             .init(key: "hash#key", value: .string("line\nnext")),
@@ -35,10 +35,12 @@ struct DumperTests {
         "hash#key": "line\\nnext"
 
         """)
+        #expect(!PureYAML.dump(value).contains("quote \" slash \\ tab\t"))
+        #expect(!PureYAML.dump(value).contains("line\nnext"))
     }
 
     @Test("Dumps nested sequences and mappings")
-    func dumpsNestedSequencesAndMappings() {
+    func test_nestedSequencesAndMappings() {
         let value = PureYAML.Model.Value.mapping(.init([
             .init(key: "servers", value: .sequence([
                 .mapping(.init([
@@ -58,7 +60,7 @@ struct DumperTests {
     }
 
     @Test("Dumps top-level sequences")
-    func dumpsTopLevelSequences() {
+    func test_topLevelSequences() {
         let value = PureYAML.Model.Value.sequence([
             .string("one"),
             .int(2),
@@ -74,7 +76,7 @@ struct DumperTests {
     }
 
     @Test("Dumps round-trippable YAML")
-    func dumpsRoundTrippableYaml() throws {
+    func test_roundTrippableYaml() throws {
         let original = PureYAML.Model.Value.mapping(.init([
             .init(key: "paths", value: .mapping(.init([
                 .init(key: "/users", value: .mapping(.init([
@@ -87,5 +89,11 @@ struct DumperTests {
         ]))
 
         #expect(try PureYAML.parse(PureYAML.dump(original)) == original)
+    }
+
+    @Test("Dumps empty collections")
+    func test_emptyCollections() {
+        #expect(PureYAML.dump(.mapping(.init())) == "\n")
+        #expect(PureYAML.dump(.sequence([])) == "\n")
     }
 }

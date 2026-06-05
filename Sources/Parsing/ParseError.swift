@@ -6,6 +6,9 @@ public extension PureYAML.Parsing {
         case unexpectedIndentation(line: Int)
         case mixedCollectionStyles(line: Int)
         case expectedMappingKey(line: Int)
+        case expectedAnchorName(line: Int)
+        case expectedAliasName(line: Int)
+        case unterminatedTag(line: Int)
         case unterminatedQuotedString(line: Int)
 
         public var description: String {
@@ -20,6 +23,12 @@ public extension PureYAML.Parsing {
                 "mapping and sequence entries are mixed at line \(line)"
             case let .expectedMappingKey(line):
                 "expected a mapping key at line \(line)"
+            case let .expectedAnchorName(line):
+                "expected an anchor name at line \(line)"
+            case let .expectedAliasName(line):
+                "expected an alias name at line \(line)"
+            case let .unterminatedTag(line):
+                "unterminated tag at line \(line)"
             case let .unterminatedQuotedString(line):
                 "unterminated quoted string at line \(line)"
             }

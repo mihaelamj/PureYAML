@@ -8,6 +8,27 @@ The `withDependencies` overrides shown in the patterns below assume the Point-Fr
 
 ## Core rules
 
+### Rule 0: OpenAPIKit discipline, Swift Testing syntax
+
+PureYAML tests must follow the OpenAPIKit testing approach, translated to Swift
+Testing instead of XCTest:
+
+- Use focused `test_...` method names inside `@Suite` groups.
+- Use direct equality checks for concrete values, rendered output, token/event
+  descriptions, paths, and error values.
+- Use helper functions for repeated assertions and round-trip/error checks.
+- Cover success and expected-failure behavior for every supported surface.
+- For parser/scanner/emitter/model tests, assert all relevant dimensions:
+  what output must be present, what output must be absent, what must succeed,
+  what must fail, and the exact value or error returned.
+- Error tests must pin concrete error cases and descriptions where the error is
+  user-facing; do not stop at "throws".
+- Keep table-driven/argument tests for families of related cases.
+- Keep tests fixture-like and realistic enough that a stub implementation cannot
+  satisfy them accidentally.
+- Do not add XCTest-style `XCTestCase`, `XCTAssert...`, or mixed XCTest helpers
+  to new PureYAML tests.
+
 ### Rule 1: Swift Testing framework usage
 
 Use modern Swift Testing:
@@ -28,7 +49,8 @@ Control dependencies in tests:
 
 Structure tests clearly:
 - MUST use `@Suite` for logical grouping
-- MUST name tests descriptively
+- MUST name test methods with the `test_...` convention used by OpenAPIKit
+- MUST keep `@Test("...")` descriptions clear and user-readable
 - MUST test one behavior per test
 - MUST NOT create kitchen sink tests
 

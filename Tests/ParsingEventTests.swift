@@ -4,7 +4,7 @@ import Testing
 @Suite("Parsing Events")
 struct ParsingEventTests {
     @Test("Event model represents aliases anchors tags and flow style")
-    func eventModelRepresentsAliasesAnchorsTagsAndFlowStyle() {
+    func test_eventModelRepresentsAliasesAnchorsTagsAndFlowStyle() {
         let mark = PureYAML.Parsing.Mark(line: 2, column: 3, index: 12)
         let events: [PureYAML.Parsing.Event] = [
             .scalar(value: "value", anchor: "root", tag: "!Thing", style: .singleQuoted, mark: mark),
@@ -20,7 +20,7 @@ struct ParsingEventTests {
     }
 
     @Test("Emits golden events for mapping scalars and scalar styles")
-    func emitsGoldenEventsForMappingScalarsAndScalarStyles() throws {
+    func test_mappingScalarsAndScalarStyles() throws {
         let events = try PureYAML.Parsing.Parser().parseEvents(
             """
             name: "Example"
@@ -46,7 +46,7 @@ struct ParsingEventTests {
     }
 
     @Test("Emits golden events for nested sequences and mappings")
-    func emitsGoldenEventsForNestedSequencesAndMappings() throws {
+    func test_nestedSequencesAndMappings() throws {
         let events = try PureYAML.Parsing.Parser().parseEvents(
             """
             servers:
@@ -72,5 +72,19 @@ struct ParsingEventTests {
             "documentEnd @3:25@44",
             "streamEnd @3:25@44",
         ])
+        #expect(!events.map(\.description).contains("scalar value=\"\" anchor=- tag=- style=plain @1:1@0"))
+    }
+
+    @Test("Reports parse-event errors")
+    func test_errorReporting() {
+        expectError(PureYAML.Parsing.ParseError.emptyDocument) {
+            try PureYAML.Parsing.Parser().parseEvents("")
+        }
+        expectError(PureYAML.Parsing.ParseError.unexpectedIndentation(line: 3)) {
+            try PureYAML.Parsing.Parser().parseEvents("root:\n    child: yes\n  wrong: no")
+        }
+        expectError(PureYAML.Parsing.ParseError.expectedMappingKey(line: 3)) {
+            try PureYAML.Parsing.Parser().parseEvents("root:\n  child: value\n  dangling")
+        }
     }
 }

@@ -58,7 +58,7 @@ flowchart TB
   classDef epic fill:#f2e5ff,stroke:#af52de,color:#111827
   classDef todo fill:#f2f4f7,stroke:#8e8e93,color:#111827
   Issue2["#2 Event Model and Golden Tests"]:::done
-  Issue3["#3 UTF-8 Reader and Scanner"]:::todo
+  Issue3["#3 UTF-8 Reader and Scanner"]:::done
   Issue4["#4 Token Stream to Events"]:::todo
   Issue5["#5 Events to PureYAML Values"]:::todo
   Issue6["#6 Scalars Tags and Aliases"]:::todo
