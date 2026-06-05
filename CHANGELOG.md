@@ -54,6 +54,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add keyed typed Decodable and Encodable conversion for mapping-backed structs.
 - Validate YAML values before typed decoding so duplicate keys are rejected
   deterministically.
+- Add unkeyed typed Decodable and Encodable conversion for sequences, including
+  nested sequences and sequence properties on keyed structs.
 
 ### Changed
 

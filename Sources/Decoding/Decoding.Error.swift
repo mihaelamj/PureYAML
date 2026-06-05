@@ -14,10 +14,7 @@ public extension PureYAML.Decoding {
             key: String,
             path: PureYAML.Validation.Path,
         )
-        case unsupportedContainer(
-            kind: String,
-            path: PureYAML.Validation.Path,
-        )
+        case valueNotFound(path: PureYAML.Validation.Path)
 
         public var description: String {
             switch self {
@@ -27,8 +24,8 @@ public extension PureYAML.Decoding {
                 "\(type) value is outside PureYAML integer range at \(path)"
             case let .keyNotFound(key, path):
                 "Missing required key '\(key)' at \(path)"
-            case let .unsupportedContainer(kind, path):
-                "Unsupported \(kind) decoding container at \(path)"
+            case let .valueNotFound(path):
+                "No YAML value found at \(path)"
             }
         }
     }

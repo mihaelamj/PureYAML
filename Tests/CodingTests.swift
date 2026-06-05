@@ -68,30 +68,6 @@ struct CodingTests {
         testCase.expectFailure()
     }
 
-    @Test("Unsupported unkeyed decoding container reports exact errors")
-    func test_unsupportedUnkeyedDecodingContainerReportsExactErrors() {
-        expectDecodingError(
-            .unsupportedContainer(kind: "unkeyed", path: .root),
-        ) {
-            _ = try PureYAML.decode([Int].self, from: .sequence([.int(1)]))
-        }
-    }
-
-    @Test("Unsupported unkeyed encoding containers report exact errors")
-    func test_unsupportedUnkeyedEncodingContainersReportExactErrors() {
-        expectEncodingError(
-            .unsupportedContainer(kind: "unkeyed", path: .init([.index(0)])),
-        ) {
-            _ = try PureYAML.encode([1, 2])
-        }
-
-        expectEncodingError(
-            .unsupportedContainer(kind: "unkeyed", path: .root),
-        ) {
-            _ = try PureYAML.encode([Int]())
-        }
-    }
-
     @Test("Out of range integer encoding reports exact errors")
     func test_outOfRangeIntegerEncodingReportsExactErrors() {
         expectEncodingError(
@@ -108,11 +84,6 @@ struct CodingTests {
             actual: "int",
             path: .root,
         ).description == "Expected String at $, found int")
-
-        #expect(PureYAML.Encoding.Error.unsupportedContainer(
-            kind: "keyed",
-            path: .init([.key("name")]),
-        ).description == "Unsupported keyed encoding container at $.name")
 
         #expect(PureYAML.Decoding.Error.integerOutOfRange(
             type: "Int8",

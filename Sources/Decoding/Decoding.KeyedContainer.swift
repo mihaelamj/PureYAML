@@ -100,9 +100,19 @@ struct KeyedDecodingContainerImpl<Key: CodingKey>: KeyedDecodingContainerProtoco
     func nestedUnkeyedContainer(forKey key: Key) throws -> any UnkeyedDecodingContainer {
         let value = try value(for: key)
         try validateIfNeeded(value, forKey: key)
-        throw PureYAML.Decoding.Error.unsupportedContainer(
-            kind: "unkeyed",
-            path: PureYAML.Validation.Path(codingPath: codingPath + [key]),
+        guard case let .sequence(values) = value else {
+            throw PureYAML.Decoding.Error.typeMismatch(
+                expected: "sequence",
+                actual: value.kindDescription,
+                path: PureYAML.Validation.Path(codingPath: codingPath + [key]),
+            )
+        }
+
+        return UnkeyedDecodingContainerImpl(
+            values: values,
+            codingPath: codingPath + [key],
+            userInfo: userInfo,
+            validatesInput: validatesInput,
         )
     }
 

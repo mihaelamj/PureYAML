@@ -122,11 +122,8 @@ struct KeyedEncodingContainerImpl<Key: CodingKey>: KeyedEncodingContainerProtoco
             parent: storage,
             parentKey: key.stringValue,
         )
-        childStorage.fail(.unsupportedContainer(
-            kind: "unkeyed",
-            path: PureYAML.Validation.Path(codingPath: codingPath + [key]),
-        ))
-        return UnsupportedUnkeyedEncodingContainer(
+        return UnkeyedEncodingContainerImpl(
+            storage: childStorage,
             codingPath: codingPath + [key],
             userInfo: userInfo,
         )

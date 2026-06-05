@@ -40,9 +40,19 @@ public extension PureYAML.Decoding {
 
         public func unkeyedContainer() throws -> any UnkeyedDecodingContainer {
             try validateIfNeeded()
-            throw Error.unsupportedContainer(
-                kind: "unkeyed",
-                path: PureYAML.Validation.Path(codingPath: codingPath),
+            guard case let .sequence(values) = value else {
+                throw Error.typeMismatch(
+                    expected: "sequence",
+                    actual: value.kindDescription,
+                    path: PureYAML.Validation.Path(codingPath: codingPath),
+                )
+            }
+
+            return UnkeyedDecodingContainerImpl(
+                values: values,
+                codingPath: codingPath,
+                userInfo: userInfo,
+                validatesInput: validatesInput,
             )
         }
 
@@ -52,6 +62,7 @@ public extension PureYAML.Decoding {
                 value: value,
                 codingPath: codingPath,
                 userInfo: userInfo,
+                validatesInput: validatesInput,
             )
         }
 
@@ -89,6 +100,7 @@ private struct SingleValueContainer: SingleValueDecodingContainer {
     let value: PureYAML.Model.Value
     let codingPath: [any CodingKey]
     let userInfo: [CodingUserInfoKey: Any]
+    let validatesInput: Bool
 
     func decodeNil() -> Bool {
         value == .null
@@ -171,6 +183,7 @@ private struct SingleValueContainer: SingleValueDecodingContainer {
             value: value,
             codingPath: codingPath,
             userInfo: userInfo,
+            validatesInput: validatesInput,
         ))
     }
 

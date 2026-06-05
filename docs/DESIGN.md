@@ -126,11 +126,11 @@ validation corpus pins exact issue paths, descriptions, severity splits,
 strict/non-strict behavior, rule traversal order, and duplicate-key diagnostics.
 
 Typed conversion supports scalar single-value Decodable and Encodable values,
-plus keyed mapping-backed structs with scalar, optional scalar, and nested keyed
-struct fields. `PureYAML.decode(_:from:)`, `PureYAML.encode(_:)`, and
-`PureYAML.encodeToYAML(_:)` validate input shapes and throw exact path-aware
-typed coding errors. Unkeyed containers remain planned work under the typed
-conversion roadmap.
+keyed mapping-backed structs with scalar, optional scalar, nested keyed struct,
+and sequence fields, plus unkeyed sequences with scalar elements, optional
+elements, nested sequences, and keyed mapping elements. `PureYAML.decode(_:from:)`,
+`PureYAML.encode(_:)`, and `PureYAML.encodeToYAML(_:)` validate input shapes and
+throw exact path-aware typed coding errors.
 
 Typed decoding runs default validation before Swift `Decodable` construction.
 That keeps ambiguous YAML states, such as duplicate mapping keys, from being
@@ -142,7 +142,7 @@ Compatibility should be added in small, test-backed slices:
 
 1. Tag-aware collection handling and merge keys.
 2. Additional built-in validation rules beyond duplicate-key behavior.
-3. Unkeyed typed decoding and encoding, then broader Codable compatibility.
+3. Broader Codable compatibility beyond scalar, keyed, and unkeyed containers.
 4. Yams corpus comparison tests in a separate compatibility suite.
 
 The private `PureYAMLResearch` repository may be used to study Yams behavior, but

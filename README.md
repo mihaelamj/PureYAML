@@ -101,8 +101,8 @@ let yaml = PureYAML.dump(document)
 try PureYAML.validate(document)
 ```
 
-Typed conversion is available for scalar values and keyed mapping-backed
-structs:
+Typed conversion is available for scalar values, keyed mapping-backed structs,
+and unkeyed sequences:
 
 ```swift
 struct Info: Codable {
@@ -115,12 +115,14 @@ let info = try PureYAML.decode(Info.self, from: """
 title: Example API
 version: 1
 """)
+let tags = try PureYAML.decode([String].self, from: """
+- Swift
+- YAML
+""")
 let value = try PureYAML.encode(42)
 let yaml = try PureYAML.encodeToYAML(info)
 ```
 
-Unkeyed sequences are still explicit future work; attempts to decode or encode
-arrays through typed conversion report exact path-aware errors.
 Typed decoding runs the default validator before constructing Swift values, so
 duplicate mapping keys are reported as validation issues instead of silently
 choosing one value.

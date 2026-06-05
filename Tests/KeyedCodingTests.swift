@@ -133,21 +133,9 @@ struct KeyedCodingTests {
     @Test("Keyed encoding failures report exact errors")
     func test_keyedEncodingFailuresReportExactErrors() {
         expectEncodingError(
-            .unsupportedContainer(kind: "unkeyed", path: .init([.key("items"), .index(0)])),
-        ) {
-            _ = try PureYAML.encode(UnsupportedList(items: [1]))
-        }
-
-        expectEncodingError(
             .integerOutOfRange(type: "UInt64", path: .init([.key("value")])),
         ) {
             _ = try PureYAML.encode(WideInteger(value: UInt64.max))
-        }
-
-        expectEncodingError(
-            .unsupportedContainer(kind: "unkeyed", path: .init([.key("items")])),
-        ) {
-            _ = try PureYAML.encode(UnsupportedListThenTitle())
         }
     }
 
@@ -164,10 +152,9 @@ struct KeyedCodingTests {
             path: .root,
         ).description == "Expected mapping at $, found string")
 
-        #expect(PureYAML.Encoding.Error.unsupportedContainer(
-            kind: "unkeyed",
-            path: .init([.key("items")]),
-        ).description == "Unsupported unkeyed encoding container at $.items")
+        #expect(PureYAML.Decoding.Error.valueNotFound(
+            path: .init([.index(1)]),
+        ).description == "No YAML value found at $[1]")
     }
 }
 
@@ -222,14 +209,6 @@ private let keyedDecodingErrorCases: [KeyedDecodingErrorCase] = [
         expected: .typeMismatch(expected: "mapping", actual: "string", path: .root),
         kind: .titleOnly,
     ),
-    .init(
-        name: "unkeyed property remains unsupported",
-        value: .mapping(.init([
-            .init(key: "items", value: .sequence([.int(1)])),
-        ])),
-        expected: .unsupportedContainer(kind: "unkeyed", path: .init([.key("items")])),
-        kind: .list,
-    ),
 ]
 
 private struct KeyedArticle: Codable, Equatable {
@@ -259,25 +238,8 @@ private struct TitleOnly: Codable, Equatable {
     var title: String
 }
 
-private struct UnsupportedList: Codable, Equatable {
-    var items: [Int]
-}
-
 private struct WideInteger: Encodable {
     var value: UInt64
-}
-
-private struct UnsupportedListThenTitle: Encodable {
-    enum CodingKeys: String, CodingKey {
-        case items
-        case title
-    }
-
-    func encode(to encoder: any Encoder) throws {
-        var container = encoder.container(keyedBy: CodingKeys.self)
-        _ = container.nestedUnkeyedContainer(forKey: .items)
-        try container.encode("after", forKey: .title)
-    }
 }
 
 private struct TestCodingKey: CodingKey {
@@ -304,7 +266,6 @@ struct KeyedDecodingErrorCase: CustomStringConvertible {
     enum Kind {
         case article
         case titleOnly
-        case list
     }
 
     var name: String
@@ -323,8 +284,6 @@ struct KeyedDecodingErrorCase: CustomStringConvertible {
                 _ = try PureYAML.decode(KeyedArticle.self, from: value)
             case .titleOnly:
                 _ = try PureYAML.decode(TitleOnly.self, from: value)
-            case .list:
-                _ = try PureYAML.decode(UnsupportedList.self, from: value)
             }
             recordIssue("expected decoding error")
         } catch let error as PureYAML.Decoding.Error {
