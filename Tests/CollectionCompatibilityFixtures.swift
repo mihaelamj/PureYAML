@@ -166,6 +166,39 @@ enum CollectionCompatibilityFixtures {
                 ]))),
             ])),
         ),
+        SuccessCase(
+            name: "mapping value with indentless sequence of inline mappings",
+            yaml: """
+            schema:
+              allOf:
+              - $ref: '#/components/schemas/ErrorCategory'
+              - description: An integer value that specifies the category of a query
+                  failure error. Values include 1 - System, 2 - User, and 3
+                  - Other.
+            """,
+            expected: .mapping(.init([
+                .init(key: "schema", value: .mapping(.init([
+                    .init(key: "allOf", value: .sequence([
+                        .mapping(.init([
+                            .init(
+                                key: "$ref",
+                                value: .string("#/components/schemas/ErrorCategory"),
+                            ),
+                        ])),
+                        .mapping(.init([
+                            .init(
+                                key: "description",
+                                value: .string(
+                                    "An integer value that specifies the category of a query "
+                                        + "failure error. Values include 1 - System, 2 - User, and 3 "
+                                        + "- Other.",
+                                ),
+                            ),
+                        ])),
+                    ])),
+                ]))),
+            ])),
+        ),
     ]
 
     static let parseErrors: [ParseErrorCase] = [

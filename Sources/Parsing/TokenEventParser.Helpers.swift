@@ -30,6 +30,13 @@ extension PureYAML.Parsing.TokenEventParser {
         if properties == .none, canParsePlainScalarWithContinuation(after: valueIndicator) {
             return try parsePlainScalarWithContinuation(properties: properties)
         }
+        if cursor.current?.kind.isMappingKey == true, hasNodeOnSameLine(after: valueIndicator) {
+            return try parseBlockMapping(
+                properties: properties,
+                includeIndentedContinuation: true,
+                minimumColumn: cursor.current?.mark.column,
+            )
+        }
         if properties != .none || hasNodeOnSameLine(after: valueIndicator) {
             return try parseNode(properties: properties)
         }

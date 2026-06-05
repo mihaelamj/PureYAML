@@ -7,7 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-Nothing yet.
+### Fixed
+
+- Treat more-indented plain scalar continuation lines that start with `-` as
+  text unless they appear at a known sequence-entry indentation. This fixes
+  OpenAPI-style `allOf` descriptions while preserving nested block sequences
+  such as `- - 123`.
+- Parse explicit scalar keys whose `:` value starts a same-line mapping and
+  continues with indented mapping siblings, matching large OpenAPI schema keys.
 
 ## [0.1.0] - 2026-06-05
 

@@ -84,6 +84,34 @@ struct ComplexMappingKeyParsingTests {
         #expect(value.rootMapping?["[\"a\", \"b\"]"] == nil)
     }
 
+    @Test("Parses explicit scalar keys with same-line mapping values")
+    func test_parsesExplicitScalarKeysWithSameLineMappingValues() throws {
+        let value = try PureYAML.parse("""
+        ? __stringMin14PatternS3Captions
+        : minLength: 14
+          pattern: ^((s3://(.*?)\\.(srt|SRT))|(https?://(.*?)\\.(srt|SRT)))$
+          type: string
+        next: done
+        """)
+        let key = PureYAML.Model.Key.string("__stringMin14PatternS3Captions")
+
+        #expect(value == .mapping(.init([
+            .init(keyNode: key, value: .mapping(.init([
+                .init(key: "minLength", value: .int(14)),
+                .init(
+                    key: "pattern",
+                    value: .string("^((s3://(.*?)\\.(srt|SRT))|(https?://(.*?)\\.(srt|SRT)))$"),
+                ),
+                .init(key: "type", value: .string("string")),
+            ]))),
+            .init(key: "next", value: .string("done")),
+        ])))
+        #expect(value.rootMapping?[key]?.rootMapping?["minLength"] == .int(14))
+        #expect(value.rootMapping?[key]?.rootMapping?["type"] == .string("string"))
+        #expect(value.rootMapping?["next"] == .string("done"))
+        #expect(value.rootMapping?["minLength"] == nil)
+    }
+
     @Test("Expands merged mappings with complex-key local overrides")
     func test_expandsMergedMappingsWithComplexKeyLocalOverrides() throws {
         let value = try PureYAML.parse("""

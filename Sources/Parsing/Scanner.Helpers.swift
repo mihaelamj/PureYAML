@@ -138,12 +138,12 @@ extension PureYAML.Parsing.Scanner {
             guard !probe.isAtEnd, !isLineBreak(probe.peek()), probe.peek() != "#" else {
                 return value
             }
-            guard !isBlockEntry(probe) else {
-                return value
-            }
 
             let baseIndentation = plainScalarContinuationBaseIndentation(state: state)
             guard indentationWidth > baseIndentation else {
+                return value
+            }
+            if isBlockEntry(probe), state.validImplicitIndentation.contains(indentationWidth) {
                 return value
             }
 

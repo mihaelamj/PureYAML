@@ -43,3 +43,24 @@ Every compatibility test must pin at least one of:
 - exact validation issue;
 - exact path-aware decoding or encoding error;
 - exact required absence check for fields that must not appear.
+
+## Parser Compatibility Lessons
+
+YAML compatibility is parser-state compatibility, not only value-model
+compatibility. Indicator characters such as `-`, `?`, and `:` are meaningful
+only after indentation, flow depth, and the current parser production are taken
+into account.
+
+When fixing scanner or parser behavior:
+
+- preserve tests for the exact production corpus shape that failed, not only a
+  smaller feature in isolation;
+- combine interacting YAML features in one regression fixture when the bug
+  requires their interaction;
+- keep implementation fixes grammar-level and content-independent; never branch
+  on corpus file names, OpenAPI field names, vendor names, schema prefixes, or
+  other production-data fingerprints;
+- for plain scalar continuation bugs, cover both sides explicitly:
+  - a more-indented continuation line that starts with an indicator but remains
+    text;
+  - a same-context indicator line that must remain a collection item.
