@@ -124,4 +124,104 @@ struct ValidationModeTests {
             "warning: Legacy mode is not allowed at $.list[0].mode",
         ])
     }
+
+    @Test("Validation rule predicate prevents rule from running")
+    func test_validationRulePredicatePreventsRuleFromRunning() throws {
+        let value = try PureYAML.parse("mode: legacy")
+        let validator = PureYAML.Validation.Validator.blank.validating(
+            PureYAML.Validation.Rule(
+                description: "Never runs",
+                check: { context in
+                    [
+                        PureYAML.Validation.Issue(
+                            severity: .error,
+                            reason: "Should not appear",
+                            path: context.path,
+                        ),
+                    ]
+                },
+                when: { _ in false },
+            ),
+        )
+
+        let result = validator.collect(value)
+
+        #expect(result == PureYAML.Validation.Result())
+        #expect(result.isValid)
+    }
+
+    @Test("Validation rule predicate filters applied subjects")
+    func test_validationRulePredicateFiltersAppliedSubjects() throws {
+        let value = try PureYAML.parse(
+            """
+            mode: modern
+            nested:
+              mode: legacy
+              label: legacy
+            """,
+        )
+        let validator = PureYAML.Validation.Validator.blank.validating(
+            PureYAML.Validation.Rule(
+                description: "Legacy mode is not allowed",
+                check: { context in
+                    [
+                        PureYAML.Validation.Issue(
+                            severity: .error,
+                            reason: "Legacy mode is not allowed",
+                            path: context.path,
+                        ),
+                    ]
+                },
+                when: { context in
+                    context.path.components.last == .key("mode")
+                        && context.subject == .string("legacy")
+                },
+            ),
+        )
+
+        let result = validator.collect(value)
+
+        #expect(result.issues == [
+            .init(
+                severity: .error,
+                reason: "Legacy mode is not allowed",
+                path: .init([.key("nested"), .key("mode")]),
+            ),
+        ])
+        #expect(!result.issues.contains(.init(
+            severity: .error,
+            reason: "Legacy mode is not allowed",
+            path: .init([.key("nested"), .key("label")]),
+        )))
+    }
+
+    @Test("Boolean validation rule reports exact default failure reason")
+    func test_booleanValidationRuleReportsExactDefaultFailureReason() throws {
+        let value = try PureYAML.parse(
+            """
+            title: Example
+            state: draft
+            """,
+        )
+        let validator = PureYAML.Validation.Validator.blank.validating(
+            PureYAML.Validation.Rule(
+                description: "State is published",
+                check: { context in context.subject == .string("published") },
+                when: { context in context.path.components.last == .key("state") },
+            ),
+        )
+
+        expectValidationError(value, using: validator) { collection in
+            #expect(collection.issues == [
+                .init(
+                    severity: .error,
+                    reason: "Failed to satisfy: State is published",
+                    path: .init([.key("state")]),
+                ),
+            ])
+        }
+
+        let valid = try PureYAML.parse("state: published")
+        #expect(try PureYAML.validate(valid, using: validator).isEmpty)
+    }
 }

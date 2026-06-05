@@ -46,8 +46,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add emitter corpus tests and document the current emitter policy.
 - Add Yams and CYaml attribution without copying their implementation into
   `Sources/`.
+- Add validation-rule predicates, a boolean validation-rule initializer, and
+  validator authoring rules.
 
 ### Changed
 
 - Lower the package tools version to Swift 6.1 for hosted macOS CI compatibility
   and install Linux Swift toolchain prerequisites for the WASM CI job.
+- Harden duplicate-key validation to use set membership while preserving exact
+  diagnostics.

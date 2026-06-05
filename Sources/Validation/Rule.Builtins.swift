@@ -6,17 +6,17 @@ public extension PureYAML.Validation.Rule {
                 return []
             }
 
-            var seen: [String] = []
+            var seen = Set<String>()
             var issues: [PureYAML.Validation.Issue] = []
             for pair in mapping.pairs {
-                if seen.contains(pair.key) {
+                if seen.insert(pair.key).inserted {
+                    continue
+                } else {
                     issues.append(PureYAML.Validation.Issue(
                         severity: .error,
                         reason: "Duplicate mapping key '\(pair.key)'",
                         path: context.path.appending(.key(pair.key)),
                     ))
-                } else {
-                    seen.append(pair.key)
                 }
             }
             return issues

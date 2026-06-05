@@ -87,6 +87,34 @@ struct ValidationTests {
             ],
         ),
         ValidationDuplicateKeyCase(
+            name: "non-adjacent duplicate key",
+            yaml: """
+            title: First
+            name: Example
+            title: Second
+            """,
+            expectedIssues: [
+                .init(
+                    severity: .error,
+                    reason: "Duplicate mapping key 'title'",
+                    path: .init([.key("title")]),
+                ),
+            ],
+        ),
+        ValidationDuplicateKeyCase(
+            name: "flow mapping duplicate key",
+            yaml: """
+            root: {name: First, name: Second}
+            """,
+            expectedIssues: [
+                .init(
+                    severity: .error,
+                    reason: "Duplicate mapping key 'name'",
+                    path: .init([.key("root"), .key("name")]),
+                ),
+            ],
+        ),
+        ValidationDuplicateKeyCase(
             name: "multiple duplicate keys preserve traversal order",
             yaml: """
             root:
@@ -158,5 +186,15 @@ struct ValidationTests {
         ]))
 
         #expect(try PureYAML.validate(value, using: .blank).isEmpty)
+    }
+
+    @Test("Default validator exposes exact built-in rule descriptions")
+    func test_defaultValidatorExposesExactBuiltInRuleDescriptions() {
+        #expect(PureYAML.Validation.Validator.defaultRules.map(\.description) == [
+            "Mapping keys are unique",
+        ])
+        #expect(PureYAML.Validation.Validator().rules.map(\.description) == [
+            "Mapping keys are unique",
+        ])
     }
 }

@@ -6,6 +6,7 @@ Load these rules before changing code:
 - `namespacing.md`
 - `cross-platform.md`
 - `testing.md`
+- `validation.md`
 - `verification.md`
 - `commits.md`
 
