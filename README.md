@@ -101,6 +101,15 @@ let yaml = PureYAML.dump(document)
 try PureYAML.validate(document)
 ```
 
+Typed scalar conversion is available for the first Decodable and Encodable
+slice:
+
+```swift
+let title = try PureYAML.decode(String.self, from: "Example")
+let value = try PureYAML.encode(42)
+let yaml = try PureYAML.encodeToYAML(true)
+```
+
 Emitter options are explicit. The default is deterministic block-style output
 with quoted strings. Callers can opt into conservative plain strings, safe
 literal block scalars for multiline strings, and compact flow collections:

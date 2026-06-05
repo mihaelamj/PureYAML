@@ -195,6 +195,58 @@ struct ValidationModeTests {
         )))
     }
 
+    @Test("Validation rules can inspect root subject and path deterministically")
+    func test_validationRulesCanInspectRootSubjectAndPathDeterministically() throws {
+        let value = try PureYAML.parse(
+            """
+            required_prefix: prod
+            routes:
+              - name: prod-users
+              - name: test-status
+              - label: test-ignored
+            """,
+        )
+        let validator = PureYAML.Validation.Validator.blank.validating(
+            PureYAML.Validation.Rule(
+                description: "Route names use the root prefix",
+                check: { context in
+                    guard case let .mapping(root) = context.root,
+                          case let .string(prefix)? = root["required_prefix"],
+                          case let .string(name) = context.subject,
+                          name.hasPrefix("\(prefix)-")
+                    else {
+                        return [
+                            PureYAML.Validation.Issue(
+                                severity: .error,
+                                reason: "Route name does not use root prefix",
+                                path: context.path,
+                            ),
+                        ]
+                    }
+                    return []
+                },
+                when: { context in
+                    context.path.components.last == .key("name")
+                },
+            ),
+        )
+
+        let result = validator.collect(value)
+
+        #expect(result.issues == [
+            .init(
+                severity: .error,
+                reason: "Route name does not use root prefix",
+                path: .init([.key("routes"), .index(1), .key("name")]),
+            ),
+        ])
+        #expect(!result.issues.contains(.init(
+            severity: .error,
+            reason: "Route name does not use root prefix",
+            path: .init([.key("routes"), .index(2), .key("label")]),
+        )))
+    }
+
     @Test("Boolean validation rule reports exact default failure reason")
     func test_booleanValidationRuleReportsExactDefaultFailureReason() throws {
         let value = try PureYAML.parse(

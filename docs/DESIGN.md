@@ -51,6 +51,12 @@ PureYAML
 ├── Emitting
 │   ├── Dumper
 │   └── Options
+├── Decoding
+│   ├── Decoder
+│   └── Error
+├── Encoding
+│   ├── Encoder
+│   └── Error
 └── Validation
     ├── Validator
     ├── Rule
@@ -61,7 +67,7 @@ PureYAML
 `PureYAML.parse(_:)` and `PureYAML.dump(_:)` are convenience entry points.
 Parsing runs through the scanner, token-event parser, and event composer before
 returning `PureYAML.Model.Value`. The implementation lives in namespaced parser,
-dumper, and validator types.
+dumper, scalar typed coder, and validator types.
 
 ## First Milestone
 
@@ -118,6 +124,12 @@ project-specific checks only. Strict validation treats warnings as failures;
 non-strict validation returns warnings while still throwing for errors. The
 validation corpus pins exact issue paths, descriptions, severity splits,
 strict/non-strict behavior, rule traversal order, and duplicate-key diagnostics.
+
+The first typed conversion slice supports scalar single-value Decodable and
+Encodable values. `PureYAML.decode(_:from:)`, `PureYAML.encode(_:)`, and
+`PureYAML.encodeToYAML(_:)` validate input shapes and throw exact path-aware
+typed coding errors. Keyed and unkeyed containers remain planned work under the
+typed conversion roadmap.
 
 ## Planned Compatibility Work
 

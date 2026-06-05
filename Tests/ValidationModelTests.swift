@@ -39,11 +39,24 @@ struct ValidationModelTests {
             isRoot: false,
         ),
         ValidationPathCase(
-            name: "punctuated key",
+            name: "quoted slash key",
             path: .root
                 .appending(.key("/users"))
                 .appending(.key("get.method")),
-            expectedDescription: "$./users.get.method",
+            expectedDescription: "$[\"/users\"][\"get.method\"]",
+            isRoot: false,
+        ),
+        ValidationPathCase(
+            name: "quoted empty key",
+            path: .root.appending(.key("")),
+            expectedDescription: "$[\"\"]",
+            isRoot: false,
+        ),
+        ValidationPathCase(
+            name: "escaped quoted key",
+            path: .root
+                .appending(.key("quote\"slash\\line\nnext\tend")),
+            expectedDescription: "$[\"quote\\\"slash\\\\line\\nnext\\tend\"]",
             isRoot: false,
         ),
     ])

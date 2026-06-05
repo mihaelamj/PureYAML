@@ -9,6 +9,12 @@ public enum PureYAML {
     /// YAML emitting types.
     public enum Emitting {}
 
+    /// YAML typed decoding types.
+    public enum Decoding {}
+
+    /// YAML typed encoding types.
+    public enum Encoding {}
+
     /// YAML validation types.
     public enum Validation {}
 }

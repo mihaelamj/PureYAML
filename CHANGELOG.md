@@ -48,6 +48,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `Sources/`.
 - Add validation-rule predicates, a boolean validation-rule initializer, and
   validator authoring rules.
+- Add scalar typed Decodable and Encodable conversion APIs with exact
+  path-aware errors.
+- Add unambiguous bracket-quoted validation paths for punctuation-heavy keys.
 
 ### Changed
 

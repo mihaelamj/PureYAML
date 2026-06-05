@@ -20,6 +20,11 @@ public extension PureYAML.Validation.Rule {
                 }
             }
             return issues
+        } when: { context in
+            if case .mapping = context.subject {
+                return true
+            }
+            return false
         }
     }
 }

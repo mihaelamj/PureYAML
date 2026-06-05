@@ -21,4 +21,35 @@ public extension PureYAML {
     ) throws -> [Validation.Issue] {
         try validator.validate(value, strict: strict)
     }
+
+    /// Decodes a typed value from a YAML value tree.
+    static func decode<Value: Decodable>(
+        _: Value.Type = Value.self,
+        from value: Model.Value,
+    ) throws -> Value {
+        try Value(from: Decoding.Decoder(value: value))
+    }
+
+    /// Parses YAML and decodes a typed value from the resulting value tree.
+    static func decode<Value: Decodable>(
+        _ type: Value.Type = Value.self,
+        from yaml: String,
+    ) throws -> Value {
+        try decode(type, from: parse(yaml))
+    }
+
+    /// Encodes a typed value into a YAML value tree.
+    static func encode<Value: Encodable>(_ value: Value) throws -> Model.Value {
+        let encoder = Encoding.Encoder()
+        try value.encode(to: encoder)
+        return try encoder.encodedValue()
+    }
+
+    /// Encodes a typed value and serializes the resulting value tree as YAML.
+    static func encodeToYAML(
+        _ value: some Encodable,
+        options: Emitting.Options = .default,
+    ) throws -> String {
+        try dump(encode(value), options: options)
+    }
 }

@@ -16,6 +16,9 @@ validation rule must make these parts explicit:
   node, read it from `subject`.
 - **Issue contract**: return path-aware `Issue` values with exact severity,
   reason, and path. Do not report anonymous failures.
+- **Path contract**: diagnostic paths must be unambiguous. Simple identifier
+  keys may use dot paths; every key containing punctuation, whitespace, quotes,
+  slashes, dots, or an empty string must render with bracket-quoted escaping.
 - **Default status**: state whether the rule belongs in
   `Validation.Validator.defaultRules` or must be opt-in.
 
@@ -30,6 +33,8 @@ Every validator change must include Swift Testing coverage for:
 - exact traversal order when multiple issues are possible;
 - strict and non-strict behavior when the rule can emit warnings;
 - exact thrown `Issue.Collection` contents for failure cases.
+- direct `Model.Value` validation for YAML states that ordinary loaders may
+  collapse or reject, such as duplicate keys and punctuation-heavy keys.
 
 ## Implementation Rules
 
