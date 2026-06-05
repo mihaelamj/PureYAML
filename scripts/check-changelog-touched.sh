@@ -18,10 +18,13 @@ if ! git rev-parse --verify "$BASE_REF" >/dev/null 2>&1; then
   fi
 fi
 
-changed=$(git diff --name-only "$BASE_REF"...HEAD --)
-if [ -z "$changed" ]; then
-  changed=$(git diff --cached --name-only --)
-fi
+changed=$(
+  {
+    git diff --name-only "$BASE_REF"...HEAD --
+    git diff --cached --name-only --
+    git diff --name-only --
+  } | awk 'NF && !seen[$0]++'
+)
 
 source_touched=0
 while IFS= read -r path; do

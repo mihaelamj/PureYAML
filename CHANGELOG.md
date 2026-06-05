@@ -34,6 +34,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   suites.
 - Add macOS, Linux, and WASM verification gates and CI jobs, plus a local Linux
   check that can run through Claw Mini's Lima VM.
+- Add a single full local verification script and wire pre-push through the
+  macOS, Claw Mini Linux, and WASM gate sequence.
+- Harden the changelog gate so local verification also sees unstaged source
+  edits, not only committed or staged changes.
 - Add Yams and CYaml attribution without copying their implementation into
   `Sources/`.
 

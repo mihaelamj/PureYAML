@@ -45,7 +45,7 @@ flowchart TB
   classDef epic fill:#f2e5ff,stroke:#af52de,color:#111827
   classDef todo fill:#f2f4f7,stroke:#8e8e93,color:#111827
   SuperEpic8["#8 Parser Replacement Roadmap"]:::epic
-  Epic1["#1 Pure Swift Parse Core"]:::epic
+  Epic1["#1 Pure Swift Parse Core"]:::done
   SuperEpic8 --> Epic1
 ```
 
@@ -62,7 +62,7 @@ flowchart TB
   Issue4["#4 Token Stream to Events"]:::done
   Issue5["#5 Events to PureYAML Values"]:::done
   Issue6["#6 Scalars Tags and Aliases"]:::done
-  Issue7["#7 macOS Linux and WASM Hardening"]:::todo
+  Issue7["#7 macOS Linux and WASM Hardening"]:::done
   Issue2 --> Issue3
   Issue3 --> Issue4
   Issue4 --> Issue5
@@ -115,6 +115,12 @@ try PureYAML.validate(document)
 PureYAML must stay dependency-free and portable. Before merging changes:
 
 ```sh
+bash scripts/check-all.sh
+```
+
+That command expands to:
+
+```sh
 bash scripts/check-style.sh
 bash scripts/check-namespacing.sh
 bash scripts/check-changelog-touched.sh
@@ -126,6 +132,10 @@ swift test
 bash scripts/check-linux.sh
 bash scripts/check-wasm.sh
 ```
+
+The pre-push hook runs `scripts/check-all.sh` so local pushes exercise macOS,
+Claw Mini Linux, and WASM before hosted CI repeats the macOS, Linux, and WASM
+matrix.
 
 `scripts/check-wasm.sh` expects a Swift toolchain with a matching Swift Wasm SDK.
 For Swift 6.3.2, install the SDK with:
