@@ -145,7 +145,7 @@ extension PureYAML.Parsing.EventComposer {
                 try mergeSources.append(contentsOf: composeMergeSources())
             } else {
                 let value = try composeNode()
-                localPairs.append(PureYAML.Model.Pair(key: key.value, value: value))
+                localPairs.append(PureYAML.Model.Pair(keyNode: key.keyNode, value: value))
             }
         }
         _ = try expect("mapping end") { $0.isMappingEnd }
@@ -158,13 +158,19 @@ extension PureYAML.Parsing.EventComposer {
             throw unexpectedEvent(expected: "mapping key")
         }
         guard case let .scalar(value, anchor, tag, style, _) = event else {
-            let mark = event.mark
-            throw PureYAML.Parsing.ParseError.expectedScalarKey(line: mark.line, column: mark.column)
+            let value = try composeNode()
+            return ComposedMappingKey(
+                keyNode: PureYAML.Model.Key(value: value),
+                scalarValue: nil,
+                tag: nil,
+                style: nil,
+            )
         }
         index += 1
         store(.string(value), anchor: anchor)
         return ComposedMappingKey(
-            value: value,
+            keyNode: .string(value),
+            scalarValue: value,
             tag: scalarParser.normalizedTag(tag),
             style: style,
         )

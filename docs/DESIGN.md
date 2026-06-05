@@ -101,6 +101,7 @@ The initial parser supports:
 - literal and folded block scalars
 - anchors and aliases
 - merge-key expansion for mappings and sequences of mappings
+- complex mapping keys as sequence or mapping values
 - YAML directives, document markers, and multi-document streams
 - explicit built-in scalar tags for strings, integers, floats, booleans, and
   nulls
@@ -142,12 +143,29 @@ normal parsing is the semantic surface that expands merge keys into
 unsupported built-in tags and built-in tags applied to the wrong node kind with
 the same path and stream issue types used by the main validator.
 
+Mappings are ordered pairs. String keys remain the common path through
+`Model.Pair.key`, `Model.Mapping` string lookup, validation dot/bracket paths,
+and keyed `Codable`. Complex keys are represented by `Model.Key` and stored on
+each pair as `Model.Pair.keyNode`. Sequence and mapping keys stay visible for
+validation, dumping, and model inspection; they are not silently flattened into
+Swift dictionary keys. This mirrors the reference behavior that treats mapping
+keys as nodes, while keeping PureYAML's public typed-conversion boundary
+string-keyed and dependency-free.
+
+The complex-key path contract is deterministic. Simple string keys keep the
+existing `.key` path rendering. Sequence and mapping keys use an explicit
+complex-key path component whose description is derived from the same stable
+flow YAML representation used by duplicate-key diagnostics. That keeps paths
+unambiguous even for YAML states that ordinary loaders collapse or cannot
+represent in native dictionaries.
+
 The dumper emits deterministic YAML from the model. The default policy is
 block-style collections with quoted strings. `Emitting.Options` can opt into
 conservative plain scalars, safe literal block scalars for multiline strings,
 and flow-style collections. Literal block scalar emission is intentionally
 limited to strings whose lines round-trip through the current parser; other
 multiline strings stay quoted. Flow collections always use inline scalars.
+Complex mapping keys emit as explicit YAML keys in block or flow style.
 
 The validator traverses parsed YAML values and reports path-aware issues. The
 default rule rejects duplicate mapping keys. Callers can compose custom rules on
@@ -162,9 +180,12 @@ so callers keep both the document index and the exact path inside that document.
 Typed conversion supports scalar single-value Decodable and Encodable values,
 keyed mapping-backed structs with scalar, optional scalar, nested keyed struct,
 and sequence fields, plus unkeyed sequences with scalar elements, optional
-elements, nested sequences, and keyed mapping elements. `PureYAML.decode(_:from:)`,
-`PureYAML.encode(_:)`, and `PureYAML.encodeToYAML(_:)` validate input shapes and
-throw exact path-aware typed coding errors.
+elements, nested sequences, and keyed mapping elements. Keyed `Codable` is
+deliberately string-keyed: complex mapping keys remain available in
+`Model.Value`, but do not appear in `allKeys`, `contains(_:)`, or keyed property
+lookup. `PureYAML.decode(_:from:)`, `PureYAML.encode(_:)`, and
+`PureYAML.encodeToYAML(_:)` validate input shapes and throw exact path-aware
+typed coding errors.
 
 Typed decoding runs default validation before Swift `Decodable` construction.
 That keeps ambiguous YAML states, such as duplicate mapping keys, from being
@@ -177,10 +198,10 @@ must stay in `PureYAML.Model.Value`; known YAML should use typed `Codable`.
 
 This is a deterministic validation decision. A Swift dictionary-shaped value
 cannot preserve all YAML mapping entries when keys repeat, cannot represent
-complex mapping keys with the current public model, and makes tag normalization
-ambiguous. Merge keys are handled explicitly by the parser instead of being
-hidden inside an arbitrary-value projection. The research constructor also
-includes Foundation-specific scalar conversions, which would break the
+complex mapping keys without a caller-owned key policy, and makes tag
+normalization ambiguous. Merge keys are handled explicitly by the parser instead
+of being hidden inside an arbitrary-value projection. The research constructor
+also includes Foundation-specific scalar conversions, which would break the
 dependency-free and WASM-compatible library boundary.
 
 Application code may project `Model.Value` or `Tagged.Node` into JSON-like or
@@ -192,12 +213,11 @@ data-loss and constructor policy explicitly.
 Compatibility should be added in small, test-backed slices:
 
 1. Multi-document stream dumping.
-2. First-class complex mapping keys.
-3. Explicit constructor APIs for caller-owned tagged conversion if a
+2. Explicit constructor APIs for caller-owned tagged conversion if a
    dependency-free design proves worthwhile (#39).
-4. Additional built-in validation rules beyond duplicate-key behavior.
-5. Broader Codable compatibility beyond scalar, keyed, and unkeyed containers.
-6. Yams corpus comparison tests in a separate compatibility suite.
+3. Additional built-in validation rules beyond duplicate-key behavior.
+4. Broader Codable compatibility beyond scalar, keyed, and unkeyed containers.
+5. Yams corpus comparison tests in a separate compatibility suite.
 
 The private `PureYAMLResearch` repository may be used to study Yams behavior, but
 the public implementation must be written in Swift and must not copy C parser

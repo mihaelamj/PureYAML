@@ -6,16 +6,16 @@ public extension PureYAML.Validation.Rule {
                 return []
             }
 
-            var seen = Set<String>()
+            var seen = Set<PureYAML.Model.Key>()
             var issues: [PureYAML.Validation.Issue] = []
             for pair in mapping.pairs {
-                if seen.insert(pair.key).inserted {
+                if seen.insert(pair.keyNode).inserted {
                     continue
                 } else {
                     issues.append(PureYAML.Validation.Issue(
                         severity: .error,
-                        reason: "Duplicate mapping key '\(pair.key)'",
-                        path: context.path.appending(.key(pair.key)),
+                        reason: "Duplicate mapping key '\(pair.keyNode.description)'",
+                        path: context.path.appending(pair.keyNode.pathComponent),
                     ))
                 }
             }
@@ -25,6 +25,17 @@ public extension PureYAML.Validation.Rule {
                 return true
             }
             return false
+        }
+    }
+}
+
+extension PureYAML.Model.Key {
+    var pathComponent: PureYAML.Validation.Path.Component {
+        switch self {
+        case let .string(value):
+            .key(value)
+        case .mapping, .sequence:
+            .complexKey(self)
         }
     }
 }

@@ -9,14 +9,15 @@ extension PureYAML.Parsing.TokenEventParser {
             return false
         }
 
+        let properties = consumeProperties()
         if cursor.current?.kind.isIndent == true {
             _ = try expect("indent") { $0.isIndent }
-            let result = try parseNode()
+            let result = try parseNode(properties: properties)
             _ = try expect("dedent") { $0.isDedent }
             return result
         }
-        if hasNodeOnSameLine(after: valueIndicator) {
-            return try parseNode()
+        if properties != .none || hasNodeOnSameLine(after: valueIndicator) {
+            return try parseNode(properties: properties)
         }
 
         let mark = valueIndicator.endMark

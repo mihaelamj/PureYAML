@@ -5,7 +5,9 @@ struct KeyedDecodingContainerImpl<Key: CodingKey>: KeyedDecodingContainerProtoco
     let validatesInput: Bool
 
     var allKeys: [Key] {
-        mapping.pairs.compactMap { Key(stringValue: $0.key) }
+        mapping.pairs.compactMap { pair in
+            pair.keyNode.stringValue.flatMap(Key.init(stringValue:))
+        }
     }
 
     func contains(_ key: Key) -> Bool {

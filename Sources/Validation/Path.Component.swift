@@ -2,10 +2,13 @@ public extension PureYAML.Validation.Path {
     /// One path step inside a YAML document.
     enum Component: Equatable, Sendable, CustomStringConvertible {
         case key(String)
+        case complexKey(PureYAML.Model.Key)
         case index(Int)
 
         public var description: String {
             switch self {
+            case let .complexKey(key):
+                "[?\(key.flowDescription)]"
             case let .key(key):
                 key.isDotPathSafeKey ? ".\(key)" : "[\"\(key.escapedPathKey)\"]"
             case let .index(index):

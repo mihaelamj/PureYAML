@@ -21,6 +21,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add `PureYAML.parseTagged(_:)` and `PureYAML.parseTaggedStream(_:)` for
   tag-preserving node trees, plus tagged validation rules for unsupported
   built-in tags and tags applied to the wrong node kind.
+- Add first-class complex mapping keys through `Model.Pair.keyNode`, including
+  parsing, deterministic validation paths, duplicate-key checks, and block/flow
+  dumping for sequence and mapping keys.
 
 ### Changed
 
@@ -31,6 +34,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Keep Foundation-backed tags such as `!!timestamp` and `!!binary` as ordinary
   model values in `parse(_:)`; callers that need tag diagnostics can use the
   tagged parser and validator explicitly.
+- Preserve anchors and tags on mapping values and sequence items whose actual
+  node starts on the following indented line.
 
 ## [0.1.0] - 2026-06-05
 

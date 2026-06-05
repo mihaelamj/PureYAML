@@ -7,5 +7,11 @@ extension PureYAML.Parsing {
         static var none: Self {
             Self(anchor: nil, tag: nil, mark: nil)
         }
+
+        mutating func mergeUnset(from other: Self) {
+            anchor = anchor ?? other.anchor
+            tag = tag ?? other.tag
+            mark = mark ?? other.mark
+        }
     }
 }

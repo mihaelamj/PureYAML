@@ -45,11 +45,11 @@ This repository has completed readiness for the first tagged release, version
 0.1.0. Current main includes block mappings, block sequences, ordered mappings,
 common scalars, quoted strings, comments, flow collections, literal and folded
 block scalars, anchors, aliases, YAML directives, document markers, explicit
-built-in scalar tags, merge-key expansion, multi-document stream parsing, and a
-matching dumper with block and flow output policies. It also includes path-aware
-validation for structural YAML checks such as duplicate mapping keys, plus
-stream validation that preserves document indexes. Callers that need explicit
-tag metadata can use `PureYAML.parseTagged(_:)` or
+built-in scalar tags, merge-key expansion, complex mapping keys,
+multi-document stream parsing, and a matching dumper with block and flow output
+policies. It also includes path-aware validation for structural YAML checks such
+as duplicate mapping keys, plus stream validation that preserves document
+indexes. Callers that need explicit tag metadata can use `PureYAML.parseTagged(_:)` or
 `PureYAML.parseTaggedStream(_:)` and run tagged validation over the preserved
 source-shaped node tree.
 
@@ -58,11 +58,11 @@ recognizes anchors, aliases, tags, flow collections, and block scalar styles fro
 scanner tokens, and the public value parser composes those events into
 `PureYAML.Model.Value`. The tagged parser preserves explicit scalar and
 collection tags without adding Foundation-backed constructors; use normal
-parsing when semantic merge-key expansion is required. Complex mapping
-keys, directives beyond the selected compatibility subset, automatic
-`Data`/`Date` construction, and custom decoding are planned work. Unsupported
-gaps are pinned by executable tests so they produce exact errors, exact
-validation issues, or exact fallback value trees instead of silent parser drift.
+parsing when semantic merge-key expansion is required. Directives beyond the
+selected compatibility subset, automatic `Data`/`Date` construction, and custom
+decoding are planned work. Unsupported gaps are pinned by executable tests so
+they produce exact errors, exact validation issues, or exact fallback value
+trees instead of silent parser drift.
 
 ## Attribution
 
@@ -153,6 +153,10 @@ let yaml = try PureYAML.encodeToYAML(info)
 Typed decoding runs the default validator before constructing Swift values, so
 duplicate mapping keys are reported as validation issues instead of silently
 choosing one value.
+
+Complex mapping keys are available through `PureYAML.Model.Pair.keyNode`.
+String-keyed lookup and keyed `Codable` remain string-only, while model
+inspection, validation, and dumping preserve sequence and mapping keys.
 
 Emitter options are explicit. The default is deterministic block-style output
 with quoted strings. Callers can opt into conservative plain strings, safe

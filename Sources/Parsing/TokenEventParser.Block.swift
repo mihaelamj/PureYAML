@@ -30,13 +30,20 @@ extension PureYAML.Parsing.TokenEventParser {
         endMark: inout PureYAML.Parsing.Mark,
     ) throws {
         if hasNodeOnSameLine(after: entry) {
+            let properties = consumeProperties()
+            if cursor.current?.kind.isIndent == true {
+                _ = try expect("indent") { $0.isIndent }
+                endMark = try parseNode(properties: properties).endMark
+                _ = try expect("dedent") { $0.isDedent }
+                return
+            }
             if cursor.current?.kind.isMappingKey == true {
                 endMark = try parseBlockMapping(
-                    properties: .none,
+                    properties: properties,
                     includeIndentedContinuation: true,
                 ).endMark
             } else {
-                endMark = try parseNode().endMark
+                endMark = try parseNode(properties: properties).endMark
             }
         } else if cursor.current?.kind.isIndent == true {
             _ = try expect("indent") { $0.isIndent }

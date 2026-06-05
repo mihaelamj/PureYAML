@@ -95,6 +95,15 @@ extension PureYAML.Parsing.TokenEventParser {
 
     mutating func parseNode() throws -> PureYAML.Parsing.NodeResult {
         let properties = consumeProperties()
+        return try parseNode(properties: properties)
+    }
+
+    mutating func parseNode(
+        properties initialProperties: PureYAML.Parsing.NodeProperties,
+    ) throws -> PureYAML.Parsing.NodeResult {
+        var properties = initialProperties
+        properties.mergeUnset(from: consumeProperties())
+
         guard let token = cursor.current, !token.kind.isTerminator else {
             let mark = properties.mark ?? cursor.current?.mark ?? cursor.previous?.endMark ?? .start
             throw PureYAML.Parsing.ParseError.expectedNode(line: mark.line, column: mark.column)

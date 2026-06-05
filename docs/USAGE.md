@@ -160,6 +160,26 @@ includes:
 Typed decoding runs the default validator first. Duplicate mapping keys are
 reported before Swift `Decodable` construction starts.
 
+Complex mapping keys are supported in the model layer and can be parsed,
+validated, and dumped:
+
+```swift
+let value = try PureYAML.parse("""
+? [Detroit Tigers, Chicago Cubs]
+:
+  - 2001-07-23
+""")
+
+if case let .mapping(mapping) = value {
+    let firstKey = mapping.pairs.first?.keyNode
+}
+```
+
+Keyed `Codable` remains string-keyed. Sequence and mapping keys stay visible in
+`PureYAML.Model.Value`, but are skipped by `KeyedDecodingContainer.allKeys` and
+cannot be read as Swift coding keys. Inspect `Model.Value` directly when a
+caller needs those keys.
+
 ## Emitting Options
 
 The default dumper emits deterministic block-style YAML with quoted strings.

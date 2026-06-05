@@ -84,7 +84,7 @@ extension PureYAML.Validation.Validator {
                 walk(
                     root: root,
                     subject: pair.value,
-                    path: path.appending(.key(pair.key)),
+                    path: path.appending(pair.keyNode.pathComponent),
                     issues: &issues,
                 )
             }

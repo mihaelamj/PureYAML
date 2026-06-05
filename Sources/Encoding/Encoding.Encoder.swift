@@ -105,7 +105,7 @@ extension PureYAML.Encoding.Encoder {
                 .init()
             }
 
-            if let index = mapping.pairs.firstIndex(where: { $0.key == key }) {
+            if let index = mapping.pairs.firstIndex(where: { $0.keyNode == .string(key) }) {
                 mapping.pairs[index] = .init(key: key, value: value)
             } else {
                 mapping.pairs.append(.init(key: key, value: value))

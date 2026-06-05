@@ -76,6 +76,7 @@ add a fixture beside the closest existing suite.
 | Built-in scalar tags | `!!str`, `!!int`, `!!float`, `!!bool`, and `!!null` are applied when valid. | `ScalarCompatibilityFixtures` |
 | Tag-preserving parsing | `parseTagged(_:)` and `parseTaggedStream(_:)` preserve explicit scalar and collection tags for compatibility analysis. | `TaggedCompatibilityTests` |
 | Tagged validation | Unsupported built-in tags and built-in tags applied to the wrong node kind are reported with exact paths. Project-specific tags are allowed by default. | `TaggedCompatibilityTests` |
+| Complex mapping keys | Sequence and mapping keys parse into `Model.Pair.keyNode`, validate with exact paths, and dump as explicit YAML keys. String-keyed APIs remain string-keyed. | `ComplexMappingKeyParsingTests`, `ComplexMappingKeyValidationTests`, `ComplexMappingKeyDumperTests`, `ComplexMappingKeyCodableTests` |
 | Emitting | Deterministic block output by default, with opt-in flow collections and conservative literal blocks. | `DumperTests`, `EmitterCorpusTests` |
 | Typed conversion | Scalar, keyed, unkeyed, nested, sequence, dynamic-key, and super-coder cases are covered. | `CodingTests`, `CodableCompatibilityTests` |
 | Validation | Duplicate mapping keys are reported with exact issue paths. | `ValidationTests`, `ValidationModelTests` |
@@ -90,7 +91,6 @@ explicit fallback value tree. This avoids silent compatibility drift.
 |---|---|---|
 | Passing a multi-document stream to `PureYAML.parse(_:)` | Throws `unsupportedMultiDocumentStream`; use `PureYAML.parseStream(_:)` when multiple documents are expected. | `UnsupportedYAMLGapsFixtures.parseErrors`, `StreamParsingTests` |
 | Content after explicit document end | Throws `unsupportedMultiDocumentStream`; trailing comments after `...` remain non-content. | `UnsupportedYAMLGapsFixtures` |
-| Complex mapping keys such as `? [a, b]` or `? {name: Example}` | Throws `expectedScalarKey`. | `UnsupportedYAMLGapsFixtures.parseErrors` |
 | Unknown directives such as `%FOO` | Throws `unsupportedDirective`. | `UnsupportedYAMLGapsFixtures.parseErrors` |
 | `%TAG` after content or after document start | Throws `unsupportedDirective`. | `UnsupportedYAMLGapsFixtures.parseErrors` |
 | Undefined aliases | Throws `undefinedAlias`. | `CollectionCompatibilityFixtures.parseErrors` |
@@ -118,7 +118,6 @@ explicit fallback value tree. This avoids silent compatibility drift.
 Do not migrate a caller yet if it requires:
 
 - multi-document stream dumping;
-- complex mapping keys as first-class keys;
 - binary or timestamp conversion into Foundation types;
 - arbitrary `Any` load and dump APIs;
 - custom scalar constructors or resolvers;

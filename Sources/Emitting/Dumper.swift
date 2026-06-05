@@ -33,21 +33,6 @@ extension PureYAML.Emitting.Dumper {
         }
     }
 
-    func renderMapping(
-        _ mapping: PureYAML.Model.Mapping,
-        indent: Int,
-    ) -> [String] {
-        let prefix = String(repeating: " ", count: indent)
-        return mapping.pairs.flatMap { pair in
-            switch pair.value {
-            case .mapping, .sequence:
-                [prefix + escapeKey(pair.key) + ":"] + render(pair.value, indent: indent + 2)
-            default:
-                renderMappingScalarPair(pair, indent: indent)
-            }
-        }
-    }
-
     func renderSequence(
         _ values: [PureYAML.Model.Value],
         indent: Int,
@@ -81,15 +66,6 @@ extension PureYAML.Emitting.Dumper {
         default:
             renderFlowScalar(value)
         }
-    }
-
-    func renderFlowMapping(_ mapping: PureYAML.Model.Mapping) -> String {
-        let pairs = mapping.pairs
-            .map { pair in
-                "\(quote(pair.key)): \(renderFlow(pair.value))"
-            }
-            .joined(separator: ", ")
-        return "{\(pairs)}"
     }
 
     func renderFlowSequence(_ values: [PureYAML.Model.Value]) -> String {

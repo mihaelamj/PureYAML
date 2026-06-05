@@ -1,12 +1,16 @@
 extension PureYAML.Parsing.EventComposer {
     struct ComposedMappingKey {
-        var value: String
+        var keyNode: PureYAML.Model.Key
+        var scalarValue: String?
         var tag: String?
-        var style: PureYAML.Parsing.ScalarStyle
+        var style: PureYAML.Parsing.ScalarStyle?
 
         var isMergeKey: Bool {
-            tag == "tag:yaml.org,2002:merge"
-                || (tag == nil && style == .plain && value == "<<")
+            guard let scalarValue else {
+                return false
+            }
+            return tag == "tag:yaml.org,2002:merge"
+                || (tag == nil && style == .plain && scalarValue == "<<")
         }
     }
 
@@ -79,19 +83,19 @@ extension PureYAML.Parsing.EventComposer {
             return localPairs
         }
 
-        let localKeys = Set(localPairs.map(\.key))
-        var inheritedKeys = Set<String>()
+        let localKeys = Set(localPairs.map(\.keyNode))
+        var inheritedKeys = Set<PureYAML.Model.Key>()
         var inheritedPairs: [PureYAML.Model.Pair] = []
         for source in mergeSources {
-            var sourceKeys = Set<String>()
+            var sourceKeys = Set<PureYAML.Model.Key>()
             for pair in source {
-                guard !localKeys.contains(pair.key),
-                      !inheritedKeys.contains(pair.key)
+                guard !localKeys.contains(pair.keyNode),
+                      !inheritedKeys.contains(pair.keyNode)
                 else {
                     continue
                 }
                 inheritedPairs.append(pair)
-                sourceKeys.insert(pair.key)
+                sourceKeys.insert(pair.keyNode)
             }
             inheritedKeys.formUnion(sourceKeys)
         }

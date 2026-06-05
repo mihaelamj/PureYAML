@@ -58,25 +58,6 @@ enum UnsupportedYAMLGapsFixtures {
             expectedDescription: "multi-document streams are not supported at line 3",
         ),
         ParseErrorCase(
-            name: "flow sequence mapping key",
-            yaml: """
-            ? [Detroit Tigers, Chicago Cubs]
-            :
-              - 2001-07-23
-            """,
-            expected: .expectedScalarKey(line: 1, column: 3),
-            expectedDescription: "expected a scalar mapping key at line 1, column 3",
-        ),
-        ParseErrorCase(
-            name: "flow mapping key",
-            yaml: """
-            ? {name: Example}
-            : value
-            """,
-            expected: .expectedScalarKey(line: 1, column: 3),
-            expectedDescription: "expected a scalar mapping key at line 1, column 3",
-        ),
-        ParseErrorCase(
             name: "unknown directive",
             yaml: """
             %FOO bar
