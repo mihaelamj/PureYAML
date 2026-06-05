@@ -24,3 +24,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   check that can run through Claw Mini's Lima VM.
 - Add Yams and CYaml attribution without copying their implementation into
   `Sources/`.
+
+### Changed
+
+- Lower the package tools version to Swift 6.1 for hosted macOS CI compatibility
+  and install Linux Swift toolchain prerequisites for the WASM CI job.
