@@ -1,15 +1,15 @@
 # Release Process
 
-PureYAML versioning is driven by Git tags. The current release target is 0.1.0.
-Do not publish the tag until #32 records final local and hosted verification.
+PureYAML versioning is driven by Git tags. The current release is 0.1.0.
 
-## 0.1.0 Candidate
+## 0.1.0 Release
 
 - Swift tools version: 6.1
 - Product: `PureYAML`
 - SwiftPM dependencies: none
 - Source targets: Swift only, no C targets and no generated parser targets
-- Hosted CI matrix: macOS build and test, Linux build and test, WASM build
+- Hosted CI matrix: macOS build and test, Linux build and test, Windows build
+  and test, WASM build
 - Release notes file: `docs/releases/pureyaml-0-1-0.md`
 
 ## Local Verification
@@ -37,8 +37,8 @@ bash scripts/check-linux.sh
 bash scripts/check-wasm.sh
 ```
 
-The Linux check must exercise build and tests. The WASM check must build the
-library target with the configured Swift Wasm SDK.
+The Linux and Windows checks must exercise build and tests. The WASM check must
+build the library target with the configured Swift Wasm SDK.
 
 ## Hosted Verification
 
@@ -54,12 +54,12 @@ The passing run must include all CI jobs:
 
 - macOS
 - Linux
+- Windows
 - WASM
 
 ## Tag and Publish
 
-Only run these commands after the local gates pass, hosted CI passes, and #32 is
-updated with the final evidence.
+Only run these commands after the local gates pass and hosted CI passes.
 
 ```sh
 git status --short --branch
@@ -85,5 +85,5 @@ gh release view 0.1.0 --repo mihaelamj/PureYAML
   runtime files.
 - Any Swift source imports Foundation in the library target.
 - The changelog does not have a dated 0.1.0 section.
-- The release notes omit the known deferred issues.
-- macOS, Linux, or WASM CI is red or still running.
+- The release notes omit known deferred issues.
+- macOS, Linux, Windows, or WASM CI is red or still running.

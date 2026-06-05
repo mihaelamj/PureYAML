@@ -117,7 +117,7 @@ explicit fallback value tree. This avoids silent compatibility drift.
    typed decoding when duplicate-key visibility matters.
 5. Prefer typed `Codable` for known schemas and `PureYAML.Model.Value` for
    inspection, migration tooling, or unsupported-shape triage.
-6. Run macOS, Linux, and WASM gates before publishing the migration.
+6. Run macOS, Linux, Windows, and WASM gates before publishing the migration.
 
 ## When Not to Migrate Yet
 

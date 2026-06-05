@@ -85,7 +85,7 @@ extension PureYAML.Tagged.Constructor {
         var kind: PureYAML.Tagged.NodeKind
         var build: @Sendable (
             PureYAML.Tagged.Node,
-            PureYAML.Tagged.ConstructionContext<Value>,
+            PureYAML.Tagged.ConstructionContext<Value>
         ) throws -> Value
     }
 

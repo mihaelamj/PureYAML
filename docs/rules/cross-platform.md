@@ -1,26 +1,43 @@
-# Cross-platform Swift (Apple + Linux + Windows)
+# Cross-platform Swift (Apple + Linux + Windows + WASI)
 
-How to structure PureYAML's Swift so the same sources build and run on Apple platforms, Linux, and Windows without silent breakage.
+How to structure PureYAML's Swift so the same sources build and run on Apple
+platforms, Linux, Windows, and WASI without silent breakage.
 
-Load on demand. Triggers: `canImport`, `Linux`, `FoundationNetworking`, `Darwin`, `Glibc`, `swift-system`, `swift-foundation`, cross-platform, manifest, `.when(platforms:)`, `os(Linux)`, `os(iOS)`, `os(macOS)`, `os(visionOS)`, `os(tvOS)`, Vapor, AsyncHTTPClient, Hummingbird.
+Load on demand. Triggers: `canImport`, `Linux`, `Windows`, `WASI`,
+`FoundationNetworking`, `Darwin`, `Glibc`, `WinSDK`, `swift-system`,
+`swift-foundation`, cross-platform, manifest, `.when(platforms:)`, `os(Linux)`,
+`os(Windows)`, `os(WASI)`, `os(iOS)`, `os(macOS)`, `os(visionOS)`, `os(tvOS)`.
 
-Grounded in Swift Evolution and `swiftlang/swift-foundation`. The PureYAML engine targets macOS and Linux (a server-style Apple + Linux split), so it falls under Topology 2/3 below. Subprocess and shell-out are available on both macOS and Linux; the engine may use them.
+Grounded in Swift Evolution and `swiftlang/swift-foundation`. The PureYAML
+engine targets macOS, Linux, Windows, and WASI, so it falls under Topology 3
+below. The library target must not require platform-specific subprocesses,
+shell-outs, C sources, generated parsers, JavaScript tooling, or Foundation.
 
-## Linux portability and the platform seam (mandatory)
+## Cross-platform portability and platform seams (mandatory)
 
-The engine targets macOS and Linux. Two obligations follow:
+The engine targets macOS, Linux, Windows, and WASI. Three obligations follow:
 
 1. Guard every platform-divergent line, preferring `#if canImport(<Framework>)` over `#if os(...)` so future platforms inherit the right branch.
-2. Check Linux availability before adding a dependency. Many Apple frameworks, and the packages that wrap them, do not build on Linux.
+2. Check Linux, Windows, and WASI availability before adding any dependency,
+   framework import, filesystem behavior, or runtime assumption.
+3. Keep the core library dependency-free. If a platform-specific feature ever
+   becomes necessary, put it behind a protocol seam outside the parser core.
 
-When the same functionality needs a different implementation per platform, abstract it behind a protocol seam; do not branch at call sites. Define a foundation-only protocol (see [shared-protocols.md](shared-protocols.md)), implement it once per platform (a macOS target using the Apple package, a Linux target using a Linux-available package), and let the composition root wire the correct one (see [dependency-injection.md](dependency-injection.md)). The core depends only on the protocol.
+When the same functionality needs a different implementation per platform,
+abstract it behind a protocol seam; do not branch at call sites. Define a
+dependency-free protocol (see [shared-protocols.md](shared-protocols.md)),
+implement it once per platform, and let the composition root wire the correct
+one (see [dependency-injection.md](dependency-injection.md)). The core depends
+only on the protocol.
 
 ```swift
-public protocol ClockService: Sendable { var now: Date { get } }
+public protocol PlatformNameService: Sendable { var name: String { get } }
 #if canImport(Darwin)
-let clock: any ClockService = DarwinClock()
+let platform: any PlatformNameService = DarwinPlatformNameService()
+#elseif os(Windows)
+let platform: any PlatformNameService = WindowsPlatformNameService()
 #else
-let clock: any ClockService = LinuxClock()
+let platform: any PlatformNameService = PortablePlatformNameService()
 #endif
 ```
 
@@ -30,7 +47,12 @@ The rest of this rule depends on which topology your target is in. Mixing them s
 
 1. **Apple-only.** iOS, macOS, plus optional visionOS/tvOS/watchOS. UI-heavy, SwiftUI or UIKit/AppKit primary. No Linux build, no server-side targets.
 2. **Apple clients + Linux server (split package).** UI lives on Apple, one or more server products build to Linux. The Linux-buildable surface is narrow (typically a single server product). Apple-only stuff is wrapped in conditional product/target arrays in `Package.swift`.
-3. **Cross-platform library or CLI.** Runs identically on Apple + Linux + Windows. No UI. Probably uses URLSession-via-FoundationNetworking, Darwin/Glibc conditionals, swift-system. The PureYAML engine lives here (macOS + Linux): both platforms support subprocess and shell-out, so the engine may spawn subprocesses when needed.
+3. **Cross-platform library or CLI.** Runs identically on Apple + Linux +
+   Windows. No UI. Probably uses URLSession-via-FoundationNetworking,
+   Darwin/Glibc/WinSDK conditionals, swift-system. The PureYAML engine lives
+   here, with the stricter rule that the library target must also build for
+   WASI and therefore cannot rely on process spawning or platform filesystem
+   behavior.
 
 A "Linux UI" topology technically exists but is not production-grade. Do not try to render SwiftUI on Linux; if a server needs UI, ship HTTP responses (templates, JSON for an SPA), not native widgets.
 
@@ -90,7 +112,7 @@ Avoid spreading platform conditioning across both Layer A and Layer C for the sa
 
 ## UI cross-platform patterns
 
-These patterns (Patterns 1-7 and Pattern 13: iOS-only SwiftUI modifiers, UIKit/AppKit app shells, the forward-compat SDK shim, and the `@available(iOS ...)` examples) describe the planned native Apple UI app, NOT the PureYAML engine. The engine targets macOS + Linux and has no UI. Apply these only in the app tier.
+These patterns (Patterns 1-7 and Pattern 13: iOS-only SwiftUI modifiers, UIKit/AppKit app shells, the forward-compat SDK shim, and the `@available(iOS ...)` examples) describe the planned native Apple UI app, NOT the PureYAML engine. The engine targets macOS, Linux, Windows, and WASI, and has no UI. Apply these only in the app tier.
 
 Linux UI is out of scope (no SwiftUI on Linux).
 
@@ -465,7 +487,12 @@ Run only the test suites known to be Linux-buildable; gate the others with `#if 
 
 If your repo ships an Apple-clients-plus-Linux-server split:
 
-1. **Declare Apple platforms in `platforms:`**. There is no stable Linux entry in the SPM platforms enum; Linux support is implicit when the package builds on a Linux toolchain. For the engine (macOS + Linux), declare macOS only: `platforms: [.macOS(.v15)]`. A repo that also ships an Apple UI app tier adds `.iOS(.v18)` for that tier.
+1. **Declare Apple platforms in `platforms:`**. There is no stable Linux,
+   Windows, or WASI entry in the SPM platforms enum; non-Apple support is
+   implicit when the package builds on those toolchains. For the engine, avoid
+   Apple-only platform declarations unless an Apple API genuinely requires a
+   minimum OS. A repo that also ships an Apple UI app tier adds `.iOS(.v18)` for
+   that tier.
 
 2. **Document the Linux-buildable surface.** In the repo's `README.md` / `AGENTS.md`, name the products that build to Linux: e.g. "On Linux, build the server product only: `swift build --product tiledownserver`." Otherwise a new developer running `swift build` on Linux hits confusing errors from Apple-only targets.
 
@@ -534,5 +561,5 @@ The `#else` arm is reserved for platforms you genuinely do not run on; every pla
 | C interop | `import Darwin` | `import Darwin` on Apple, none on server | `swift-system` or canImport(Darwin)/Glibc |
 | Logging | `os.log` directly | `canImport(os)` + `print` fallback or `swift-log` | `swift-log` or `canImport(os)` + fallback |
 | Tests | Swift Testing | Swift Testing, Linux-buildable suites separate | Swift Testing |
-| CI | macOS only | macOS + Linux Docker job for the Linux product | macOS + Linux + (Windows) |
+| CI | macOS only | macOS + Linux Docker job for the Linux product | macOS + Linux + Windows + WASI |
 | Linux UI | n/a | server-side: HTTP responses, not native widgets | n/a |

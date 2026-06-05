@@ -5,14 +5,13 @@ and typed-converting the YAML subset currently covered by the test corpus.
 
 ## Installation
 
-The first release target is 0.1.0. After the tag is published, depend on the
-tagged package version:
+Depend on the tagged package version:
 
 ```swift
 .package(url: "https://github.com/mihaelamj/PureYAML.git", .upToNextMinor(from: "0.1.0"))
 ```
 
-Until that tag exists, use the `main` branch:
+For unreleased development snapshots, use the `main` branch:
 
 ```swift
 .package(url: "https://github.com/mihaelamj/PureYAML.git", branch: "main")
@@ -351,8 +350,9 @@ bash scripts/check-wasm.sh
 
 `scripts/check-all.sh` includes style, namespacing, forbidden-pattern,
 changelog, roadmap, SwiftFormat, SwiftLint, host build, host tests, Linux build
-and test, and WASM build checks. The explicit Linux and WASM scripts are useful
-when recording release or migration evidence.
+and test, Windows build and test in hosted CI, and WASM build checks. The
+explicit Linux and WASM scripts are useful when recording release or migration
+evidence.
 
 ## Support Boundaries
 

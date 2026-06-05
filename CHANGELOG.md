@@ -7,139 +7,53 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Added
-
-- Add `PureYAML.parseStream(_:)` for multi-document YAML streams, including
-  explicit empty documents, document-end markers, and trailing comments before a
-  following document start.
-- Add `PureYAML.Stream.Document`, document-indexed stream validation issues, and
-  stream validation APIs that preserve document indexes without changing
-  document-local validation paths.
-- Add stream dumping for `[PureYAML.Stream.Document]` with deterministic
-  explicit document starts and existing emitter option support.
-- Add merge-key expansion for plain `<<` and explicit `!!merge` keys, including
-  scalar merge mappings, sequence-of-mapping merge values, local override
-  behavior, and exact errors for invalid merge values.
-- Add `PureYAML.parseTagged(_:)` and `PureYAML.parseTaggedStream(_:)` for
-  tag-preserving node trees, plus tagged validation rules for unsupported
-  built-in tags and tags applied to the wrong node kind.
-- Add `PureYAML.Tagged.Constructor` for caller-owned tagged construction with
-  exact missing-handler and kind-mismatch errors, recursive path context, and an
-  explicit model-value fallback that preserves mapping order and duplicates
-  while erasing tags.
-- Add first-class complex mapping keys through `Model.Pair.keyNode`, including
-  parsing, deterministic validation paths, duplicate-key checks, and block/flow
-  dumping for sequence and mapping keys.
-- Add a real-world YAML fixture corpus with representative assertions for
-  short, medium, and very large documents, including OpenAPI and Kubernetes
-  examples.
-- Add deliberately failing YAML fixtures that demonstrate exact validation
-  diagnostics, strict failures, and non-strict warning returns.
-- Add non-throwing single-source and batch validation reports with exact parse
-  and validation diagnostics, optional warning-as-failure status, and Markdown,
-  YAML, and JSON rendering for application-owned report files.
-- Add diagnostic-first validation reports, a raw-source preflight scanner, and
-  `Validation.ReportError` so production tools can return structured JSON or
-  YAML error bodies for damaged YAML without claiming parsed artifacts exist.
-
-### Changed
-
-- Tokenize YAML document start and end markers so scanner, event-parser, and
-  stream tests can pin exact document-boundary behavior.
-- Harden block mapping and multiline plain-scalar parsing around nested
-  sequences, compact mapping entries, explicit complex keys, tagged keys, and
-  lower-column mapping siblings.
-- Keep quoted `"<<":` and explicitly string-tagged `!!str <<` keys as ordinary
-  string keys while merge syntax is expanded during parsing.
-- Keep Foundation-backed tags such as `!!timestamp` and `!!binary` as ordinary
-  model values in `parse(_:)`; callers that need tag diagnostics can use the
-  tagged parser and validator explicitly.
-- Preserve anchors and tags on mapping values and sequence items whose actual
-  node starts on the following indented line.
-- Harden real-world parsing for empty documents, indented root fragments,
-  JSON-style flow mapping pairs, and tab-indented files encountered in corpus
-  validation.
-- Emit empty block collections as `[]` and `{}` so dumped YAML round-trips
-  without turning empty arrays or mappings into null values.
+Nothing yet.
 
 ## [0.1.0] - 2026-06-05
 
 ### Added
 
-- Bootstrap PureYAML as a root Swift package with no external dependencies.
-- Add the first pure-Swift YAML model, parser, and dumper milestone.
-- Add tests for block mappings, block sequences, common scalars, comments, and
-  dump/parse round trips.
-- Add path-aware YAML validation with duplicate-key checks, custom rules, and
-  warning collection.
-- Add the internal parse event model with marks, scalar styles, collection
-  styles, alias events, anchor/tag metadata, and golden event tests for current
-  parser behavior.
-- Add the internal UTF-8 reader and scanner token layer with tests for
-  comments, indentation, block entries, mapping indicators, flow delimiters,
-  quoted scalars, block scalar headers, anchors, aliases, tags, and source
-  marks.
-- Add the internal scanner-token event parser for block collections, flow
-  collections, aliases, anchors, tags, and line/column parser failures.
-- Add the internal event composer and wire public parsing through
-  scanner-token events into `PureYAML.Model.Value`, including flow collections,
-  block scalars, anchors, aliases, and duplicate-key validation coverage.
-- Add YAML directive and document-marker scanning, tag-handle expansion, and
-  explicit built-in scalar tag composition for strings, integers, floats,
-  booleans, and nulls.
-- Expand tests into focused parsing, dumping, model, validation, and parse-error
-  suites.
-- Add macOS, Linux, and WASM verification gates and CI jobs, plus a local Linux
-  check that can run through Claw Mini's Lima VM.
-- Add a single full local verification script and wire pre-push through the
-  macOS, Claw Mini Linux, and WASM gate sequence.
-- Harden the changelog gate so local verification also sees unstaged source
-  edits, not only committed or staged changes.
-- Add emitter options with a selectable scalar policy for quoted strings or
-  conservative plain-string output.
-- Add opt-in literal block scalar emission for safe multiline strings, including
-  `|-` parsing support for stripped final newlines.
-- Add opt-in flow collection emission for compact mapping and sequence output.
-- Add emitter corpus tests and document the current emitter policy.
-- Add Yams and CYaml attribution without copying their implementation into
-  `Sources/`.
-- Add validation-rule predicates, a boolean validation-rule initializer, and
-  validator authoring rules.
-- Add scalar typed Decodable and Encodable conversion APIs with exact
-  path-aware errors.
-- Add unambiguous bracket-quoted validation paths for punctuation-heavy keys.
-- Add keyed typed Decodable and Encodable conversion for mapping-backed structs.
-- Validate YAML values before typed decoding so duplicate keys are rejected
-  deterministically.
-- Add unkeyed typed Decodable and Encodable conversion for sequences, including
-  nested sequences and sequence properties on keyed structs.
-- Add a fixture-backed sequence typed-conversion test corpus and a
-  forbidden-pattern verification gate for package, source, and test contracts.
-- Add broader Codable compatibility coverage for dynamic mapping keys, nested
-  container round trips, keyed super coders, default `super` coders, and
-  deterministic unsupported-shape errors.
-- Add an explicit research-compatibility rule requiring parser, emitter,
-  validation, and typed conversion work to start from PureYAMLResearch behavior
-  without copying implementation code.
-- Add a fixture-backed scalar and explicit-tag compatibility corpus with exact
-  success, string-preservation, unsupported-spelling, and invalid-tag errors.
-- Add a fixture-backed collection and anchor compatibility corpus with exact
-  parsed values, parse errors, duplicate-key validation diagnostics, and pinned
-  unsupported merge-key behavior.
-- Add executable unsupported-gap fixtures for multi-document streams, complex
-  mapping keys, unsupported directives, unsupported built-in tags, merge-key
-  fallback behavior, and direct value-tree validation.
-- Add fixture-backed literal block emission coverage for newly supported
-  multiline content and exact quoted fallbacks.
-- Add downstream-shaped document fixtures for API-style documents, service
-  configuration decoding, and unsupported merge-key fallback behavior.
-- Add usage and migration documentation that states tested APIs, support
-  boundaries, unsupported YAML behavior, and cross-platform verification gates.
+- Bootstrap PureYAML as a root Swift package with one `PureYAML` library product,
+  no external SwiftPM dependencies, no C sources, no generated parser targets,
+  and no Foundation requirement in the library target.
+- Add the core pure-Swift YAML model with ordered mappings, sequences, scalars,
+  duplicate-key preservation, and first-class complex mapping keys through
+  `Model.Pair.keyNode`.
+- Add parser support for block mappings, block sequences, comments, flow
+  collections, quoted strings, literal and folded block scalars, anchors,
+  aliases, YAML directives, document markers, merge keys, complex mapping keys,
+  multi-document streams, and selected explicit built-in scalar tags.
+- Add deterministic YAML dumping with block output by default, optional flow
+  collections, conservative plain scalars, conservative literal block scalars,
+  complex mapping key dumping, and multi-document stream dumping.
+- Add tag-preserving parsing with `PureYAML.parseTagged(_:)` and
+  `PureYAML.parseTaggedStream(_:)`, plus tagged validation rules for unsupported
+  built-in tags and tags applied to the wrong node kind.
+- Add `PureYAML.Tagged.Constructor` for caller-owned tagged construction with
+  exact missing-handler and kind-mismatch errors, recursive path context, and a
+  model-value fallback that preserves mapping order and duplicate keys.
+- Add path-aware validation with duplicate-key checks, custom rules, rule
+  predicates, strict and non-strict behavior, warning collection, stream
+  document indexes, deterministic validation paths, and direct value-tree
+  validation for states ordinary loaders may collapse.
+- Add diagnostic-first validation reports, raw-source preflight scanning,
+  `Validation.ReportError`, and Markdown, YAML, and JSON report rendering for
+  application-owned files or error bodies.
+- Add scalar, keyed, unkeyed, nested, dynamic-key, dictionary-like, and
+  super-coder `Codable` conversion APIs with exact path-aware errors.
+- Add fixture-backed compatibility coverage for scalar spellings, explicit tags,
+  collections, anchors, unsupported YAML gaps, literal block emission, downstream
+  documents, and deliberately failing validation fixtures.
+- Add a real-world YAML fixture corpus with representative short, medium, large,
+  and very large documents, including OpenAPI, Kubernetes, GitHub Actions, Docker
+  Compose, Prometheus, and cert-manager YAML.
+- Add macOS, Linux, Windows, and WASM verification gates, hosted CI, a full
+  local verification script, a pre-push hook, usage documentation, migration
+  boundaries, attribution, and release notes.
 
 ### Changed
 
-- Lower the package tools version to Swift 6.1 for hosted macOS CI compatibility
-  and install Linux Swift toolchain prerequisites for the WASM CI job.
+- Lower the package tools version to Swift 6.1 for hosted macOS CI compatibility.
 - Harden duplicate-key validation to use set membership while preserving exact
   diagnostics.
 - Make validation rules immutable after construction.
@@ -147,7 +61,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   written in a different order than they were requested.
 - Make keyed default `superEncoder()` and `superDecoder()` use the standard
   `super` mapping key instead of the current mapping.
-- Resolve Yams-compatible plain scalar spellings for `yes`/`no` booleans,
-  radix-prefixed integers, numeric separators, and `.inf`/`.nan` floats.
+- Resolve Yams-compatible plain scalar spellings for `yes` and `no` booleans,
+  radix-prefixed integers, numeric separators, and `.inf` and `.nan` floats.
 - Broaden opt-in literal block emission while preserving exact parser
   round-trips for every emitted block scalar.
+- Harden block mapping, multiline plain-scalar parsing, merge expansion, tagged
+  parsing, lower-column mapping siblings, indented root fragments, JSON-style
+  flow mapping pairs, tab-indented corpus files, and empty collection emission.

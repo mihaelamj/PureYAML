@@ -1,18 +1,18 @@
 # PureYAML
 
-[![CI](https://img.shields.io/github/actions/workflow/status/mihaelamj/PureYAML/ci.yml?branch=main&label=macOS%20Linux%20WASM)](https://github.com/mihaelamj/PureYAML/actions/workflows/ci.yml)
+[![CI](https://img.shields.io/github/actions/workflow/status/mihaelamj/PureYAML/ci.yml?branch=main&label=macOS%20Linux%20Windows%20WASM)](https://github.com/mihaelamj/PureYAML/actions/workflows/ci.yml)
 
 PureYAML is a dependency-free YAML package written entirely in Swift.
 
-The goal is a Linux- and WebAssembly-compatible replacement for the YAML pieces
-that currently force packages such as OpenAPIDoctor through C-backed parsers.
-The package is intentionally strict about portability:
+The goal is a Linux-, Windows-, and WebAssembly-compatible replacement for the
+YAML pieces that currently force packages such as OpenAPIDoctor through
+C-backed parsers. The package is intentionally strict about portability:
 
 - no external SwiftPM dependencies
 - no bundled C sources
 - no Foundation requirement in the library target
 - root Swift package layout
-- macOS, Linux, and WASI build gates
+- macOS, Linux, Windows, and WASI build gates
 
 ## Roadmap
 
@@ -41,15 +41,15 @@ Parser Replacement Roadmap #8 is complete in main.
 
 ## Status
 
-This repository has completed readiness for the first tagged release, version
-0.1.0. Current main includes block mappings, block sequences, ordered mappings,
-common scalars, quoted strings, comments, flow collections, literal and folded
-block scalars, anchors, aliases, YAML directives, document markers, explicit
-built-in scalar tags, merge-key expansion, complex mapping keys,
+The current release is 0.1.0. It includes block mappings, block sequences,
+ordered mappings, common scalars, quoted strings, comments, flow collections,
+literal and folded block scalars, anchors, aliases, YAML directives, document
+markers, explicit built-in scalar tags, merge-key expansion, complex mapping keys,
 multi-document stream parsing, and a matching dumper with block and flow output
 policies, including multi-document stream dumping with explicit document starts.
 It also includes path-aware validation for structural YAML checks such as
-duplicate mapping keys, plus stream validation that preserves document indexes.
+duplicate mapping keys, stream validation that preserves document indexes, and
+diagnostic-first validation reports for damaged YAML input.
 Callers that need explicit tag metadata can use `PureYAML.parseTagged(_:)` or
 `PureYAML.parseTaggedStream(_:)` and run tagged validation over the preserved
 source-shaped node tree.
@@ -79,8 +79,8 @@ but it does not copy their implementation into `Sources/`. See
   cross-platform gates.
 - [Migration and support boundaries](docs/MIGRATION.md): what PureYAML can
   replace today and which YAML features are deliberately unsupported.
-- [Release process](docs/RELEASE.md): 0.1.0 checklist, verification commands,
-  tag commands, and release-publishing steps.
+- [Release process](docs/RELEASE.md): verification commands, tag commands, and
+  release-publishing steps.
 
 ## Usage
 
@@ -248,7 +248,8 @@ PureYAML must stay dependency-free and portable. Before merging changes:
 - Swift tools version: 6.1
 - Package products: `PureYAML`
 - SwiftPM dependencies: none
-- Hosted CI matrix: macOS build and test, Linux build and test, WASM build
+- Hosted CI matrix: macOS build and test, Linux build and test, Windows build
+  and test, WASM build
 
 ```sh
 bash scripts/check-all.sh
@@ -271,8 +272,7 @@ bash scripts/check-wasm.sh
 ```
 
 The pre-push hook runs `scripts/check-all.sh` so local pushes exercise macOS,
-Claw Mini Linux, and WASM before hosted CI repeats the macOS, Linux, and WASM
-matrix.
+Claw Mini Linux, and WASM before hosted CI repeats those gates and adds Windows.
 
 `scripts/check-wasm.sh` expects a Swift toolchain with a matching Swift Wasm SDK.
 For Swift 6.3.2, install the SDK with:

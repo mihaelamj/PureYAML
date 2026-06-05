@@ -5,7 +5,7 @@ relevant gates.
 
 ## Required Gate
 
-Run this before committing or reporting completion:
+Run this local gate before committing or reporting completion:
 
 ```sh
 bash scripts/check-style.sh
@@ -20,6 +20,8 @@ bash scripts/check-linux.sh
 bash scripts/check-wasm.sh
 ```
 
+Hosted CI must also pass the Windows job, which runs `scripts/check-windows.ps1`.
+
 ## Claims and Evidence
 
 | Claim | Required evidence |
@@ -32,6 +34,7 @@ bash scripts/check-wasm.sh
 | Builds on macOS | `swift build` exits 0 |
 | Tests pass | `swift test` exits 0 and reports zero failures |
 | Linux compatible | `bash scripts/check-linux.sh` exits 0 |
+| Windows compatible | hosted `scripts/check-windows.ps1` exits 0 |
 | WASI compatible | `bash scripts/check-wasm.sh` exits 0 |
 
 If a tool is unavailable, say so explicitly and do not claim that gate passed.

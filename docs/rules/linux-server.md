@@ -15,7 +15,10 @@ If your target runs on Linux in production (server, CLI binary, container worklo
 
 If the answer is "Apple-only iOS/macOS app, no Linux," skip this file; load `cross-platform.md` for the Apple-cross-platform patterns instead.
 
-Note: the PureYAML engine targets macOS and Linux. Both support subprocess and shell-out, so the engine may spawn subprocesses. As a design preference, keep server-only concerns (this file's HTTP/database/signal patterns) in dedicated CLI/server targets rather than the core, so the core stays focused; this is an organizational choice, not a platform limitation.
+Note: the PureYAML engine targets macOS, Linux, Windows, and WASI. The core
+library must not require subprocesses, shell-outs, C sources, generated parsers,
+JavaScript tooling, or Foundation. Keep server-only concerns from this file in
+dedicated CLI/server targets rather than the parser core.
 
 ## 1. HTTP: AsyncHTTPClient, not URLSession
 
