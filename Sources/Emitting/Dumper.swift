@@ -1,7 +1,11 @@
 public extension PureYAML.Emitting {
     /// Block-style YAML serializer for ``PureYAML/Model/Value``.
     struct Dumper: Sendable {
-        public init() {}
+        public var options: Options
+
+        public init(options: Options = .default) {
+            self.options = options
+        }
 
         public func dump(_ value: PureYAML.Model.Value) -> String {
             render(value, indent: 0).joined(separator: "\n") + "\n"
@@ -65,10 +69,72 @@ extension PureYAML.Emitting.Dumper {
         case let .double(value):
             String(value)
         case let .string(value):
-            quote(value)
+            renderString(value)
         case .sequence, .mapping:
             ""
         }
+    }
+
+    func renderString(_ value: String) -> String {
+        switch options.scalarStyle {
+        case .quoted:
+            quote(value)
+        case .plainWhenSafe:
+            canRenderPlainString(value) ? value : quote(value)
+        }
+    }
+
+    func canRenderPlainString(_ value: String) -> Bool {
+        guard !value.isEmpty else {
+            return false
+        }
+        guard value.first?.isWhitespace == false, value.last?.isWhitespace == false else {
+            return false
+        }
+        guard !value.contains("\n"), !value.contains("\r"), !value.contains("\t") else {
+            return false
+        }
+        guard !isReservedPlainScalar(value), !isNumberLikePlainScalar(value) else {
+            return false
+        }
+        guard let first = value.first, !isPlainScalarIndicator(first) else {
+            return false
+        }
+        return !containsColonSpace(value) && !value.contains("#")
+    }
+
+    func containsColonSpace(_ value: String) -> Bool {
+        var previousWasColon = false
+        for character in value {
+            if previousWasColon, character == " " {
+                return true
+            }
+            previousWasColon = character == ":"
+        }
+        return false
+    }
+
+    func isReservedPlainScalar(_ value: String) -> Bool {
+        switch value {
+        case "~", "null", "Null", "NULL", "true", "True", "TRUE", "false", "False", "FALSE":
+            true
+        default:
+            false
+        }
+    }
+
+    func isNumberLikePlainScalar(_ value: String) -> Bool {
+        if Int(value) != nil, !value.contains(".") {
+            return true
+        }
+        if value.contains(".") || value.contains("e") || value.contains("E") {
+            return Double(value) != nil
+        }
+        return false
+    }
+
+    func isPlainScalarIndicator(_ character: Character) -> Bool {
+        "-?:,[]{}#&*!|>'\"%@`".contains(character)
     }
 
     func escapeKey(_ key: String) -> String {

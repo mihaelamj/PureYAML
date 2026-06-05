@@ -5,8 +5,11 @@ public extension PureYAML {
     }
 
     /// Serializes a ``Model/Value`` tree into block-style YAML.
-    static func dump(_ value: Model.Value) -> String {
-        Emitting.Dumper().dump(value)
+    static func dump(
+        _ value: Model.Value,
+        options: Emitting.Options = .default,
+    ) -> String {
+        Emitting.Dumper(options: options).dump(value)
     }
 
     /// Validates a parsed YAML value with the default validation rules.

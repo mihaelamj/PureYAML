@@ -80,6 +80,23 @@ flowchart TB
   Issue6 --> Issue7
 ```
 
+Emitter detailed roadmap:
+
+```mermaid
+flowchart TB
+  classDef done fill:#ddf9e4,stroke:#34c759,color:#111827
+  classDef review fill:#fff7d6,stroke:#ffcc00,color:#111827
+  classDef epic fill:#f2e5ff,stroke:#af52de,color:#111827
+  classDef todo fill:#f2f4f7,stroke:#8e8e93,color:#111827
+  Issue14["#14 Emitter Options and Scalar Policy"]:::done
+  Issue15["#15 Multiline Block Scalars"]:::todo
+  Issue16["#16 Flow Collection Emission"]:::todo
+  Issue17["#17 Emitter Corpus and Release Evidence"]:::todo
+  Issue14 --> Issue15
+  Issue15 --> Issue16
+  Issue16 --> Issue17
+```
+
 ## Status
 
 This repository starts with the first real parser milestone: block mappings,

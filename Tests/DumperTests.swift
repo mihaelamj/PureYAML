@@ -96,4 +96,45 @@ struct DumperTests {
         #expect(PureYAML.dump(.mapping(.init())) == "\n")
         #expect(PureYAML.dump(.sequence([])) == "\n")
     }
+
+    @Test("Dumps plain strings only when selected and safe")
+    func test_plainStringScalarPolicy() throws {
+        let value = PureYAML.Model.Value.mapping(.init([
+            .init(key: "title", value: .string("Example title")),
+            .init(key: "truth", value: .string("true")),
+            .init(key: "number", value: .string("42")),
+            .init(key: "colon", value: .string("a: b")),
+            .init(key: "hash", value: .string("a#b")),
+            .init(key: "dash", value: .string("- item")),
+            .init(key: "trim", value: .string(" padded")),
+            .init(key: "newline", value: .string("line\nnext")),
+        ]))
+        let options = PureYAML.Emitting.Options(scalarStyle: .plainWhenSafe)
+        let yaml = PureYAML.dump(value, options: options)
+
+        #expect(yaml == """
+        title: Example title
+        truth: "true"
+        number: "42"
+        colon: "a: b"
+        hash: "a#b"
+        dash: "- item"
+        trim: " padded"
+        newline: "line\\nnext"
+
+        """)
+        #expect(!yaml.contains("title: \"Example title\""))
+        #expect(yaml.contains("truth: \"true\""))
+        #expect(try PureYAML.parse(yaml) == value)
+    }
+
+    @Test("Dumper accepts explicit default options")
+    func test_explicitDefaultOptions() {
+        let value = PureYAML.Model.Value.mapping(.init([
+            .init(key: "title", value: .string("Example")),
+        ]))
+        let dumper = PureYAML.Emitting.Dumper(options: .default)
+
+        #expect(dumper.dump(value) == PureYAML.dump(value))
+    }
 }
