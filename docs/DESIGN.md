@@ -134,14 +134,24 @@ returns `PureYAML.Stream.Document` values with stable zero-based indexes.
 
 `PureYAML.parseTagged(_:)` and `PureYAML.parseTaggedStream(_:)` reuse the same
 scanner and event parser but compose `PureYAML.Tagged.Node` values that preserve
-explicit tags on scalar, sequence, and mapping nodes. Tagged parsing is an
-analysis surface, not a constructor surface: it deliberately does not construct
-Foundation values for `!!timestamp` or `!!binary`, and project-specific tags are
-preserved for caller-owned conversion. It preserves source shape for diagnostics;
-normal parsing is the semantic surface that expands merge keys into
+explicit tags on scalar, sequence, and mapping nodes. Tagged parsing deliberately
+does not construct Foundation values for `!!timestamp` or `!!binary`, and
+project-specific tags are preserved for caller-owned conversion. It preserves
+source shape for diagnostics; normal parsing is the semantic surface that
+expands merge keys into
 `Model.Value`. `PureYAML.Tagged.Validator` reports
 unsupported built-in tags and built-in tags applied to the wrong node kind with
 the same path and stream issue types used by the main validator.
+
+`PureYAML.Tagged.Constructor<Output>` is the explicit construction boundary for
+projects that want to turn tagged nodes into domain values. It starts empty,
+registers handlers by exact tag and node kind, and reports path-aware
+`ConstructionError` values when no handler exists or a tag appears on the wrong
+node kind. Handler context carries the root node, current subject, path, and a
+recursive construction method so nested conversion keeps exact diagnostics. The
+model fallback is deliberately named `modelValueErasingTags`: it preserves
+mapping order and duplicate keys, then erases tag metadata only when the caller
+has opted into that lossy boundary.
 
 Mappings are ordered pairs. String keys remain the common path through
 `Model.Pair.key`, `Model.Mapping` string lookup, validation dot/bracket paths,
@@ -205,19 +215,18 @@ also includes Foundation-specific scalar conversions, which would break the
 dependency-free and WASM-compatible library boundary.
 
 Application code may project `Model.Value` or `Tagged.Node` into JSON-like or
-domain-specific values after validation, but that projection must own the
-data-loss and constructor policy explicitly.
+domain-specific values after validation. `Tagged.Constructor` is the supported
+typed form of that projection, while dictionary-shaped `Any` projection remains
+outside the library because it must own data-loss policy explicitly.
 
 ## Planned Compatibility Work
 
 Compatibility should be added in small, test-backed slices:
 
 1. Multi-document stream dumping.
-2. Explicit constructor APIs for caller-owned tagged conversion if a
-   dependency-free design proves worthwhile (#39).
-3. Additional built-in validation rules beyond duplicate-key behavior.
-4. Broader Codable compatibility beyond scalar, keyed, and unkeyed containers.
-5. Yams corpus comparison tests in a separate compatibility suite.
+2. Additional built-in validation rules beyond duplicate-key behavior.
+3. Broader Codable compatibility beyond scalar, keyed, and unkeyed containers.
+4. Yams corpus comparison tests in a separate compatibility suite.
 
 The private `PureYAMLResearch` repository may be used to study Yams behavior, but
 the public implementation must be written in Swift and must not copy C parser

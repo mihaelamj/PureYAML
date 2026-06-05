@@ -21,6 +21,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add `PureYAML.parseTagged(_:)` and `PureYAML.parseTaggedStream(_:)` for
   tag-preserving node trees, plus tagged validation rules for unsupported
   built-in tags and tags applied to the wrong node kind.
+- Add `PureYAML.Tagged.Constructor` for caller-owned tagged construction with
+  exact missing-handler and kind-mismatch errors, recursive path context, and an
+  explicit model-value fallback that preserves mapping order and duplicates
+  while erasing tags.
 - Add first-class complex mapping keys through `Model.Pair.keyNode`, including
   parsing, deterministic validation paths, duplicate-key checks, and block/flow
   dumping for sequence and mapping keys.

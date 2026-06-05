@@ -29,6 +29,7 @@ See [../ATTRIBUTION.md](../ATTRIBUTION.md) for the project attribution.
 | Validate document structure | `PureYAML.validate(_:using:strict:)` | Default rule reports duplicate mapping keys with exact paths. |
 | Validate every document in a stream | `PureYAML.validate(_:using:strict:)` with stream documents | Reports `PureYAML.Stream.Issue` values that preserve document indexes. |
 | Validate explicit tag usage | `PureYAML.Tagged.Validator` | Reports unsupported built-in tags and kind-inconsistent built-in tags with exact paths. |
+| Construct caller-owned values from explicit tags | `PureYAML.Tagged.Constructor` | Empty by default; callers register exact tag/kind handlers or an explicit fallback. |
 | Load arbitrary `Any` dictionaries and arrays | Use `Model.Value` or typed `Codable` | There is deliberately no public arbitrary `Any` conversion API. Dictionary-shaped values erase YAML diagnostics. |
 
 ## Arbitrary Any Decision
@@ -53,7 +54,9 @@ For unknown schemas, use `PureYAML.Model.Value` and validate before projecting
 into project-specific values. For known schemas, use typed `Codable`. If a
 caller truly needs a JSON-like dictionary after validation, build that projection
 in the application layer where duplicate-key and unsupported-shape policies are
-explicit.
+explicit. If a caller needs custom tag construction, use
+`PureYAML.Tagged.Constructor` so unsupported tags, wrong-kind tags, and
+tag-erasing fallbacks stay explicit.
 
 ## Supported Today
 
@@ -76,6 +79,7 @@ add a fixture beside the closest existing suite.
 | Built-in scalar tags | `!!str`, `!!int`, `!!float`, `!!bool`, and `!!null` are applied when valid. | `ScalarCompatibilityFixtures` |
 | Tag-preserving parsing | `parseTagged(_:)` and `parseTaggedStream(_:)` preserve explicit scalar and collection tags for compatibility analysis. | `TaggedCompatibilityTests` |
 | Tagged validation | Unsupported built-in tags and built-in tags applied to the wrong node kind are reported with exact paths. Project-specific tags are allowed by default. | `TaggedCompatibilityTests` |
+| Tagged construction | `PureYAML.Tagged.Constructor` supports scalar, sequence, and mapping handlers, exact missing-constructor errors, exact kind-mismatch errors, recursive path-aware construction, and an explicit model-value fallback that erases tags without collapsing duplicate keys. | `TaggedConstructorTests` |
 | Complex mapping keys | Sequence and mapping keys parse into `Model.Pair.keyNode`, validate with exact paths, and dump as explicit YAML keys. String-keyed APIs remain string-keyed. | `ComplexMappingKeyParsingTests`, `ComplexMappingKeyValidationTests`, `ComplexMappingKeyDumperTests`, `ComplexMappingKeyCodableTests` |
 | Emitting | Deterministic block output by default, with opt-in flow collections and conservative literal blocks. | `DumperTests`, `EmitterCorpusTests` |
 | Typed conversion | Scalar, keyed, unkeyed, nested, sequence, dynamic-key, and super-coder cases are covered. | `CodingTests`, `CodableCompatibilityTests` |
@@ -98,7 +102,7 @@ explicit fallback value tree. This avoids silent compatibility drift.
 | Invalid merge values | Throws `invalidMergeValue` when `<<` is not followed by a mapping or sequence of mappings. | `MergeKeyCompatibilityTests` |
 | Unsupported built-in tags such as `!!timestamp`, `!!binary`, `!!set`, and `!!omap` | `parse(_:)` keeps parseable value trees without special tag construction. `parseTagged(_:)` preserves the tags, and tagged validation reports them as unsupported built-in tags. | `UnsupportedYAMLGapsFixtures.fallbackValues`, `TaggedCompatibilityTests` |
 | Sexagesimal-style scalars and date-looking plain scalars | Keep string values for currently unsupported spellings such as `1:20`, `2002-04-28`, and `09`. | `ScalarCompatibilityFixtures.unsupportedScalars` |
-| Custom constructors, custom resolvers, and environment expansion | Not implemented. Build project-specific conversion on top of `Model.Value`, tagged nodes, or typed `Codable`. | #39 |
+| Custom resolvers and environment expansion | Not implemented. Build project-specific conversion on top of `Model.Value`, tagged nodes, typed `Codable`, or `PureYAML.Tagged.Constructor`. | Future compatibility work |
 | Foundation-specific scalar conversions such as `Data`, `Date`, or `URL` strategies | Not special-cased in the library target. Tags stay visible through `parseTagged(_:)`; callers own conversion. | `TaggedCompatibilityTests` |
 
 ## Migration Checklist
@@ -120,7 +124,7 @@ Do not migrate a caller yet if it requires:
 - multi-document stream dumping;
 - binary or timestamp conversion into Foundation types;
 - arbitrary `Any` load and dump APIs;
-- custom scalar constructors or resolvers;
+- custom resolvers;
 - a full YAML 1.2 compliance claim.
 
 In those cases, add a fixture and a child issue before changing production call

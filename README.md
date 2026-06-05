@@ -57,12 +57,14 @@ It is not yet a full YAML 1.2 implementation. The internal event parser now
 recognizes anchors, aliases, tags, flow collections, and block scalar styles from
 scanner tokens, and the public value parser composes those events into
 `PureYAML.Model.Value`. The tagged parser preserves explicit scalar and
-collection tags without adding Foundation-backed constructors; use normal
-parsing when semantic merge-key expansion is required. Directives beyond the
-selected compatibility subset, automatic `Data`/`Date` construction, and custom
-decoding are planned work. Unsupported gaps are pinned by executable tests so
-they produce exact errors, exact validation issues, or exact fallback value
-trees instead of silent parser drift.
+collection tags without adding Foundation-backed constructors; callers can opt
+into `PureYAML.Tagged.Constructor` when they want a typed, project-owned
+construction policy. Use normal parsing when semantic merge-key expansion is
+required. Directives beyond the selected compatibility subset and automatic
+`Data`/`Date` construction remain out of scope for the library target.
+Unsupported gaps are pinned by executable tests so they produce exact errors,
+exact validation issues, or exact fallback value trees instead of silent parser
+drift.
 
 ## Attribution
 
@@ -109,6 +111,16 @@ value: !!timestamp 2001-01-23
 """)
 
 let tagIssues = PureYAML.Tagged.Validator().collect(tagged)
+```
+
+Use `PureYAML.Tagged.Constructor` when a project owns a custom tag policy:
+
+```swift
+let env = try PureYAML.Tagged.Constructor<String>()
+    .constructingScalar(tag: .init("!Env")) { scalar, _ in
+        scalar.rawValue
+    }
+    .construct(try PureYAML.parseTagged("!Env DATABASE_URL"))
 ```
 
 Use `parseStream(_:)` when the input may contain more than one YAML document.

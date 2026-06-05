@@ -112,6 +112,18 @@ struct DocumentationExampleTests {
         #expect(tagIssues.issues == expectedIssues)
     }
 
+    @Test("README tagged constructor example stays executable")
+    func test_readmeTaggedConstructorExample() throws {
+        let tagged = try PureYAML.parseTagged("!Env DATABASE_URL")
+        let constructor = PureYAML.Tagged.Constructor<String>()
+            .constructingScalar(tag: .init("!Env")) { scalar, _ in
+                scalar.rawValue
+            }
+        let env = try constructor.construct(tagged)
+
+        #expect(env == "DATABASE_URL")
+    }
+
     @Test("README emitter options example stays executable")
     func test_readmeEmitterOptionsExample() throws {
         let document = PureYAML.Model.Value.mapping(.init([

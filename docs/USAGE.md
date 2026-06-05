@@ -45,6 +45,7 @@ Those tests are the executable contract for the short-form examples.
 | Parse a YAML stream into indexed documents | `PureYAML.parseStream(_:)` | `[PureYAML.Stream.Document]` |
 | Parse YAML while preserving explicit tags | `PureYAML.parseTagged(_:)` | `PureYAML.Tagged.Node` |
 | Parse a YAML stream while preserving explicit tags | `PureYAML.parseTaggedStream(_:)` | `[PureYAML.Tagged.Document]` |
+| Construct typed values from tagged nodes | `PureYAML.Tagged.Constructor` | Caller-owned output type |
 | Emit YAML from a value tree | `PureYAML.dump(_:options:)` | `String` |
 | Validate a value tree | `PureYAML.validate(_:using:strict:)` | `[PureYAML.Validation.Issue]` or a thrown issue collection |
 | Validate stream documents | `PureYAML.validate(_:using:strict:)` with `[PureYAML.Stream.Document]` | `[PureYAML.Stream.Issue]` or a thrown stream issue collection |
@@ -141,6 +142,37 @@ PureYAML deliberately does not construct Foundation values for tags such as
 `!!timestamp` or `!!binary`. Those tags stay visible in the tagged tree and stay
 ordinary strings in `Model.Value`; callers own any `Date`, `Data`, or
 domain-specific conversion.
+
+Use `PureYAML.Tagged.Constructor` when the application owns that conversion. A
+constructor is empty by default, so unsupported tags fail with an exact
+`ConstructionError` instead of silently becoming `Any` dictionaries:
+
+```swift
+let value = try PureYAML.Tagged.Constructor<String>()
+    .constructingScalar(tag: .init("!Env")) { scalar, _ in
+        scalar.rawValue
+    }
+    .construct(try PureYAML.parseTagged("!Env DATABASE_URL"))
+```
+
+Handlers can be registered for scalar, sequence, and mapping nodes. The context
+passed to each handler includes the root node, current node, path, and a
+recursive `construct(_:at:)` method that keeps nested construction diagnostics
+path-aware.
+
+When a caller intentionally wants to drop tag metadata, use the explicit
+fallback:
+
+```swift
+let model = try PureYAML.Tagged.Constructor<PureYAML.Model.Value>
+    .modelValueErasingTags
+    .construct(tagged)
+```
+
+That fallback preserves mapping order and duplicate keys, then erases scalar,
+sequence, mapping, and key tags. It does not run tagged validation implicitly;
+call `PureYAML.Tagged.Validator` first when unsupported built-in tags should
+block construction.
 
 ## Typed Conversion
 
