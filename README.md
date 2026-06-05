@@ -52,6 +52,29 @@ flowchart TB
   SuperEpic8 --> Epic1
 ```
 
+Parse core detailed roadmap:
+
+```mermaid
+flowchart TB
+  classDef done fill:#34C759,color:#000,stroke:#248A3D,stroke-width:2px
+  classDef review fill:#FFCC00,color:#000,stroke:#B58B00,stroke-width:2px
+  classDef active fill:#FF9500,color:#000,stroke:#B36200,stroke-width:2px
+  classDef next fill:#007AFF,color:#fff,stroke:#005BBB,stroke-width:2px
+  classDef partial fill:#AF52DE,color:#fff,stroke:#7D3CAF,stroke-width:2px
+  classDef todo fill:#8E8E93,color:#fff,stroke:#6B6B70,stroke-width:2px
+  Issue2["#2 Event Model and Golden Tests - Next"]:::next
+  Issue3["#3 UTF-8 Reader and Scanner - Todo"]:::todo
+  Issue4["#4 Token Stream to Events - Todo"]:::todo
+  Issue5["#5 Events to PureYAML Values - Todo"]:::todo
+  Issue6["#6 Scalars Tags and Aliases - Todo"]:::todo
+  Issue7["#7 macOS Linux and WASM Hardening - Todo"]:::todo
+  Issue2 --> Issue3
+  Issue3 --> Issue4
+  Issue4 --> Issue5
+  Issue5 --> Issue6
+  Issue6 --> Issue7
+```
+
 ## Status
 
 This repository starts with the first real parser milestone: block mappings,
