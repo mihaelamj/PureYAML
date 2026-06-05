@@ -72,6 +72,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add executable unsupported-gap fixtures for multi-document streams, complex
   mapping keys, unsupported directives, unsupported built-in tags, merge-key
   fallback behavior, and direct value-tree validation.
+- Add fixture-backed literal block emission coverage for newly supported
+  multiline content and exact quoted fallbacks.
 
 ### Changed
 
@@ -86,3 +88,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `super` mapping key instead of the current mapping.
 - Resolve Yams-compatible plain scalar spellings for `yes`/`no` booleans,
   radix-prefixed integers, numeric separators, and `.inf`/`.nan` floats.
+- Broaden opt-in literal block emission while preserving exact parser
+  round-trips for every emitted block scalar.

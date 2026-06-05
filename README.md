@@ -75,7 +75,7 @@ flowchart TB
   Scalar24["#24 Scalar and Tag Corpus"]:::done
   Collection25["#25 Collection and Anchor Corpus"]:::done
   Gaps27["#27 Unsupported YAML Gaps"]:::done
-  Literal19["#19 Literal Block Emission"]:::todo
+  Literal19["#19 Literal Block Emission"]:::done
   Downstream26["#26 Downstream Document Fixtures"]:::todo
   Epic11 --> Scalar24
   Scalar24 --> Collection25
@@ -170,7 +170,9 @@ let compactYAML = PureYAML.dump(document, options: compact)
 
 Literal block emission is intentionally conservative: multiline strings whose
 lines would not round-trip through the current parser are emitted as quoted
-strings instead. Flow collections always use inline scalar output.
+strings instead. The policy allows more plain-safe block content, such as
+hashes without comment boundaries and indicator-like text that the parser keeps
+as scalar content. Flow collections always use inline scalar output.
 
 ## Validation
 

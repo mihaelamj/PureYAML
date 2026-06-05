@@ -119,6 +119,42 @@ struct EmitterCorpusTests {
         #expect(try PureYAML.parse(yaml) == testCase.value)
     }
 
+    @Test(
+        "Emits broader literal block fixture YAML and round trips",
+        arguments: LiteralBlockEmissionFixtures.supported,
+    )
+    func test_literalBlockEmissionFixtures(testCase: LiteralBlockEmissionFixtures.Case) throws {
+        let options = PureYAML.Emitting.Options(scalarStyle: .literalBlockWhenMultiline)
+        let yaml = PureYAML.dump(testCase.value, options: options)
+
+        #expect(yaml == testCase.expected)
+        for required in testCase.required {
+            #expect(yaml.contains(required), "expected \(testCase.name) to contain \(required)")
+        }
+        for forbidden in testCase.forbidden {
+            #expect(!yaml.contains(forbidden), "expected \(testCase.name) not to contain \(forbidden)")
+        }
+        #expect(try PureYAML.parse(yaml) == testCase.value)
+    }
+
+    @Test(
+        "Keeps unsupported literal block fixture values quoted",
+        arguments: LiteralBlockEmissionFixtures.fallbacks,
+    )
+    func test_literalBlockEmissionFallbackFixtures(testCase: LiteralBlockEmissionFixtures.Case) throws {
+        let options = PureYAML.Emitting.Options(scalarStyle: .literalBlockWhenMultiline)
+        let yaml = PureYAML.dump(testCase.value, options: options)
+
+        #expect(yaml == testCase.expected)
+        for required in testCase.required {
+            #expect(yaml.contains(required), "expected \(testCase.name) to contain \(required)")
+        }
+        for forbidden in testCase.forbidden {
+            #expect(!yaml.contains(forbidden), "expected \(testCase.name) not to contain \(forbidden)")
+        }
+        #expect(try PureYAML.parse(yaml) == testCase.value)
+    }
+
     @Test("Emitter corpus keeps unsupported literal block lines quoted")
     func test_unsupportedLiteralBlockLinesStayQuoted() throws {
         let value = PureYAML.Model.Value.mapping(.init([

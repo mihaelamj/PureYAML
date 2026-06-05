@@ -227,13 +227,68 @@ extension PureYAML.Emitting.Dumper {
         guard !line.isEmpty, line.first?.isWhitespace == false, line.last?.isWhitespace == false else {
             return false
         }
-        guard !line.contains("#"), !containsColonSpace(String(line)) else {
+        let value = String(line)
+        guard !containsCommentStart(value), !containsMappingSeparator(value) else {
             return false
         }
         guard let first = line.first else {
             return false
         }
-        return !isPlainScalarIndicator(first)
+        return canRenderLiteralBlockLineStarting(with: first, line: line)
+    }
+
+    func canRenderLiteralBlockLineStarting(
+        with first: Character,
+        line: Substring,
+    ) -> Bool {
+        switch first {
+        case "#", ",", "[", "]", "{", "}", "&", "*", "!", "|", ">", "'", "\"", "`":
+            false
+        case "-":
+            !hasOnlyIndicator(first, line: line) && line.dropFirst().first != " "
+        case "?":
+            !hasOnlyIndicator(first, line: line) && line.dropFirst().first != " "
+        case ":":
+            !hasOnlyIndicator(first, line: line) && line.dropFirst().first != " "
+        default:
+            true
+        }
+    }
+
+    func hasOnlyIndicator(
+        _ indicator: Character,
+        line: Substring,
+    ) -> Bool {
+        line.count == 1 && line.first == indicator
+    }
+
+    func containsCommentStart(_ value: String) -> Bool {
+        var previousWasWhitespace = true
+        for character in value {
+            if character == "#", previousWasWhitespace {
+                return true
+            }
+            previousWasWhitespace = character.isWhitespace
+        }
+        return false
+    }
+
+    func containsMappingSeparator(_ value: String) -> Bool {
+        var previousWasColon = false
+        for character in value {
+            if previousWasColon, isMappingSeparatorBoundary(character) {
+                return true
+            }
+            previousWasColon = character == ":"
+        }
+        return previousWasColon
+    }
+
+    func isMappingSeparatorBoundary(_ character: Character) -> Bool {
+        character.isWhitespace
+            || character == ","
+            || character == "]"
+            || character == "}"
     }
 
     func canRenderPlainString(_ value: String) -> Bool {
