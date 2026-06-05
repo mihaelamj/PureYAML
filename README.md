@@ -56,12 +56,14 @@ flowchart TB
   I49["#49 Structured validation reports"]:::todo
   I50["#50 False-positive diagnostic triage"]:::todo
   I51["#51 Bad-YAML mutation suite"]:::todo
+  I55["#55 Real corpus and fuzz gates"]:::todo
   I52["#52 OpenAPIDoctor integration dry run"]:::todo
   I53["#53 Yams differential regression gate"]:::todo
   I48["#48 Parser throughput toward libyaml parity"]:::todo
   E54 --> I49
   E54 --> I50
   E54 --> I51
+  E54 --> I55
   E54 --> I52
   E54 --> I53
   E54 --> I48
@@ -105,6 +107,8 @@ but it does not copy their implementation into `Sources/`. See
 
 - [Usage](docs/USAGE.md): public APIs, validation, emitter options, and
   cross-platform gates.
+- [Corpus gates](docs/CORPUS.md): real-world YAML seed sources, generated
+  mutations, artifact format, and hardening acceptance criteria.
 - [Migration and support boundaries](docs/MIGRATION.md): what PureYAML can
   replace today and which YAML features are deliberately unsupported.
 - [Release process](docs/RELEASE.md): verification commands, tag commands, and
