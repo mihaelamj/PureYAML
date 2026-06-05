@@ -17,29 +17,90 @@ extension PureYAML.Parsing.Parser {
         switch value {
         case "", "~", "null", "Null", "NULL":
             return .null
-        case "true", "True", "TRUE":
-            return .bool(true)
-        case "false", "False", "FALSE":
-            return .bool(false)
         default:
             break
         }
 
+        if let bool = parseBool(value) {
+            return .bool(bool)
+        }
         if value.hasPrefix("\"") {
             return try .string(parseDoubleQuoted(value, line: line))
         }
         if value.hasPrefix("'") {
             return try .string(parseSingleQuoted(value, line: line))
         }
-        if let int = Int(value), !value.contains(".") {
+        if let int = parseInteger(value), !value.contains(".") {
             return .int(int)
         }
         if value.contains(".") || value.contains("e") || value.contains("E") {
-            if let double = Double(value) {
+            if let double = parseDouble(value) {
                 return .double(double)
             }
         }
         return .string(value)
+    }
+
+    func parseBool(_ text: String) -> Bool? {
+        switch text {
+        case "true", "True", "TRUE", "yes", "Yes", "YES", "on", "On", "ON":
+            true
+        case "false", "False", "FALSE", "no", "No", "NO", "off", "Off", "OFF":
+            false
+        default:
+            nil
+        }
+    }
+
+    func parseInteger(_ text: String) -> Int? {
+        let value = removingNumericSeparators(from: text)
+        let negative = value.hasPrefix("-")
+        let hasSign = negative || value.hasPrefix("+")
+        let unsigned = hasSign ? String(value.dropFirst()) : value
+
+        guard !unsigned.isEmpty else {
+            return nil
+        }
+        guard unsigned != "0" else {
+            return 0
+        }
+
+        let radixPrefixes: [(prefix: String, radix: Int)] = [
+            ("0x", 16),
+            ("0X", 16),
+            ("0b", 2),
+            ("0B", 2),
+            ("0o", 8),
+            ("0O", 8),
+            ("0", 8),
+        ]
+
+        for radixPrefix in radixPrefixes where unsigned.hasPrefix(radixPrefix.prefix) {
+            let digits = String(unsigned.dropFirst(radixPrefix.prefix.count))
+            guard !digits.isEmpty, let magnitude = Int(digits, radix: radixPrefix.radix) else {
+                return nil
+            }
+            return negative ? -magnitude : magnitude
+        }
+
+        return Int(value)
+    }
+
+    func parseDouble(_ text: String) -> Double? {
+        switch text {
+        case ".inf", ".Inf", ".INF", "+.inf", "+.Inf", "+.INF":
+            .infinity
+        case "-.inf", "-.Inf", "-.INF":
+            -.infinity
+        case ".nan", ".NaN", ".NAN", "+.nan", "+.NaN", "+.NAN", "-.nan", "-.NaN", "-.NAN":
+            .nan
+        default:
+            Double(removingNumericSeparators(from: text))
+        }
+    }
+
+    func removingNumericSeparators(from text: String) -> String {
+        text.filter { $0 != "_" }
     }
 
     func parseSingleQuoted(

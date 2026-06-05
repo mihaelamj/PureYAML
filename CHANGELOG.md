@@ -64,6 +64,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add an explicit research-compatibility rule requiring parser, emitter,
   validation, and typed conversion work to start from PureYAMLResearch behavior
   without copying implementation code.
+- Add a fixture-backed scalar and explicit-tag compatibility corpus with exact
+  success, string-preservation, unsupported-spelling, and invalid-tag errors.
 
 ### Changed
 
@@ -76,3 +78,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   written in a different order than they were requested.
 - Make keyed default `superEncoder()` and `superDecoder()` use the standard
   `super` mapping key instead of the current mapping.
+- Resolve Yams-compatible plain scalar spellings for `yes`/`no` booleans,
+  radix-prefixed integers, numeric separators, and `.inf`/`.nan` floats.

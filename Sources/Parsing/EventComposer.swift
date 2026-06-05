@@ -163,12 +163,12 @@ extension PureYAML.Parsing.EventComposer {
         case "tag:yaml.org,2002:str":
             return .string(value)
         case "tag:yaml.org,2002:int":
-            guard let int = Int(scalarParser.trim(value)) else {
+            guard let int = scalarParser.parseInteger(scalarParser.trim(value)) else {
                 throw invalidTaggedScalar(tag: "tag:yaml.org,2002:int", value: value, mark: mark)
             }
             return .int(int)
         case "tag:yaml.org,2002:float":
-            guard let double = Double(scalarParser.trim(value)) else {
+            guard let double = scalarParser.parseDouble(scalarParser.trim(value)) else {
                 throw invalidTaggedScalar(tag: "tag:yaml.org,2002:float", value: value, mark: mark)
             }
             return .double(double)
@@ -185,14 +185,10 @@ extension PureYAML.Parsing.EventComposer {
         _ value: String,
         mark: PureYAML.Parsing.Mark,
     ) throws -> PureYAML.Model.Value {
-        switch scalarParser.trim(value) {
-        case "true", "True", "TRUE":
-            return .bool(true)
-        case "false", "False", "FALSE":
-            return .bool(false)
-        default:
+        guard let bool = scalarParser.parseBool(scalarParser.trim(value)) else {
             throw invalidTaggedScalar(tag: "tag:yaml.org,2002:bool", value: value, mark: mark)
         }
+        return .bool(bool)
     }
 
     func normalizedScalarTag(_ tag: String?) -> String? {
