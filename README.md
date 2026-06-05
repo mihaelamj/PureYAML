@@ -50,7 +50,7 @@ flowchart TB
   Epic10["#10 Typed Decoding and Encoding"]:::done
   Epic11["#11 YAML Compatibility Corpus"]:::done
   Epic12["#12 Usage and Migration Docs"]:::done
-  Epic13["#13 Release Readiness"]:::todo
+  Epic13["#13 Release Readiness"]:::done
   SuperEpic8 --> Epic1
   Epic1 --> Epic9
   Epic9 --> Epic10
@@ -67,15 +67,17 @@ flowchart TB
 
 #12 Usage and Migration Docs is complete in main.
 
+#13 Release Readiness is complete in main.
+
 ## Status
 
-This repository is preparing the first tagged release, version 0.1.0. Current
-main includes block mappings, block sequences, ordered mappings, common scalars,
-quoted strings, comments, flow collections, literal and folded block scalars,
-anchors, aliases, YAML directives, document markers, explicit built-in scalar
-tags, and a matching dumper with block and flow output policies. It also
-includes path-aware validation for structural YAML checks such as duplicate
-mapping keys.
+This repository has completed readiness for the first tagged release, version
+0.1.0. Current main includes block mappings, block sequences, ordered mappings,
+common scalars, quoted strings, comments, flow collections, literal and folded
+block scalars, anchors, aliases, YAML directives, document markers, explicit
+built-in scalar tags, and a matching dumper with block and flow output policies.
+It also includes path-aware validation for structural YAML checks such as
+duplicate mapping keys.
 
 It is not yet a full YAML 1.2 implementation. The internal event parser now
 recognizes anchors, aliases, tags, flow collections, and block scalar styles from
