@@ -9,8 +9,11 @@ public extension PureYAML.Parsing {
         case expectedAnchorName(line: Int)
         case expectedAliasName(line: Int)
         case expectedNode(line: Int, column: Int)
+        case expectedScalarKey(line: Int, column: Int)
         case unterminatedTag(line: Int)
         case unterminatedQuotedString(line: Int)
+        case undefinedAlias(anchor: String, line: Int, column: Int)
+        case unexpectedEvent(expected: String, actual: String, line: Int, column: Int)
         case unexpectedToken(expected: String, actual: String, line: Int, column: Int)
 
         public var description: String {
@@ -31,10 +34,16 @@ public extension PureYAML.Parsing {
                 "expected an alias name at line \(line)"
             case let .expectedNode(line, column):
                 "expected a YAML node at line \(line), column \(column)"
+            case let .expectedScalarKey(line, column):
+                "expected a scalar mapping key at line \(line), column \(column)"
             case let .unterminatedTag(line):
                 "unterminated tag at line \(line)"
             case let .unterminatedQuotedString(line):
                 "unterminated quoted string at line \(line)"
+            case let .undefinedAlias(anchor, line, column):
+                "undefined alias '\(anchor)' at line \(line), column \(column)"
+            case let .unexpectedEvent(expected, actual, line, column):
+                "expected \(expected) at line \(line), column \(column), found \(actual)"
             case let .unexpectedToken(expected, actual, line, column):
                 "expected \(expected) at line \(line), column \(column), found \(actual)"
             }

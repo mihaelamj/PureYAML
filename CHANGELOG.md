@@ -24,6 +24,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   marks.
 - Add the internal scanner-token event parser for block collections, flow
   collections, aliases, anchors, tags, and line/column parser failures.
+- Add the internal event composer and wire public parsing through
+  scanner-token events into `PureYAML.Model.Value`, including flow collections,
+  block scalars, anchors, aliases, and duplicate-key validation coverage.
 - Expand tests into focused parsing, dumping, model, validation, and parse-error
   suites.
 - Add macOS, Linux, and WASM verification gates and CI jobs, plus a local Linux

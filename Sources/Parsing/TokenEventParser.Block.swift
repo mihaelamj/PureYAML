@@ -17,6 +17,9 @@ extension PureYAML.Parsing.TokenEventParser {
             let entry = try expect("block sequence entry") { $0.isBlockEntry }
             try parseBlockSequenceItem(after: entry, endMark: &endMark)
         }
+        if let current = cursor.current, current.kind.isMappingKey {
+            throw PureYAML.Parsing.ParseError.mixedCollectionStyles(line: current.mark.line)
+        }
 
         events.append(.sequenceEnd(mark: endMark))
         return PureYAML.Parsing.NodeResult(kind: .sequence, endMark: endMark)
@@ -118,9 +121,20 @@ extension PureYAML.Parsing.TokenEventParser {
             value: value,
             anchor: properties.anchor,
             tag: properties.tag,
-            style: .plain,
+            style: scalarStyle(for: header.kind),
             mark: mark,
         ))
         return PureYAML.Parsing.NodeResult(kind: .scalar, endMark: endMark)
+    }
+
+    func scalarStyle(for kind: PureYAML.Parsing.TokenKind) -> PureYAML.Parsing.ScalarStyle {
+        switch kind {
+        case .blockScalarHeader(.folded):
+            .folded
+        case .blockScalarHeader(.literal):
+            .literal
+        default:
+            .plain
+        }
     }
 }

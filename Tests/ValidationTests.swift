@@ -48,6 +48,26 @@ struct ValidationTests {
         #expect(result.errors.map(\.path.description) == ["$.routes[0].name"])
     }
 
+    @Test("Rejects duplicate mapping keys parsed through the event composer")
+    func test_parsedDuplicateMappingKeyError() throws {
+        let value = try PureYAML.parse(
+            """
+            title: First
+            title: Second
+            """,
+        )
+
+        expectValidationError(value) { collection in
+            #expect(collection.issues == [
+                PureYAML.Validation.Issue(
+                    severity: .error,
+                    reason: "Duplicate mapping key 'title'",
+                    path: .init([.key("title")]),
+                ),
+            ])
+        }
+    }
+
     @Test("Blank validator disables default rules")
     func test_blankValidatorDisablesDefaultRules() throws {
         let value = PureYAML.Model.Value.mapping(.init([

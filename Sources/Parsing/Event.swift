@@ -39,6 +39,36 @@ extension PureYAML.Parsing {
 }
 
 extension PureYAML.Parsing.Event {
+    var isMappingEnd: Bool {
+        if case .mappingEnd = self {
+            return true
+        }
+        return false
+    }
+
+    var isSequenceEnd: Bool {
+        if case .sequenceEnd = self {
+            return true
+        }
+        return false
+    }
+
+    var mark: PureYAML.Parsing.Mark {
+        switch self {
+        case let .alias(_, mark),
+             let .documentEnd(mark),
+             let .documentStart(mark),
+             let .mappingEnd(mark),
+             let .mappingStart(_, _, _, mark),
+             let .scalar(_, _, _, _, mark),
+             let .sequenceEnd(mark),
+             let .sequenceStart(_, _, _, mark),
+             let .streamEnd(mark),
+             let .streamStart(mark):
+            mark
+        }
+    }
+
     private func describe(_ value: String?) -> String {
         value ?? "-"
     }

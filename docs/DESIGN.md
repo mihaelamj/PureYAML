@@ -44,9 +44,9 @@ PureYAML
 │   ├── Token
 │   ├── TokenCursor
 │   ├── TokenEventParser
+│   ├── EventComposer
 │   ├── Event
 │   ├── Mark
-│   ├── Line
 │   └── ParseError
 ├── Emitting
 │   └── Dumper
@@ -57,8 +57,10 @@ PureYAML
     └── Path
 ```
 
-`PureYAML.parse(_:)` and `PureYAML.dump(_:)` are convenience entry points. The
-implementation lives in namespaced parser, dumper, and validator types.
+`PureYAML.parse(_:)` and `PureYAML.dump(_:)` are convenience entry points.
+Parsing runs through the scanner, token-event parser, and event composer before
+returning `PureYAML.Model.Value`. The implementation lives in namespaced parser,
+dumper, and validator types.
 
 ## First Milestone
 
@@ -74,6 +76,9 @@ The initial parser supports:
 - nulls
 - quoted strings
 - comments outside quoted strings
+- flow sequences and mappings
+- literal and folded block scalars
+- anchors and aliases
 
 The parser layer also has an internal event contract. `Parsing.Event` can
 represent stream, document, scalar, sequence, mapping, and alias events, with
@@ -88,9 +93,10 @@ values for comments, indentation, block entries, mapping indicators, flow
 delimiters, quoted scalar starts, block scalar headers, anchors, aliases, tags,
 and source mark ranges. `Parsing.TokenEventParser` consumes that token stream
 and emits `Parsing.Event` values for block collections, flow collections,
-aliases, anchors, tags, and scalars. The token event parser is not yet wired
-into `parse(_:)`; the next roadmap slice composes events into
-`PureYAML.Model.Value`.
+aliases, anchors, tags, and scalars. `Parsing.EventComposer` consumes those
+events into `PureYAML.Model.Value`, preserving ordered mapping pairs, block
+scalar text, and alias-resolved values where the current model can represent
+them.
 
 The initial dumper emits block-style YAML from the model.
 
@@ -102,13 +108,10 @@ blank validator plus custom rules for project-specific checks.
 
 Compatibility should be added in small, test-backed slices:
 
-1. Compose event streams into `PureYAML.Model.Value`.
-2. Literal and folded scalars.
-3. Anchor and alias resolution.
-4. Tag-aware scalar and collection handling.
-5. Validation rules beyond duplicate-key behavior.
-6. Codable-style decoding and encoding.
-7. Yams corpus comparison tests in a separate compatibility suite.
+1. Tag-aware scalar and collection handling.
+2. Validation rules beyond duplicate-key behavior.
+3. Codable-style decoding and encoding.
+4. Yams corpus comparison tests in a separate compatibility suite.
 
 The private `PureYAMLResearch` repository may be used to study Yams behavior, but
 the public implementation must be written in Swift and must not copy C parser

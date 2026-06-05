@@ -51,6 +51,8 @@ extension PureYAML.Parsing.TokenEventParser {
         switch style {
         case .doubleQuoted:
             try scalarParser.parseDoubleQuoted("\"\(value)\"", line: line)
+        case .folded, .literal:
+            value
         case .plain:
             value
         case .singleQuoted:

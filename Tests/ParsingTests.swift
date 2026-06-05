@@ -147,6 +147,62 @@ struct ParsingTests {
         ]))
     }
 
+    @Test("Parses flow collections through the event composer")
+    func test_flowCollections() throws {
+        let root = try requireMapping(PureYAML.parse(
+            """
+            values: [one, 2, false, {name: Example}]
+            """,
+        ))
+
+        guard
+            let values = requireSequence(root?["values"]),
+            values.count == 4,
+            case let .mapping(mapping) = values[3]
+        else {
+            recordIssue("expected flow collection values")
+            return
+        }
+        #expect(values[0] == .string("one"))
+        #expect(values[1] == .int(2))
+        #expect(values[2] == .bool(false))
+        #expect(mapping["name"] == .string("Example"))
+    }
+
+    @Test("Parses block scalars through the event composer")
+    func test_blockScalars() throws {
+        let root = try requireMapping(PureYAML.parse(
+            """
+            text: |
+              one
+              two
+            folded: >
+              one
+              two
+            """,
+        ))
+
+        #expect(root?["text"] == .string("one\ntwo\n"))
+        #expect(root?["folded"] == .string("one two\n"))
+    }
+
+    @Test("Resolves anchors and aliases through the event composer")
+    func test_anchorsAndAliases() throws {
+        let root = try requireMapping(PureYAML.parse(
+            """
+            first: &item {name: Example}
+            second: *item
+            """,
+        ))
+
+        #expect(root?["first"] == root?["second"])
+        guard case let .mapping(second)? = root?["second"] else {
+            recordIssue("expected aliased mapping")
+            return
+        }
+        #expect(second["name"] == .string("Example"))
+    }
+
     @Test("Reports exact parser errors")
     func test_errorReporting() {
         expectParseError("", .emptyDocument)
@@ -154,9 +210,15 @@ struct ParsingTests {
         expectParseError("\tkey: value", .tabIndentation(line: 1))
         expectParseError("root:\n    child: yes\n  wrong: no", .unexpectedIndentation(line: 3))
         expectParseError("- one\nkey: value", .mixedCollectionStyles(line: 2))
-        expectParseError("root:\n  child: value\n  dangling", .expectedMappingKey(line: 3))
+        expectParseError("root:\n  child: value\n  dangling", .unexpectedToken(
+            expected: "mapping key",
+            actual: "scalar value=\"dangling\" style=plain",
+            line: 3,
+            column: 3,
+        ))
         expectParseError("name: \"open", .unterminatedQuotedString(line: 1))
         expectParseError("name: 'open", .unterminatedQuotedString(line: 1))
+        expectParseError("second: *missing", .undefinedAlias(anchor: "missing", line: 1, column: 9))
     }
 
     @Test("Parser errors describe returned failures")
@@ -170,5 +232,20 @@ struct ParsingTests {
         #expect(PureYAML.Parsing.ParseError.expectedAliasName(line: 7).description == "expected an alias name at line 7")
         #expect(PureYAML.Parsing.ParseError.unterminatedTag(line: 8).description == "unterminated tag at line 8")
         #expect(PureYAML.Parsing.ParseError.unterminatedQuotedString(line: 9).description == "unterminated quoted string at line 9")
+        #expect(PureYAML.Parsing.ParseError.expectedNode(line: 10, column: 2).description == "expected a YAML node at line 10, column 2")
+        #expect(PureYAML.Parsing.ParseError.expectedScalarKey(line: 11, column: 3).description == "expected a scalar mapping key at line 11, column 3")
+        #expect(PureYAML.Parsing.ParseError.undefinedAlias(anchor: "item", line: 12, column: 4).description == "undefined alias 'item' at line 12, column 4")
+        #expect(PureYAML.Parsing.ParseError.unexpectedEvent(
+            expected: "mapping key",
+            actual: "sequenceStart anchor=- tag=- style=flow @1:1@0",
+            line: 13,
+            column: 5,
+        ).description == "expected mapping key at line 13, column 5, found sequenceStart anchor=- tag=- style=flow @1:1@0")
+        #expect(PureYAML.Parsing.ParseError.unexpectedToken(
+            expected: "stream end",
+            actual: "mappingKey",
+            line: 14,
+            column: 1,
+        ).description == "expected stream end at line 14, column 1, found mappingKey")
     }
 }
