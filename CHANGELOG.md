@@ -55,3 +55,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   and install Linux Swift toolchain prerequisites for the WASM CI job.
 - Harden duplicate-key validation to use set membership while preserving exact
   diagnostics.
+- Make validation rules immutable after construction.

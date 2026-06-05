@@ -1,9 +1,9 @@
 public extension PureYAML.Validation {
     /// A validation rule that can report zero or more path-aware issues.
     struct Rule: Sendable {
-        public var description: String
-        public var predicate: @Sendable (Context) -> Bool
-        public var check: @Sendable (Context) -> [Issue]
+        public let description: String
+        public let predicate: @Sendable (Context) -> Bool
+        public let check: @Sendable (Context) -> [Issue]
 
         public init(
             description: String,
