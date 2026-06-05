@@ -16,7 +16,7 @@ jobs:
     name: macOS
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Install format and lint tools
         run: brew install swiftformat swiftlint
       - name: Repository gates
@@ -44,7 +44,7 @@ jobs:
     runs-on: ubuntu-latest
     container: swift:6.2
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Build and test
         run: bash scripts/check-linux.sh
 
@@ -53,7 +53,7 @@ jobs:
     runs-on: windows-2022
     timeout-minutes: 45
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Install Swift
         uses: compnerd/gha-setup-swift@main
         with:
@@ -67,7 +67,7 @@ jobs:
     name: WASM
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Install Swift toolchain dependencies
         run: |
           sudo apt-get update

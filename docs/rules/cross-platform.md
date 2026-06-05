@@ -460,7 +460,7 @@ linux-build:
   runs-on: ubuntu-latest
   container: swift:6.0-jammy
   steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     - run: swift build -c release --product <your-linux-product>
 ```
 
@@ -477,7 +477,7 @@ linux-test:
   runs-on: ubuntu-latest
   container: swift:6.0-jammy
   steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     - run: swift test --filter <LinuxBuildableTestSuite>
 ```
 
