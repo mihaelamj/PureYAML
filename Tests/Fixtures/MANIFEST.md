@@ -5,6 +5,16 @@ commit SHAs so compatibility failures can be reproduced without network access.
 The files are not implementation source and are used only by
 `RealYAMLFixtureTests`.
 
+`real-yaml-corpus.yaml` is the machine-readable manifest for the full checked-in
+corpus. It records every seed's stable ID, local path, category, tier, parser
+expectations, byte count, line count, upstream repository, commit SHA, source
+path, raw URL, and license note. Normal tests verify this manifest against the
+vendored files. The full parse/validate/round-trip corpus gate is opt-in:
+
+```sh
+bash scripts/check-corpus.sh
+```
+
 | Local file | Size | Lines | Bytes | Upstream license | Pinned source |
 |---|---:|---:|---:|---|---|
 | `real-yaml/kubernetes-simple-pod.yaml` | very short | 12 | 186 | MIT | `ContainerSolutions/kubernetes-examples@fa6e84542f4350b97991bfffae553d248953e443/Pod/simple.yaml` |
@@ -23,6 +33,25 @@ Kustomize, OpenAPI, Prow jobs, Prometheus config, Helm values, CRDs, and one
 extreme OpenAPI document. If a fixture is parseable by mature YAML tools, this
 suite expects PureYAML to parse it or to pin an exact unsupported feature error
 with a linked issue.
+
+Additional opt-in full-corpus seeds are listed in `real-yaml-corpus.yaml` and
+stored beside the default fixtures under `real-yaml/`. The opt-in set includes
+large public APIs.guru Stripe and Zoom OpenAPI YAML specs.
+
+## ACME Fixtures
+
+`acme/` contains synthetic OpenAPI fixtures modeled after downstream
+Stitcher-style and multi-module catalog inputs. `acme/birch-catalog/` preserves
+the original module/file structure of a private Birch-shaped catalog while
+renaming private organization names, domains, and documentation URLs.
+
+| Local file | Purpose |
+|---|---|
+| `acme/zephyr-data/spec.yml` | Multi-file OpenAPI root with relative `$ref` component references. |
+| `acme/zephyr-data/schemas/activeZorplexFeature.yml` | Referenced object schema with nested properties and nullable fields. |
+| `acme/zephyr-data/schemas/zorplexFeature.yml` | Referenced enum schema. |
+| `acme/zephyr-data/bundled.yml` | Bundled output shape after external references are resolved. |
+| `acme/birch-catalog/**/*.yml` | Full renamed Birch-style catalog with 594 YAML files, quoted OAuth scope keys, request bodies, shared parameters, and cross-module refs. |
 
 ## Validation Failure Fixtures
 
