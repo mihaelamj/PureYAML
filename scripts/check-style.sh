@@ -21,6 +21,13 @@ is_enforcement_file() {
   esac
 }
 
+is_vendored_fixture() {
+  case "$1" in
+    Tests/Fixtures/acme/*|Tests/Fixtures/real-yaml/*) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
 # Tool-attribution phrases. Assembled from fragments so this script does not
 # contain the full literal phrases (which would self-flag in other scanners).
 TOOL="Cla""ude"
@@ -35,6 +42,9 @@ PHRASES=(
 
 while IFS= read -r f; do
   [ -f "$f" ] || continue
+  if is_vendored_fixture "$f"; then
+    continue
+  fi
   if LC_ALL=C grep -qF -- "$EMDASH" "$f" 2>/dev/null; then
     echo "style: em dash (U+2014) in $f" >&2
     FAIL=1
