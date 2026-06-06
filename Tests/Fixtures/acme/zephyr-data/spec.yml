@@ -1,0 +1,61 @@
+openapi: 3.0.3
+info:
+  title: ACME Zephyr Data
+  description: >-
+    Synthetic multi-file OpenAPI fixture modeled after downstream Stitcher
+    inputs with folded text, relative references, and nested schemas.
+  version: 2.7.3-rc.0
+  contact:
+    name: Quasar Team
+    url: >-
+      https://example.com/docs/zorplex-fnordication
+servers:
+  - url: "https://api.example.com/zephyr-data"
+    description: Prod
+  - url: "https://dev-api.example.com/zephyr-data"
+    description: Dev
+tags:
+  - name: Active Zorplex Features
+    description: |
+      Features currently active for a zorplex account.
+components:
+  securitySchemes:
+    internal:
+      type: http
+      scheme: bearer
+  schemas:
+    ActiveZorplexFeature:
+      $ref: ./schemas/activeZorplexFeature.yml
+    ZorplexFeature:
+      $ref: ./schemas/zorplexFeature.yml
+security:
+  - internal: []
+paths:
+  /activeZorplexFeatures:
+    get:
+      summary: Get active zorplex features
+      operationId: getActiveZorplexFeatures
+      tags:
+        - Active Zorplex Features
+      parameters:
+        - name: zorplexSubAccountId
+          in: query
+          required: true
+          description: A comma separated list of zorplex sub-account ids
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int64
+              minimum: 1
+          style: form
+          explode: false
+      responses:
+        "200":
+          description: Active features found
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: ./schemas/activeZorplexFeature.yml

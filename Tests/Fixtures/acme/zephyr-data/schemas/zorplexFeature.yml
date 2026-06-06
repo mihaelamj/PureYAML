@@ -1,0 +1,8 @@
+type: string
+description: Available synthetic features for a zorplex entity
+enum:
+  - QUANTUM_FLURBINATION
+  - GRIBBLE_ENHANCEMENT
+  - BLARF_OPTIMIZATION
+  - FNORD_ACCELERATION
+  - QUASAR_MATRIX_V2
