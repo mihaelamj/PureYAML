@@ -6,7 +6,7 @@ extension PureYAML.Parsing.TokenEventParser {
         let start = try expect("block sequence entry") { $0.isBlockEntry }
         let startMark = properties.mark ?? start.mark
         var endMark = start.endMark
-        events.append(.sequenceStart(
+        try emit(.sequenceStart(
             anchor: properties.anchor,
             tag: properties.tag,
             style: .block,
@@ -34,13 +34,13 @@ extension PureYAML.Parsing.TokenEventParser {
             throw PureYAML.Parsing.ParseError.mixedCollectionStyles(line: current.mark.line)
         }
 
-        events.append(.sequenceEnd(mark: endMark))
+        try emit(.sequenceEnd(mark: endMark))
         return PureYAML.Parsing.NodeResult(kind: .sequence, endMark: endMark)
     }
 
     mutating func consumeSequenceItemBoundaryDedent(sequenceIndentWidth: Int) throws {
         guard dedentWidth(cursor.current) == sequenceIndentWidth,
-              cursor.peek()?.kind.isBlockEntry == true
+              try cursor.peek()?.kind.isBlockEntry == true
         else {
             return
         }
@@ -49,7 +49,7 @@ extension PureYAML.Parsing.TokenEventParser {
 
     mutating func consumeSequenceItemBoundaryIndent(sequenceIndentWidth: Int) throws {
         guard indentWidth(cursor.current) == sequenceIndentWidth,
-              cursor.peek()?.kind.isBlockEntry == true
+              try cursor.peek()?.kind.isBlockEntry == true
         else {
             return
         }
@@ -62,7 +62,7 @@ extension PureYAML.Parsing.TokenEventParser {
         allowMappingKeyTerminator: Bool,
     ) throws {
         if hasNodeOnSameLine(after: entry) {
-            let properties = consumeProperties()
+            let properties = try consumeProperties()
             if cursor.current?.kind.isIndent == true {
                 _ = try expect("indent") { $0.isIndent }
                 endMark = try parseNode(properties: properties).endMark
@@ -89,7 +89,7 @@ extension PureYAML.Parsing.TokenEventParser {
             _ = try expect("dedent") { $0.isDedent }
         } else {
             let mark = entry.endMark
-            events.append(.scalar(value: "", anchor: nil, tag: nil, style: .plain, mark: mark))
+            try emit(.scalar(value: "", anchor: nil, tag: nil, style: .plain, mark: mark))
             endMark = mark
         }
     }
@@ -104,7 +104,7 @@ extension PureYAML.Parsing.TokenEventParser {
         let contentColumn = min(startMark.column, tokenColumn)
         let boundaryColumn = minimumColumn ?? contentColumn
         var endMark = startMark
-        events.append(.mappingStart(
+        try emit(.mappingStart(
             anchor: properties.anchor,
             tag: properties.tag,
             style: .block,
@@ -124,7 +124,7 @@ extension PureYAML.Parsing.TokenEventParser {
                 column: current.mark.column,
             )
         }
-        events.append(.mappingEnd(mark: endMark))
+        try emit(.mappingEnd(mark: endMark))
         return PureYAML.Parsing.NodeResult(kind: .mapping, endMark: endMark)
     }
 
@@ -196,7 +196,7 @@ extension PureYAML.Parsing.TokenEventParser {
                 guard case let .scalar(value, style) = cursor.current?.kind else {
                     throw unexpectedToken(expected: "block scalar content")
                 }
-                let token = cursor.advance() ?? header
+                let token = try cursor.advance() ?? header
                 try lines.append(decodeScalar(value, style: style, line: token.mark.line))
                 endMark = token.endMark
             }
@@ -205,7 +205,7 @@ extension PureYAML.Parsing.TokenEventParser {
 
         let value = blockScalarValue(lines: lines, header: header.kind)
         let mark = properties.mark ?? header.mark
-        events.append(.scalar(
+        try emit(.scalar(
             value: value,
             anchor: properties.anchor,
             tag: properties.tag,

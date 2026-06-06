@@ -112,6 +112,31 @@ struct ParsingCompatibilityTests {
         #expect(root?["missing"] == nil)
     }
 
+    @Test("Parses JSON-style compact flow mappings")
+    func test_jsonStyleCompactFlowMappings() throws {
+        let root = try requireMapping(PureYAML.parse(
+            #"{"openapi":"3.0.0","info":{"title":"JSON API","version":"1"},"paths":{},"enabled":true,"count":3}"#,
+        ))
+
+        #expect(root?["openapi"] == .string("3.0.0"))
+        #expect(root?.mapping("info")?["title"] == .string("JSON API"))
+        #expect(root?.mapping("info")?["version"] == .string("1"))
+        #expect(root?["paths"] == .mapping(.init()))
+        #expect(root?["enabled"] == .bool(true))
+        #expect(root?["count"] == .int(3))
+    }
+
+    @Test("Keeps colons inside JSON-style flow mapping values")
+    func test_jsonStyleFlowMappingValuesCanContainColons() throws {
+        let root = try requireMapping(PureYAML.parse(
+            #"{"url":"https://api.example.com/v1","window":"10:30","items":["a:b","c"]}"#,
+        ))
+
+        #expect(root?["url"] == .string("https://api.example.com/v1"))
+        #expect(root?["window"] == .string("10:30"))
+        #expect(root?["items"] == .sequence([.string("a:b"), .string("c")]))
+    }
+
     @Test(
         "Resolves selected Yams-compatible scalar spellings",
         arguments: ScalarCompatibilityFixtures.resolvedScalars,

@@ -352,10 +352,7 @@ extension PureYAML.Emitting.Dumper {
     }
 
     func escapeKey(_ key: String) -> String {
-        if key.isEmpty || key.contains(":") || key.contains("#") || key.contains("\n") {
-            return quote(key)
-        }
-        return key
+        canRenderPlainString(key) ? key : quote(key)
     }
 
     func quote(_ value: String) -> String {

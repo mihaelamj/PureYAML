@@ -137,35 +137,122 @@ extension PureYAML.Parsing.Parser {
         }
         let inner = text.dropFirst().dropLast()
         var output = ""
-        var escaping = false
-        for character in inner {
-            if escaping {
-                appendDoubleQuotedEscape(character, to: &output)
-                escaping = false
-            } else if character == "\\" {
-                escaping = true
+        var index = inner.startIndex
+        while index < inner.endIndex {
+            let character = inner[index]
+            if character == "\\" {
+                inner.formIndex(after: &index)
+                guard index < inner.endIndex else {
+                    output.append("\\")
+                    break
+                }
+                appendDoubleQuotedEscape(in: inner, index: &index, to: &output)
             } else {
                 output.append(character)
+                inner.formIndex(after: &index)
             }
-        }
-        if escaping {
-            output.append("\\")
         }
         return output
     }
 
     func appendDoubleQuotedEscape(
-        _ character: Character,
+        in text: Substring,
+        index: inout Substring.Index,
         to output: inout String,
     ) {
+        let character = text[index]
         switch character {
         case "\"": output.append("\"")
         case "\\": output.append("\\")
         case "/": output.append("/")
+        case "b": output.append("\u{08}")
+        case "f": output.append("\u{0C}")
         case "n": output.append("\n")
         case "r": output.append("\r")
         case "t": output.append("\t")
+        case "u":
+            appendUnicodeEscape(in: text, index: &index, to: &output)
         default: output.append(character)
         }
+        text.formIndex(after: &index)
+    }
+
+    func appendUnicodeEscape(
+        in text: Substring,
+        index: inout Substring.Index,
+        to output: inout String,
+    ) {
+        let escapeStart = index
+        guard let codeUnit = readUnicodeEscapeCodeUnit(in: text, index: &index) else {
+            output.append("u")
+            return
+        }
+        let surrogatePair = readSurrogatePairIfNeeded(high: codeUnit, in: text, index: &index)
+        if let scalar = surrogatePair {
+            output.unicodeScalars.append(scalar)
+        } else if let scalar = UnicodeScalar(codeUnit) {
+            output.unicodeScalars.append(scalar)
+        } else {
+            output += text[escapeStart ... index]
+        }
+    }
+
+    func readSurrogatePairIfNeeded(
+        high: UInt32,
+        in text: Substring,
+        index: inout Substring.Index,
+    ) -> UnicodeScalar? {
+        guard isHighSurrogate(high) else {
+            return nil
+        }
+        return readSurrogatePair(high: high, in: text, index: &index)
+    }
+
+    func readSurrogatePair(
+        high: UInt32,
+        in text: Substring,
+        index: inout Substring.Index,
+    ) -> UnicodeScalar? {
+        var probe = index
+        text.formIndex(after: &probe)
+        guard probe < text.endIndex, text[probe] == "\\" else {
+            return nil
+        }
+        text.formIndex(after: &probe)
+        guard probe < text.endIndex, text[probe] == "u",
+              let low = readUnicodeEscapeCodeUnit(in: text, index: &probe),
+              isLowSurrogate(low)
+        else {
+            return nil
+        }
+        index = probe
+        let value = 0x10000 + ((high - 0xD800) << 10) + (low - 0xDC00)
+        return UnicodeScalar(value)
+    }
+
+    func readUnicodeEscapeCodeUnit(
+        in text: Substring,
+        index: inout Substring.Index,
+    ) -> UInt32? {
+        var probe = index
+        text.formIndex(after: &probe)
+        var hex = ""
+        for _ in 0 ..< 4 {
+            guard probe < text.endIndex, text[probe].isHexDigit else {
+                return nil
+            }
+            hex.append(text[probe])
+            text.formIndex(after: &probe)
+        }
+        index = text.index(before: probe)
+        return UInt32(hex, radix: 16)
+    }
+
+    func isHighSurrogate(_ value: UInt32) -> Bool {
+        (0xD800 ... 0xDBFF).contains(value)
+    }
+
+    func isLowSurrogate(_ value: UInt32) -> Bool {
+        (0xDC00 ... 0xDFFF).contains(value)
     }
 }

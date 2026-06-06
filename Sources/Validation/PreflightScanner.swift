@@ -26,6 +26,7 @@ public extension PureYAML.Validation {
             var diagnostics: [Diagnostic] = []
             if let column = firstIndentationTabColumn(in: line) {
                 diagnostics.append(.preflight(
+                    code: "tabIndentation",
                     file: file,
                     line: lineNumber,
                     column: column,
@@ -34,6 +35,7 @@ public extension PureYAML.Validation {
             }
             if let column = missingMappingSpaceColumn(in: line) {
                 diagnostics.append(.preflight(
+                    code: "missingMappingSpace",
                     file: file,
                     line: lineNumber,
                     column: column,
@@ -42,6 +44,7 @@ public extension PureYAML.Validation {
             }
             if let column = missingSequenceSpaceColumn(in: line) {
                 diagnostics.append(.preflight(
+                    code: "missingSequenceSpace",
                     file: file,
                     line: lineNumber,
                     column: column,
@@ -50,6 +53,7 @@ public extension PureYAML.Validation {
             }
             if let column = invalidControlCharacterColumn(in: line) {
                 diagnostics.append(.preflight(
+                    code: "invalidControlCharacter",
                     file: file,
                     line: lineNumber,
                     column: column,
@@ -58,6 +62,7 @@ public extension PureYAML.Validation {
             }
             if let column = trailingWhitespaceColumn(in: line) {
                 diagnostics.append(.preflight(
+                    code: "trailingWhitespace",
                     file: file,
                     line: lineNumber,
                     column: column,
@@ -72,6 +77,7 @@ public extension PureYAML.Validation {
 
 private extension PureYAML.Validation.Diagnostic {
     static func preflight(
+        code: String,
         file: String?,
         line: Int,
         column: Int,
@@ -80,6 +86,7 @@ private extension PureYAML.Validation.Diagnostic {
     ) -> Self {
         .init(
             kind: .parse,
+            code: code,
             severity: severity,
             file: file,
             line: line,

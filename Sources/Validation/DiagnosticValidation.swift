@@ -88,7 +88,7 @@ private extension PureYAML {
         var diagnostics = preflightScanner.diagnostics(in: yaml, file: file)
 
         do {
-            let documents = try parseStream(yaml)
+            let documents = try parseStreamForDiagnostics(yaml)
             let result = validator.collect(documents)
             diagnostics.append(contentsOf: result.issues.map { streamIssue in
                 Validation.Diagnostic(
@@ -107,10 +107,11 @@ private extension PureYAML {
         } catch let error as Parsing.ParseError {
             diagnostics.append(Validation.Diagnostic(
                 kind: .parse,
+                code: error.diagnosticCode,
                 severity: .error,
                 file: file,
-                line: error.line,
-                column: error.column,
+                line: error.sourceLine,
+                column: error.sourceColumn,
                 reason: error.description,
             ))
             return DiagnosticValidationResult(
@@ -130,59 +131,11 @@ private extension PureYAML {
             )
         }
     }
-}
 
-private extension PureYAML.Parsing.ParseError {
-    var line: Int? {
-        switch self {
-        case .emptyDocument:
-            nil
-        case let .tabIndentation(line),
-             let .unexpectedIndentation(line),
-             let .mixedCollectionStyles(line),
-             let .expectedMappingKey(line),
-             let .expectedAnchorName(line),
-             let .expectedAliasName(line),
-             let .incompatibleYAMLDirective(line),
-             let .unterminatedTag(line),
-             let .unterminatedQuotedString(line),
-             let .unsupportedDirective(_, line),
-             let .unsupportedMultiDocumentStream(line):
-            line
-        case let .expectedNode(line, _),
-             let .expectedScalarKey(line, _),
-             let .invalidTaggedScalar(_, _, line, _),
-             let .invalidMergeValue(line, _),
-             let .undefinedAlias(_, line, _),
-             let .unexpectedEvent(_, _, line, _),
-             let .unexpectedToken(_, _, line, _):
-            line
-        }
-    }
-
-    var column: Int? {
-        switch self {
-        case .emptyDocument,
-             .tabIndentation,
-             .unexpectedIndentation,
-             .mixedCollectionStyles,
-             .expectedMappingKey,
-             .expectedAnchorName,
-             .expectedAliasName,
-             .incompatibleYAMLDirective,
-             .unterminatedTag,
-             .unterminatedQuotedString,
-             .unsupportedDirective,
-             .unsupportedMultiDocumentStream:
-            nil
-        case let .expectedNode(_, column),
-             let .expectedScalarKey(_, column),
-             let .invalidTaggedScalar(_, _, _, column),
-             let .invalidMergeValue(_, column),
-             let .undefinedAlias(_, _, column),
-             let .unexpectedEvent(_, _, _, column),
-             let .unexpectedToken(_, _, _, column):
-            column
-        }
+    static func parseStreamForDiagnostics(_ yaml: String) throws -> [Stream.Document] {
+        let parser = Parsing.Parser()
+        let events = try parser.parseEvents(yaml)
+        var composer = Parsing.EventComposer(events: events, scalarParser: parser)
+        return try composer.composeStream()
     }
 }

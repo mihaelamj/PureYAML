@@ -218,6 +218,9 @@ private extension PureYAML.Validation.Diagnostic {
             .init(key: "severity", value: .string(severity.description)),
             .init(key: "file", value: file.map(PureYAML.Model.Value.string) ?? .null),
         ]
+        if let code {
+            pairs.insert(.init(key: "code", value: .string(code)), at: 1)
+        }
         if let line {
             pairs.append(.init(key: "line", value: .int(line)))
         }
@@ -352,6 +355,18 @@ public extension PureYAML {
                 )
             }
             return Validation.Report(diagnostics)
+        } catch let error as PureYAML.Parsing.ParseError {
+            return Validation.Report([
+                Validation.Diagnostic(
+                    kind: .parse,
+                    code: error.diagnosticCode,
+                    severity: .error,
+                    file: file,
+                    line: error.sourceLine,
+                    column: error.sourceColumn,
+                    reason: error.description,
+                ),
+            ])
         } catch {
             return Validation.Report([
                 Validation.Diagnostic(

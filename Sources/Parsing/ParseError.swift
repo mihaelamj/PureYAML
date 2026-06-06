@@ -63,5 +63,101 @@ public extension PureYAML.Parsing {
                 "expected \(expected) at line \(line), column \(column), found \(actual)"
             }
         }
+
+        public var diagnosticCode: String {
+            switch self {
+            case .emptyDocument:
+                "emptyDocument"
+            case .tabIndentation:
+                "tabIndentation"
+            case .unexpectedIndentation:
+                "unexpectedIndentation"
+            case .mixedCollectionStyles:
+                "mixedCollectionStyles"
+            case .expectedMappingKey:
+                "expectedMappingKey"
+            case .expectedAnchorName:
+                "expectedAnchorName"
+            case .expectedAliasName:
+                "expectedAliasName"
+            case .expectedNode:
+                "expectedNode"
+            case .expectedScalarKey:
+                "expectedScalarKey"
+            case .incompatibleYAMLDirective:
+                "incompatibleYAMLDirective"
+            case .invalidTaggedScalar:
+                "invalidTaggedScalar"
+            case .invalidMergeValue:
+                "invalidMergeValue"
+            case .unterminatedTag:
+                "unterminatedTag"
+            case .unterminatedQuotedString:
+                "unterminatedQuotedString"
+            case .unsupportedDirective:
+                "unsupportedDirective"
+            case .unsupportedMultiDocumentStream:
+                "unsupportedMultiDocumentStream"
+            case .undefinedAlias:
+                "undefinedAlias"
+            case .unexpectedEvent:
+                "unexpectedEvent"
+            case .unexpectedToken:
+                "unexpectedToken"
+            }
+        }
+
+        public var sourceLine: Int? {
+            switch self {
+            case .emptyDocument:
+                nil
+            case let .tabIndentation(line),
+                 let .unexpectedIndentation(line),
+                 let .mixedCollectionStyles(line),
+                 let .expectedMappingKey(line),
+                 let .expectedAnchorName(line),
+                 let .expectedAliasName(line),
+                 let .incompatibleYAMLDirective(line),
+                 let .unterminatedTag(line),
+                 let .unterminatedQuotedString(line),
+                 let .unsupportedDirective(_, line),
+                 let .unsupportedMultiDocumentStream(line):
+                line
+            case let .expectedNode(line, _),
+                 let .expectedScalarKey(line, _),
+                 let .invalidTaggedScalar(_, _, line, _),
+                 let .invalidMergeValue(line, _),
+                 let .undefinedAlias(_, line, _),
+                 let .unexpectedEvent(_, _, line, _),
+                 let .unexpectedToken(_, _, line, _):
+                line
+            }
+        }
+
+        public var sourceColumn: Int? {
+            switch self {
+            case .emptyDocument,
+                 .tabIndentation,
+                 .unexpectedIndentation,
+                 .mixedCollectionStyles,
+                 .expectedMappingKey,
+                 .expectedAnchorName,
+                 .expectedAliasName,
+                 .incompatibleYAMLDirective,
+                 .unterminatedTag,
+                 .unterminatedQuotedString,
+                 .unsupportedDirective,
+                 .unsupportedMultiDocumentStream:
+                nil
+            case let .expectedNode(_, column),
+                 let .expectedScalarKey(_, column),
+                 let .invalidTaggedScalar(_, _, _, column),
+                 let .invalidMergeValue(_, column),
+                 let .undefinedAlias(_, _, column),
+                 let .unexpectedEvent(_, _, _, column),
+                 let .unexpectedToken(_, _, _, column):
+                column
+            }
+        }
     }
 }

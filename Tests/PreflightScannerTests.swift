@@ -56,6 +56,7 @@ let preflightLineCases: [PreflightLineCase] = [
         lineNumber: 7,
         expected: .init(
             kind: .parse,
+            code: "tabIndentation",
             severity: .error,
             file: "input.yaml",
             line: 7,
@@ -69,6 +70,7 @@ let preflightLineCases: [PreflightLineCase] = [
         lineNumber: 8,
         expected: .init(
             kind: .parse,
+            code: "missingMappingSpace",
             severity: .error,
             file: "input.yaml",
             line: 8,
@@ -82,6 +84,7 @@ let preflightLineCases: [PreflightLineCase] = [
         lineNumber: 9,
         expected: .init(
             kind: .parse,
+            code: "missingSequenceSpace",
             severity: .error,
             file: "input.yaml",
             line: 9,
@@ -95,6 +98,7 @@ let preflightLineCases: [PreflightLineCase] = [
         lineNumber: 10,
         expected: .init(
             kind: .parse,
+            code: "trailingWhitespace",
             severity: .warning,
             file: "input.yaml",
             line: 10,
@@ -108,6 +112,7 @@ let preflightLineCases: [PreflightLineCase] = [
         lineNumber: 11,
         expected: .init(
             kind: .parse,
+            code: "invalidControlCharacter",
             severity: .error,
             file: "input.yaml",
             line: 11,
@@ -154,6 +159,7 @@ let productionLikeFaultyYAML = [
 let productionLikeFaultyDiagnostics: [PureYAML.Validation.Diagnostic] = [
     .init(
         kind: .parse,
+        code: "tabIndentation",
         severity: .error,
         file: "production.yaml",
         line: 1,
@@ -162,6 +168,7 @@ let productionLikeFaultyDiagnostics: [PureYAML.Validation.Diagnostic] = [
     ),
     .init(
         kind: .parse,
+        code: "missingMappingSpace",
         severity: .error,
         file: "production.yaml",
         line: 2,
@@ -170,6 +177,7 @@ let productionLikeFaultyDiagnostics: [PureYAML.Validation.Diagnostic] = [
     ),
     .init(
         kind: .parse,
+        code: "missingMappingSpace",
         severity: .error,
         file: "production.yaml",
         line: 6,
@@ -178,6 +186,7 @@ let productionLikeFaultyDiagnostics: [PureYAML.Validation.Diagnostic] = [
     ),
     .init(
         kind: .parse,
+        code: "missingSequenceSpace",
         severity: .error,
         file: "production.yaml",
         line: 9,
@@ -186,6 +195,7 @@ let productionLikeFaultyDiagnostics: [PureYAML.Validation.Diagnostic] = [
     ),
     .init(
         kind: .parse,
+        code: "missingMappingSpace",
         severity: .error,
         file: "production.yaml",
         line: 10,
@@ -194,6 +204,7 @@ let productionLikeFaultyDiagnostics: [PureYAML.Validation.Diagnostic] = [
     ),
     .init(
         kind: .parse,
+        code: "missingSequenceSpace",
         severity: .error,
         file: "production.yaml",
         line: 12,
@@ -202,6 +213,7 @@ let productionLikeFaultyDiagnostics: [PureYAML.Validation.Diagnostic] = [
     ),
     .init(
         kind: .parse,
+        code: "missingMappingSpace",
         severity: .error,
         file: "production.yaml",
         line: 14,
@@ -210,6 +222,7 @@ let productionLikeFaultyDiagnostics: [PureYAML.Validation.Diagnostic] = [
     ),
     .init(
         kind: .parse,
+        code: "missingMappingSpace",
         severity: .error,
         file: "production.yaml",
         line: 15,
@@ -218,6 +231,7 @@ let productionLikeFaultyDiagnostics: [PureYAML.Validation.Diagnostic] = [
     ),
     .init(
         kind: .parse,
+        code: "trailingWhitespace",
         severity: .warning,
         file: "production.yaml",
         line: 16,
@@ -226,6 +240,7 @@ let productionLikeFaultyDiagnostics: [PureYAML.Validation.Diagnostic] = [
     ),
     .init(
         kind: .parse,
+        code: "invalidControlCharacter",
         severity: .error,
         file: "production.yaml",
         line: 17,
@@ -234,6 +249,7 @@ let productionLikeFaultyDiagnostics: [PureYAML.Validation.Diagnostic] = [
     ),
     .init(
         kind: .parse,
+        code: "missingMappingSpace",
         severity: .error,
         file: "production.yaml",
         line: 21,
@@ -242,6 +258,7 @@ let productionLikeFaultyDiagnostics: [PureYAML.Validation.Diagnostic] = [
     ),
     .init(
         kind: .parse,
+        code: "missingSequenceSpace",
         severity: .error,
         file: "production.yaml",
         line: 22,
@@ -250,6 +267,7 @@ let productionLikeFaultyDiagnostics: [PureYAML.Validation.Diagnostic] = [
     ),
     .init(
         kind: .parse,
+        code: "missingMappingSpace",
         severity: .error,
         file: "production.yaml",
         line: 23,
@@ -258,6 +276,7 @@ let productionLikeFaultyDiagnostics: [PureYAML.Validation.Diagnostic] = [
     ),
     .init(
         kind: .parse,
+        code: "missingMappingSpace",
         severity: .error,
         file: "production.yaml",
         line: 24,
@@ -266,6 +285,7 @@ let productionLikeFaultyDiagnostics: [PureYAML.Validation.Diagnostic] = [
     ),
     .init(
         kind: .parse,
+        code: "missingMappingSpace",
         severity: .error,
         file: "production.yaml",
         line: 25,
@@ -274,6 +294,7 @@ let productionLikeFaultyDiagnostics: [PureYAML.Validation.Diagnostic] = [
     ),
     .init(
         kind: .parse,
+        code: "missingMappingSpace",
         severity: .error,
         file: "production.yaml",
         line: 26,
@@ -282,6 +303,7 @@ let productionLikeFaultyDiagnostics: [PureYAML.Validation.Diagnostic] = [
     ),
     .init(
         kind: .parse,
+        code: "missingMappingSpace",
         severity: .error,
         file: "production.yaml",
         line: 27,
@@ -290,6 +312,7 @@ let productionLikeFaultyDiagnostics: [PureYAML.Validation.Diagnostic] = [
     ),
     .init(
         kind: .parse,
+        code: "missingMappingSpace",
         severity: .error,
         file: "production.yaml",
         line: 28,
@@ -298,6 +321,7 @@ let productionLikeFaultyDiagnostics: [PureYAML.Validation.Diagnostic] = [
     ),
     .init(
         kind: .parse,
+        code: "missingMappingSpace",
         severity: .error,
         file: "production.yaml",
         line: 29,
@@ -306,6 +330,7 @@ let productionLikeFaultyDiagnostics: [PureYAML.Validation.Diagnostic] = [
     ),
     .init(
         kind: .parse,
+        code: "missingMappingSpace",
         severity: .error,
         file: "production.yaml",
         line: 30,
@@ -314,6 +339,7 @@ let productionLikeFaultyDiagnostics: [PureYAML.Validation.Diagnostic] = [
     ),
     .init(
         kind: .parse,
+        code: "missingMappingSpace",
         severity: .error,
         file: "production.yaml",
         line: 31,

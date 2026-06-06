@@ -16,6 +16,7 @@ public extension PureYAML.Validation {
     /// A parse or validation diagnostic suitable for batch validation reports.
     struct Diagnostic: Equatable, Sendable, CustomStringConvertible {
         public var kind: DiagnosticKind
+        public var code: String?
         public var severity: Severity
         public var file: String?
         public var line: Int?
@@ -26,6 +27,7 @@ public extension PureYAML.Validation {
 
         public init(
             kind: DiagnosticKind,
+            code: String? = nil,
             severity: Severity,
             file: String? = nil,
             line: Int? = nil,
@@ -35,6 +37,7 @@ public extension PureYAML.Validation {
             reason: String,
         ) {
             self.kind = kind
+            self.code = code
             self.severity = severity
             self.file = file
             self.line = line

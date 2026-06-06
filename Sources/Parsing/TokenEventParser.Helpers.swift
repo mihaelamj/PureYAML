@@ -9,7 +9,7 @@ extension PureYAML.Parsing.TokenEventParser {
             return false
         }
 
-        let properties = consumeProperties()
+        let properties = try consumeProperties()
         if cursor.current?.kind.isIndent == true {
             _ = try expect("indent") { $0.isIndent }
             let result: PureYAML.Parsing.NodeResult = if cursor.current?.kind.isBlockEntry == true {
@@ -27,7 +27,7 @@ extension PureYAML.Parsing.TokenEventParser {
             }
             return result
         }
-        if properties == .none, canParsePlainScalarWithContinuation(after: valueIndicator) {
+        if properties == .none, try canParsePlainScalarWithContinuation(after: valueIndicator) {
             return try parsePlainScalarWithContinuation(properties: properties)
         }
         if cursor.current?.kind.isMappingKey == true, hasNodeOnSameLine(after: valueIndicator) {
@@ -48,7 +48,7 @@ extension PureYAML.Parsing.TokenEventParser {
         }
 
         let mark = valueIndicator.endMark
-        events.append(.scalar(value: "", anchor: nil, tag: nil, style: .plain, mark: mark))
+        try emit(.scalar(value: "", anchor: nil, tag: nil, style: .plain, mark: mark))
         return PureYAML.Parsing.NodeResult(kind: .scalar, endMark: mark)
     }
 
@@ -66,7 +66,7 @@ extension PureYAML.Parsing.TokenEventParser {
 
         _ = try expect("indent") { $0.isIndent }
         while isScalar(cursor.current) {
-            let token = cursor.advance() ?? first
+            let token = try cursor.advance() ?? first
             let continuation = try plainContinuationText(from: token)
             value += " " + continuation
             endMark = token.endMark
@@ -74,7 +74,7 @@ extension PureYAML.Parsing.TokenEventParser {
         _ = try expect("dedent") { $0.isDedent }
 
         let mark = properties.mark ?? first.mark
-        events.append(.scalar(
+        try emit(.scalar(
             value: value,
             anchor: properties.anchor,
             tag: properties.tag,
@@ -84,18 +84,18 @@ extension PureYAML.Parsing.TokenEventParser {
         return PureYAML.Parsing.NodeResult(kind: .scalar, endMark: endMark)
     }
 
-    mutating func consumeProperties() -> PureYAML.Parsing.NodeProperties {
+    mutating func consumeProperties() throws -> PureYAML.Parsing.NodeProperties {
         var properties = PureYAML.Parsing.NodeProperties.none
         while let token = cursor.current {
             switch token.kind {
             case let .anchor(anchor):
                 properties.anchor = anchor
                 properties.mark = properties.mark ?? token.mark
-                _ = cursor.advance()
+                _ = try cursor.advance()
             case let .tag(tag):
                 properties.tag = tag
                 properties.mark = properties.mark ?? token.mark
-                _ = cursor.advance()
+                _ = try cursor.advance()
             default:
                 return properties
             }
@@ -148,30 +148,30 @@ extension PureYAML.Parsing.TokenEventParser {
         return current.mark.line == token.mark.line
     }
 
-    func canParsePlainScalarWithContinuation(after token: PureYAML.Parsing.Token) -> Bool {
+    mutating func canParsePlainScalarWithContinuation(after token: PureYAML.Parsing.Token) throws -> Bool {
         guard case .scalar(_, .plain) = cursor.current?.kind else {
             return false
         }
         guard cursor.current?.mark.line == token.mark.line else {
             return false
         }
-        guard cursor.peek()?.kind.isIndent == true else {
+        guard try cursor.peek()?.kind.isIndent == true else {
             return false
         }
-        guard isScalar(cursor.peek(offset: 2)) else {
+        guard try isScalar(cursor.peek(offset: 2)) else {
             return false
         }
         return true
     }
 
-    func canParsePlainScalarContinuation() -> Bool {
+    mutating func canParsePlainScalarContinuation() throws -> Bool {
         guard case .scalar(_, .plain) = cursor.current?.kind else {
             return false
         }
-        guard cursor.peek()?.kind.isIndent == true else {
+        guard try cursor.peek()?.kind.isIndent == true else {
             return false
         }
-        guard isScalar(cursor.peek(offset: 2)) else {
+        guard try isScalar(cursor.peek(offset: 2)) else {
             return false
         }
         return true
@@ -191,14 +191,14 @@ extension PureYAML.Parsing.TokenEventParser {
     }
 
     mutating func consumeMappingSiblingBoundaryDedents(minimumColumn: Int) throws {
-        while canConsumeMappingSiblingBoundaryDedent(minimumColumn: minimumColumn) {
+        while try canConsumeMappingSiblingBoundaryDedent(minimumColumn: minimumColumn) {
             _ = try expect("dedent") { $0.isDedent }
         }
     }
 
-    func canConsumeMappingSiblingBoundaryDedent(minimumColumn: Int) -> Bool {
+    mutating func canConsumeMappingSiblingBoundaryDedent(minimumColumn: Int) throws -> Bool {
         guard let width = dedentWidth(cursor.current),
-              let next = cursor.peek(),
+              let next = try cursor.peek(),
               next.kind.isMappingKey,
               next.mark.column >= minimumColumn
         else {
@@ -210,8 +210,8 @@ extension PureYAML.Parsing.TokenEventParser {
     mutating func consumeMappingSiblingBoundaryReindent(minimumColumn: Int) throws {
         guard let dedent = dedentWidth(cursor.current),
               dedent < minimumColumn,
-              indentWidth(cursor.peek()) == minimumColumn,
-              let mappingKey = cursor.peek(offset: 2),
+              try indentWidth(cursor.peek()) == minimumColumn,
+              let mappingKey = try cursor.peek(offset: 2),
               mappingKey.kind.isMappingKey,
               mappingKey.mark.column == minimumColumn + 1
         else {
@@ -292,7 +292,7 @@ extension PureYAML.Parsing.TokenEventParser {
                 column: token.mark.column,
             )
         }
-        _ = cursor.advance()
+        _ = try cursor.advance()
         return token
     }
 

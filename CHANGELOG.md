@@ -7,10 +7,55 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-06-06
+
 ### Added
 
 - Document the real-world YAML corpus, fuzz/property gate, and CI artifact
   contract for production hardening.
+- Add machine-readable parser diagnostic codes to validation report payloads and
+  cover malformed production-shaped YAML with 10+ structured diagnostics.
+- Vendor a 114-file real-world YAML corpus with a machine-readable manifest,
+  default metadata checks, and an opt-in full parse/validate/round-trip gate.
+- Add large public APIs.guru Stripe and Zoom OpenAPI YAML specs to the opt-in
+  corpus gate.
+- Add a reduced synthetic ACME Zephyr fixture set for Stitcher-style multi-file
+  OpenAPI inputs and bundled output.
+- Add a full renamed Birch-style ACME fixture catalog with 594 YAML files,
+  preserving module/file structure while replacing private organization names,
+  domains, and documentation URLs.
+- Add YAML 1.2 JSON-subset compatibility for compact flow mappings such as
+  `{"openapi":"3.0.0"}`, including regression coverage for colons inside flow
+  mapping values.
+- Add JSON compatibility tests and artifacts that compare PureYAML against
+  Swift's JSON decoder across JSON roots, escapes, Unicode surrogate pairs,
+  exponent numbers, nested values, and whitespace.
+- Preserve round-trip fidelity for mapping keys that require quotes, including
+  trailing-space keys found in the large Zoom OpenAPI corpus seed.
+- Add an opt-in Yams differential script that compares parse behavior for the
+  checked-in real corpus without adding Yams to the PureYAML package manifest.
+- Add an opt-in Yams diagnostic comparison script that records PureYAML
+  structured malformed-input diagnostics alongside Yams parser errors.
+- Add an opt-in Yams validation comparison script proving structured duplicate
+  key validation on YAML that both parsers can load.
+- Add an opt-in Yams throughput script and scheduled/manual CI artifact for
+  release-mode parser performance comparison on representative corpus seeds.
+- Add an opt-in PureYAML phase profiler that times scanner, event parser,
+  composer, lazy parse, validation, and dumping phases on slow corpus seeds.
+- Compose normal parser output from events as they are emitted, avoiding a full
+  intermediate event array while keeping `parseEvents` available for explicit
+  event materialization.
+- Lazily scan tokens for normal `parse` and `parseStream` calls, avoiding a
+  retained full token array on the main parser path.
+- Track reader positions with a UTF-8 cursor so ASCII-heavy scanner advancement
+  avoids per-character string allocation while preserving byte-accurate marks.
+- Add deterministic generated corpus properties for valid YAML round trips and
+  malformed real-seed mutations with structured diagnostics.
+- Write corpus run artifacts under `.build/pureyaml-artifacts/`, including real
+  seed summaries, generated mutation summaries, seed metadata, and environment
+  details.
+- Add a scheduled/manual CI corpus job that runs the corpus and Yams
+  differential gates and uploads the generated artifact bundle.
 
 ## [0.1.1] - 2026-06-06
 

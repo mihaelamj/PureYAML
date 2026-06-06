@@ -1,8 +1,8 @@
 # Release Process
 
-PureYAML versioning is driven by Git tags. The current release is 0.1.1.
+PureYAML versioning is driven by Git tags. The current release is 0.1.2.
 
-## 0.1.1 Release
+## 0.1.2 Release
 
 - Swift tools version: 6.1
 - Product: `PureYAML`
@@ -10,7 +10,7 @@ PureYAML versioning is driven by Git tags. The current release is 0.1.1.
 - Source targets: Swift only, no C targets and no generated parser targets
 - Hosted CI matrix: macOS build and test, Linux build and test, Windows build
   and test, WASM build
-- Release notes file: `docs/releases/pureyaml-0-1-1.md`
+- Release notes file: `docs/releases/pureyaml-0-1-2.md`
 
 ## Local Verification
 
@@ -63,19 +63,19 @@ Only run these commands after the local gates pass and hosted CI passes.
 
 ```sh
 git status --short --branch
-git tag -a 0.1.1 -m "PureYAML 0.1.1"
-git push origin main 0.1.1
-gh release create 0.1.1 \
+git tag -a 0.1.2 -m "PureYAML 0.1.2"
+git push origin main 0.1.2
+gh release create 0.1.2 \
   --repo mihaelamj/PureYAML \
-  --title "PureYAML 0.1.1" \
-  --notes-file docs/releases/pureyaml-0-1-1.md
+  --title "PureYAML 0.1.2" \
+  --notes-file docs/releases/pureyaml-0-1-2.md
 ```
 
 After publishing, verify the release exists:
 
 ```sh
-git ls-remote --tags origin 0.1.1
-gh release view 0.1.1 --repo mihaelamj/PureYAML
+git ls-remote --tags origin 0.1.2
+gh release view 0.1.2 --repo mihaelamj/PureYAML
 ```
 
 ## Do Not Tag If

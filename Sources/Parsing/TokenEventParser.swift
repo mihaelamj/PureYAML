@@ -2,7 +2,8 @@ extension PureYAML.Parsing {
     struct TokenEventParser {
         var cursor: TokenCursor
         let scalarParser: Parser
-        var events: [Event]
+        var events: [Event]?
+        var eventSink: ((Event) throws -> Void)?
 
         init(
             tokens: [Token],
@@ -11,9 +12,41 @@ extension PureYAML.Parsing {
             cursor = TokenCursor(tokens: tokens)
             self.scalarParser = scalarParser
             events = []
+            eventSink = nil
         }
 
         mutating func parse() throws -> [Event] {
+            try parseEvents()
+            return events ?? []
+        }
+
+        init(
+            tokens: [Token],
+            scalarParser: Parser,
+            eventSink: @escaping (Event) throws -> Void,
+        ) {
+            cursor = TokenCursor(tokens: tokens)
+            self.scalarParser = scalarParser
+            events = nil
+            self.eventSink = eventSink
+        }
+
+        init(
+            yaml: String,
+            scalarParser: Parser,
+            eventSink: @escaping (Event) throws -> Void,
+        ) {
+            cursor = TokenCursor(yaml: yaml)
+            self.scalarParser = scalarParser
+            events = nil
+            self.eventSink = eventSink
+        }
+
+        mutating func parseStreaming() throws {
+            try parseEvents()
+        }
+
+        mutating func parseEvents() throws {
             let streamStart = try expect("stream start") { kind in
                 if case .streamStart = kind {
                     return true
@@ -21,7 +54,7 @@ extension PureYAML.Parsing {
                 return false
             }
 
-            events.append(.streamStart(mark: streamStart.mark))
+            try emit(.streamStart(mark: streamStart.mark))
             var didParseDocument = false
             while cursor.current?.kind.isStreamEnd != true {
                 try parseDocument()
@@ -29,9 +62,9 @@ extension PureYAML.Parsing {
             }
             if !didParseDocument {
                 let mark = cursor.current?.mark ?? streamStart.endMark
-                events.append(.documentStart(mark: mark))
-                appendEmptyDocument(at: mark)
-                events.append(.documentEnd(mark: mark))
+                try emit(.documentStart(mark: mark))
+                try appendEmptyDocument(at: mark)
+                try emit(.documentEnd(mark: mark))
             }
             let streamEnd = try expect("stream end") { kind in
                 if case .streamEnd = kind {
@@ -39,27 +72,34 @@ extension PureYAML.Parsing {
                 }
                 return false
             }
-            events.append(.streamEnd(mark: streamEnd.mark))
-            return events
+            try emit(.streamEnd(mark: streamEnd.mark))
+        }
+
+        mutating func emit(_ event: Event) throws {
+            if let eventSink {
+                try eventSink(event)
+            } else {
+                events?.append(event)
+            }
         }
     }
 }
 
 extension PureYAML.Parsing.TokenEventParser {
     mutating func parseDocument() throws {
-        let startMark = parseDocumentStartMark()
-        events.append(.documentStart(mark: startMark))
+        let startMark = try parseDocumentStartMark()
+        try emit(.documentStart(mark: startMark))
 
         if cursor.current?.kind.isDocumentEnd == true {
             let end = try expect("document end") { $0.isDocumentEnd }
-            appendEmptyDocument(at: end.mark)
-            events.append(.documentEnd(mark: end.endMark))
+            try appendEmptyDocument(at: end.mark)
+            try emit(.documentEnd(mark: end.endMark))
             return
         }
 
         if cursor.current?.kind.isDocumentStart == true || cursor.current?.kind.isStreamEnd == true {
-            appendEmptyDocument(at: cursor.current?.mark ?? startMark)
-            events.append(.documentEnd(mark: cursor.current?.mark ?? startMark))
+            try appendEmptyDocument(at: cursor.current?.mark ?? startMark)
+            try emit(.documentEnd(mark: cursor.current?.mark ?? startMark))
             return
         }
 
@@ -80,7 +120,7 @@ extension PureYAML.Parsing.TokenEventParser {
                 column: current.mark.column,
             )
         }
-        events.append(.documentEnd(mark: endMark))
+        try emit(.documentEnd(mark: endMark))
     }
 
     mutating func parseDocumentRootNode() throws -> PureYAML.Parsing.NodeResult {
@@ -95,16 +135,16 @@ extension PureYAML.Parsing.TokenEventParser {
         return result
     }
 
-    mutating func parseDocumentStartMark() -> PureYAML.Parsing.Mark {
+    mutating func parseDocumentStartMark() throws -> PureYAML.Parsing.Mark {
         guard cursor.current?.kind.isDocumentStart == true else {
             return cursor.current?.mark ?? cursor.previous?.endMark ?? .start
         }
-        let start = cursor.advance()
+        let start = try cursor.advance()
         return start?.mark ?? .start
     }
 
-    mutating func appendEmptyDocument(at mark: PureYAML.Parsing.Mark) {
-        events.append(.scalar(value: "", anchor: nil, tag: nil, style: .plain, mark: mark))
+    mutating func appendEmptyDocument(at mark: PureYAML.Parsing.Mark) throws {
+        try emit(.scalar(value: "", anchor: nil, tag: nil, style: .plain, mark: mark))
     }
 
     func canEndDocument(at token: PureYAML.Parsing.Token) -> Bool {
@@ -112,7 +152,7 @@ extension PureYAML.Parsing.TokenEventParser {
     }
 
     mutating func parseNode() throws -> PureYAML.Parsing.NodeResult {
-        let properties = consumeProperties()
+        let properties = try consumeProperties()
         return try parseNode(properties: properties)
     }
 
@@ -120,7 +160,7 @@ extension PureYAML.Parsing.TokenEventParser {
         properties initialProperties: PureYAML.Parsing.NodeProperties,
     ) throws -> PureYAML.Parsing.NodeResult {
         var properties = initialProperties
-        properties.mergeUnset(from: consumeProperties())
+        try properties.mergeUnset(from: consumeProperties())
 
         guard let token = cursor.current, !token.kind.isTerminator else {
             let mark = properties.mark ?? cursor.current?.mark ?? cursor.previous?.endMark ?? .start
@@ -129,9 +169,9 @@ extension PureYAML.Parsing.TokenEventParser {
 
         switch token.kind {
         case let .alias(anchor):
-            _ = cursor.advance()
+            _ = try cursor.advance()
             let mark = properties.mark ?? token.mark
-            events.append(.alias(anchor: anchor, mark: mark))
+            try emit(.alias(anchor: anchor, mark: mark))
             return PureYAML.Parsing.NodeResult(kind: .alias, endMark: token.endMark)
         case .blockEntry:
             return try parseBlockSequence(properties: properties)
@@ -147,13 +187,13 @@ extension PureYAML.Parsing.TokenEventParser {
                 includeIndentedContinuation: false,
             )
         case let .scalar(value, style):
-            if canParsePlainScalarContinuation() {
+            if try canParsePlainScalarContinuation() {
                 return try parsePlainScalarWithContinuation(properties: properties)
             }
-            _ = cursor.advance()
+            _ = try cursor.advance()
             let decoded = try decodeScalar(value, style: style, line: token.mark.line)
             let mark = properties.mark ?? token.mark
-            events.append(.scalar(
+            try emit(.scalar(
                 value: decoded,
                 anchor: properties.anchor,
                 tag: properties.tag,

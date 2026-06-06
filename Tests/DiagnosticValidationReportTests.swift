@@ -37,6 +37,7 @@ struct DiagnosticValidationReportTests {
         #expect(report.diagnostics == [
             .init(
                 kind: .parse,
+                code: "trailingWhitespace",
                 severity: .warning,
                 file: "duplicates.yaml",
                 line: 3,
@@ -71,6 +72,7 @@ struct DiagnosticValidationReportTests {
         #expect(report.diagnostics == [
             .init(
                 kind: .parse,
+                code: "missingMappingSpace",
                 severity: .error,
                 file: "broken.yaml",
                 line: 2,
@@ -79,6 +81,7 @@ struct DiagnosticValidationReportTests {
             ),
             .init(
                 kind: .parse,
+                code: "tabIndentation",
                 severity: .error,
                 file: "broken.yaml",
                 line: 3,
@@ -87,6 +90,7 @@ struct DiagnosticValidationReportTests {
             ),
             .init(
                 kind: .parse,
+                code: "unterminatedQuotedString",
                 severity: .error,
                 file: "broken.yaml",
                 line: 1,
@@ -118,6 +122,7 @@ struct DiagnosticValidationReportTests {
 
             #expect(error.report.diagnostics.count == 3)
             #expect(json.contains(#""title": "Production YAML Validation""#))
+            #expect(json.contains(#""code": "missingMappingSpace""#))
             #expect(json.contains(#""line": 2"#))
             #expect(json.contains(#""column": 9"#))
             #expect(json.contains(#""reason": "missing space after ':' in mapping entry""#))
@@ -131,6 +136,7 @@ struct DiagnosticValidationReportTests {
             #expect(yamlRoot?["summary"]?.mapping?["diagnostics"] == PureYAML.Model.Value.int(3))
             #expect(yamlRoot?["summary"]?.mapping?["errors"] == PureYAML.Model.Value.int(3))
             #expect(yamlRoot?["summary"]?.mapping?["warnings"] == PureYAML.Model.Value.int(0))
+            #expect(firstDiagnostic?["code"] == PureYAML.Model.Value.string("missingMappingSpace"))
             #expect(firstDiagnostic?["line"] == PureYAML.Model.Value.int(2))
             #expect(firstDiagnostic?["column"] == PureYAML.Model.Value.int(9))
             #expect(firstDiagnostic?["reason"] == PureYAML.Model.Value.string("missing space after ':' in mapping entry"))
@@ -157,6 +163,7 @@ struct DiagnosticValidationReportTests {
         #expect(report.diagnostics == [
             .init(
                 kind: .parse,
+                code: "trailingWhitespace",
                 severity: .warning,
                 file: "warning.yaml",
                 line: 1,
@@ -164,5 +171,59 @@ struct DiagnosticValidationReportTests {
                 reason: "trailing whitespace",
             ),
         ])
+    }
+
+    @Test("Malformed production-shaped YAML reports ten or more structured diagnostics")
+    func test_malformedProductionShapedYAMLReportsTenOrMoreStructuredDiagnostics() {
+        let report = PureYAML.diagnosticValidationReport(
+            [
+                "apiVersion:v1",
+                "\tmetadata:",
+                "-bad",
+                "name: demo  ",
+                "image:nginx",
+                "\t- item",
+                "-item",
+                "version:1",
+                "ports: [80]\t",
+                "owner:team",
+                "title: \"open",
+            ].joined(separator: "\n"),
+            file: "production-broken.yaml",
+        )
+
+        #expect(report.diagnostics.count == 11)
+        #expect(report.errors.count == 9)
+        #expect(report.warnings.count == 2)
+        #expect(report.diagnostics.map(\.code) == [
+            "missingMappingSpace",
+            "tabIndentation",
+            "missingSequenceSpace",
+            "trailingWhitespace",
+            "missingMappingSpace",
+            "tabIndentation",
+            "missingSequenceSpace",
+            "missingMappingSpace",
+            "trailingWhitespace",
+            "missingMappingSpace",
+            "unterminatedQuotedString",
+        ])
+        #expect(report.diagnostics.first == .init(
+            kind: .parse,
+            code: "missingMappingSpace",
+            severity: .error,
+            file: "production-broken.yaml",
+            line: 1,
+            column: 12,
+            reason: "missing space after ':' in mapping entry",
+        ))
+        #expect(report.diagnostics.last == .init(
+            kind: .parse,
+            code: "unterminatedQuotedString",
+            severity: .error,
+            file: "production-broken.yaml",
+            line: 11,
+            reason: "unterminated quoted string at line 11",
+        ))
     }
 }

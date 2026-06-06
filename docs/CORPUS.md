@@ -6,8 +6,121 @@ people actually maintain.
 
 ## Current State
 
-The corpus gate is designed but not implemented yet. Implementation is tracked
-by:
+The checked-in corpus gate is implemented. `Tests/Fixtures/real-yaml-corpus.yaml`
+is the machine-readable manifest for 114 pinned public YAML seeds copied under
+`Tests/Fixtures/real-yaml/`.
+
+Normal `swift test` verifies the manifest and vendored file metadata without
+running the full corpus parse workload. It also runs deterministic generated
+properties over small valid YAML documents and malformed mutations derived from
+default real-corpus seeds. Run the full checked-in corpus gate explicitly when
+hardening parser behavior:
+
+```sh
+bash scripts/check-corpus.sh
+```
+
+The opt-in gate sets `PUREYAML_RUN_FULL_CORPUS=1` and runs
+`RealYAMLCorpusTests`. It stream-parses every seed, validates every document,
+and checks parse/dump/parse stability for seeds marked as round-trippable in the
+manifest. A successful run writes corpus artifacts under
+`.build/pureyaml-artifacts/`.
+
+The normal `parse` and `parseStream` paths now scan tokens lazily and compose
+values from parser events as those events are produced. They no longer retain a
+full token array or a full intermediate event array. `parseEvents` remains
+available as a debugging and compatibility surface that materializes events
+explicitly. This is an internal memory-reduction step; the public API still
+accepts a complete `String`, so true chunked input parsing remains tracked by
+#43.
+
+`RealYAMLCorpusPropertyTests` runs in normal verification and covers:
+
+- 100 deterministic generated valid YAML documents with parse/dump/parse
+  stability;
+- malformed real-seed mutations for missing mapping spaces, tab indentation,
+  broken sequence markers, broken quoted scalars, and undefined aliases;
+- structured diagnostics for every generated malformed mutation.
+
+Run the JSON compatibility gate to prove YAML 1.2 JSON-subset behavior against
+Swift's JSON decoder:
+
+```sh
+bash scripts/check-json-compatibility.sh
+```
+
+The gate covers object, array, and scalar roots; JSON escapes; Unicode escape
+sequences including surrogate pairs; exponent numbers; nested values; and
+insignificant whitespace. It writes
+`.build/pureyaml-artifacts/json/json-compatibility.json`.
+
+Run the Yams comparison gate separately because it intentionally uses an
+external dependency in a temporary package under `.build/`:
+
+```sh
+bash scripts/check-yams-differential.sh
+```
+
+This preserves `Package.swift`'s dependency-free contract while producing
+`.build/pureyaml-artifacts/differential/yams-comparison.json`.
+
+The manifest can mark intentional differences. The current checked-in corpus has
+one: a comment-only values file where PureYAML returns a single `null` document
+and Yams reports zero stream documents. The differential gate accepts only
+manifest-declared intentional differences.
+
+Malformed-input diagnostics are compared separately:
+
+```sh
+bash scripts/check-yams-diagnostics.sh
+```
+
+This gate checks production-shaped bad YAML cases where PureYAML emits
+machine-readable diagnostic codes, locations, severities, and descriptions, then
+records the corresponding Yams parser result in
+`.build/pureyaml-artifacts/diagnostics/yams-diagnostics.json`.
+
+Parsed-document validation is compared separately:
+
+```sh
+bash scripts/check-yams-validation.sh
+```
+
+This gate checks YAML that both parsers can load but that contains semantic
+validation issues such as duplicate mapping keys. PureYAML reports structured
+validation paths and reasons; the artifact records Yams' parser result and zero
+structured validation issues at
+`.build/pureyaml-artifacts/validation/yams-validation.json`.
+
+Throughput comparison is also opt-in and uses the same temporary-package
+pattern:
+
+```sh
+bash scripts/check-throughput.sh
+```
+
+It measures representative checked-in corpus seeds against Yams in release mode
+and writes `.build/pureyaml-artifacts/performance/yams-throughput.json`.
+
+PureYAML phase profiling is a separate release-mode gate:
+
+```sh
+bash scripts/check-performance-phases.sh
+```
+
+It times scanner, token-to-event parsing, event composition, lazy full parsing,
+validation, and dumping for the slow representative seeds. It writes
+`.build/pureyaml-artifacts/performance/phase-profile.json` so parser
+optimization work can target the dominant phase instead of guessing from total
+Yams comparison time. The scanner now keeps a UTF-8 cursor for byte-accurate
+source marks, which avoids per-character string allocation in ASCII-heavy
+advancement while preserving Unicode and CRLF behavior.
+
+Round-trip expectations are tracked separately. A seed can remain in the parse,
+validation, and differential gates while skipping parse/dump/parse equality when
+the dumper does not yet preserve that document shape.
+
+Further implementation is tracked by:
 
 - #54, the production hardening epic.
 - #55, the real-world seed, fuzz, and property-based validation gate.
@@ -80,14 +193,20 @@ be committed in `Tests/Fixtures/`.
 
 Fast/default gate:
 
-- at least 25 pinned public real-world YAML seeds,
-- small enough for normal verification,
+- 114 pinned public real-world YAML seeds copied into `Tests/Fixtures/real-yaml/`,
+- normal verification checks the manifest and file metadata only,
 - runs on macOS and Linux by default,
 - documents Windows and WASI depth if they run a smaller subset.
 
 Full opt-in gate:
 
-- at least 100 pinned public real-world YAML seeds,
+- first opt-in gate covers the 114 checked-in seeds with parse, validation, and
+  round-trip properties,
+- default generated properties cover valid document stability and malformed
+  real-seed mutation diagnostics,
+- Yams differential gate compares parse success and stream document counts for
+  the checked-in corpus,
+- target is met with at least 100 pinned public real-world YAML seeds,
 - includes at least 20 very large OpenAPI files,
 - includes at least 20 non-API config files,
 - includes valid and intentionally invalid upstream fixtures where available.
@@ -128,7 +247,7 @@ failure should be reduced into a stable checked-in regression fixture.
 
 ## Artifacts
 
-Corpus runs should write artifacts under `.build/pureyaml-artifacts/`.
+Corpus runs write artifacts under `.build/pureyaml-artifacts/`.
 
 ```text
 .build/pureyaml-artifacts/
@@ -165,7 +284,7 @@ while it exists, then preserve the important case as a committed fixture.
 
 ## Acceptance Checklist
 
-- The fast corpus has at least 25 pinned public real-world YAML seeds.
+- The checked-in corpus has at least 25 pinned public real-world YAML seeds.
 - The full corpus has at least 100 pinned public real-world YAML seeds.
 - The manifest records provenance and expected outcomes for every seed.
 - The mutation gate is derived from real seeds.

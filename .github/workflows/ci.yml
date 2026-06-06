@@ -6,6 +6,9 @@ on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 6 * * 1"
 
 permissions:
   contents: read
@@ -86,3 +89,26 @@ jobs:
         run: |
           . "${SWIFTLY_HOME_DIR:-$HOME/.local/share/swiftly}/env.sh"
           bash scripts/check-wasm.sh
+
+  corpus:
+    name: Corpus
+    if: github.event_name == 'workflow_dispatch' || github.event_name == 'schedule'
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Run corpus gates
+        run: |
+          bash scripts/check-json-compatibility.sh
+          bash scripts/check-corpus.sh
+          bash scripts/check-yams-differential.sh
+          bash scripts/check-yams-diagnostics.sh
+          bash scripts/check-yams-validation.sh
+          bash scripts/check-throughput.sh
+          bash scripts/check-performance-phases.sh
+      - name: Upload corpus artifacts
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: pureyaml-corpus-${{ runner.os }}-${{ github.sha }}
+          path: .build/pureyaml-artifacts
+          retention-days: 30

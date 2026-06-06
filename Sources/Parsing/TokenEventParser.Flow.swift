@@ -10,7 +10,7 @@ extension PureYAML.Parsing.TokenEventParser {
         }
         let startMark = properties.mark ?? start.mark
         var endMark = start.endMark
-        events.append(.sequenceStart(
+        try emit(.sequenceStart(
             anchor: properties.anchor,
             tag: properties.tag,
             style: .flow,
@@ -25,11 +25,11 @@ extension PureYAML.Parsing.TokenEventParser {
                     return false
                 }
                 endMark = end.endMark
-                events.append(.sequenceEnd(mark: endMark))
+                try emit(.sequenceEnd(mark: endMark))
                 return PureYAML.Parsing.NodeResult(kind: .sequence, endMark: endMark)
             }
             if case .flowEntry = cursor.current?.kind {
-                _ = cursor.advance()
+                _ = try cursor.advance()
                 continue
             }
             endMark = try parseNode().endMark
@@ -51,7 +51,7 @@ extension PureYAML.Parsing.TokenEventParser {
         }
         let startMark = properties.mark ?? start.mark
         var endMark = start.endMark
-        events.append(.mappingStart(
+        try emit(.mappingStart(
             anchor: properties.anchor,
             tag: properties.tag,
             style: .flow,
@@ -66,11 +66,11 @@ extension PureYAML.Parsing.TokenEventParser {
                     return false
                 }
                 endMark = end.endMark
-                events.append(.mappingEnd(mark: endMark))
+                try emit(.mappingEnd(mark: endMark))
                 return PureYAML.Parsing.NodeResult(kind: .mapping, endMark: endMark)
             }
             if case .flowEntry = cursor.current?.kind {
-                _ = cursor.advance()
+                _ = try cursor.advance()
                 continue
             }
             endMark = try parseFlowMappingPair().endMark
@@ -94,10 +94,10 @@ extension PureYAML.Parsing.TokenEventParser {
             return false
         }
 
-        let properties = consumeProperties()
+        let properties = try consumeProperties()
         guard properties != .none || cursor.current?.kind.isFlowTerminator == false else {
             let mark = valueIndicator.endMark
-            events.append(.scalar(value: "", anchor: nil, tag: nil, style: .plain, mark: mark))
+            try emit(.scalar(value: "", anchor: nil, tag: nil, style: .plain, mark: mark))
             return PureYAML.Parsing.NodeResult(kind: .scalar, endMark: mark)
         }
         return try parseNode(properties: properties)

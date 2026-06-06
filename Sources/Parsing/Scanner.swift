@@ -47,6 +47,7 @@ extension PureYAML.Parsing.Scanner {
         var hasDocumentStartMarker = false
         var isDocumentClosed = false
         var flowDepth = 0
+        var flowContexts: [PureYAML.Parsing.ScannerFlowContext] = []
         var validImplicitIndentation: Set<Int> = []
         var pendingBlockScalarIndentation = false
         var pendingBlockScalarIndentationIndicator: Int?
@@ -79,6 +80,11 @@ extension PureYAML.Parsing.Scanner {
             default:
                 hasDocumentContent = true
             }
+        }
+
+        var isExpectingFlowMappingKey: Bool {
+            flowContexts.last?.kind == .mapping
+                && flowContexts.last?.isExpectingKey == true
         }
     }
 }
@@ -123,7 +129,7 @@ extension PureYAML.Parsing.Scanner {
         case "?" where isIndicatorBoundary(state.reader.peek(offset: 1)):
             scanFixedToken(.mappingKey, state: &state)
             return true
-        case ":" where isMappingValueBoundary(state.reader.peek(offset: 1)):
+        case ":" where isAtMappingValueIndicator(state: state):
             scanFixedToken(.mappingValue, state: &state)
             return true
         default:
@@ -138,22 +144,29 @@ extension PureYAML.Parsing.Scanner {
         switch character {
         case "[":
             state.flowDepth += 1
+            state.flowContexts.append(.init(kind: .sequence, isExpectingKey: false))
             scanFixedToken(.flowSequenceStart, state: &state)
             return true
         case "]":
             state.flowDepth = max(0, state.flowDepth - 1)
             scanFixedToken(.flowSequenceEnd, state: &state)
+            _ = state.flowContexts.popLast()
             return true
         case "{":
             state.flowDepth += 1
+            state.flowContexts.append(.init(kind: .mapping, isExpectingKey: true))
             scanFixedToken(.flowMappingStart, state: &state)
             return true
         case "}":
             state.flowDepth = max(0, state.flowDepth - 1)
             scanFixedToken(.flowMappingEnd, state: &state)
+            _ = state.flowContexts.popLast()
             return true
         case ",":
             scanFixedToken(.flowEntry, state: &state)
+            if state.flowContexts.last?.kind == .mapping {
+                state.flowContexts[state.flowContexts.count - 1].isExpectingKey = true
+            }
             return true
         default:
             return false
@@ -224,6 +237,9 @@ extension PureYAML.Parsing.Scanner {
         state.append(kind, mark: start, endMark: state.reader.mark)
         if case .blockEntry = kind, hasNodeOnSameLine(afterCurrentPositionIn: state.reader) {
             state.validImplicitIndentation.insert(start.column + 1)
+        }
+        if case .mappingValue = kind, state.flowContexts.last?.kind == .mapping {
+            state.flowContexts[state.flowContexts.count - 1].isExpectingKey = false
         }
     }
 
@@ -370,17 +386,5 @@ extension PureYAML.Parsing.Scanner {
             )
         }
         state.append(.scalar(value: trimmed, style: .plain), mark: start, endMark: state.reader.mark)
-    }
-
-    @discardableResult
-    func appendMappingKeyIfNeeded(
-        start: PureYAML.Parsing.Mark,
-        state: inout State,
-    ) -> Bool {
-        guard state.reader.peek() == ":", isMappingValueBoundary(state.reader.peek(offset: 1)) else {
-            return false
-        }
-        state.append(.mappingKey, mark: start, endMark: start)
-        return true
     }
 }

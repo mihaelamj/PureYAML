@@ -234,12 +234,25 @@ extension PureYAML.Parsing.Scanner {
 
     func shouldEndPlainScalarAtMappingValue(state: State) -> Bool {
         if state.flowDepth > 0 {
-            return isMappingValueBoundary(state.reader.peek(offset: 1))
+            return state.isExpectingFlowMappingKey
+                || isMappingValueBoundary(state.reader.peek(offset: 1))
         }
         return isBlockMappingValueBoundary(state.reader.peek(offset: 1))
     }
 
     func isAtMappingValueIndicator(state: State) -> Bool {
         state.reader.peek() == ":" && shouldEndPlainScalarAtMappingValue(state: state)
+    }
+
+    @discardableResult
+    func appendMappingKeyIfNeeded(
+        start: PureYAML.Parsing.Mark,
+        state: inout State,
+    ) -> Bool {
+        guard isAtMappingValueIndicator(state: state) else {
+            return false
+        }
+        state.append(.mappingKey, mark: start, endMark: start)
+        return true
     }
 }

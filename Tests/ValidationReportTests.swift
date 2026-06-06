@@ -20,13 +20,15 @@ struct ValidationReportTests {
         #expect(report.diagnostics == [
             .init(
                 kind: .parse,
+                code: "unterminatedQuotedString",
                 severity: .error,
                 file: "broken.yaml",
+                line: 1,
                 reason: "unterminated quoted string at line 1",
             ),
         ])
         #expect(!report.isValid)
-        #expect(report.description == "broken.yaml: error: parse: unterminated quoted string at line 1")
+        #expect(report.description == "broken.yaml: line 1: error: parse: unterminated quoted string at line 1")
     }
 
     @Test("Duplicate keys return document and path diagnostics")
@@ -113,7 +115,7 @@ struct ValidationReportTests {
         #expect(report.diagnosticCount == 3)
         #expect(!report.isValid)
         #expect(report.description == [
-            "broken.yaml: error: parse: unterminated quoted string at line 1",
+            "broken.yaml: line 1: error: parse: unterminated quoted string at line 1",
             "duplicates.yaml: document[0]: $.title: error: validation: Duplicate mapping key 'title'",
             "warnings.yaml: document[0]: $.mode: warning: validation: Failed to satisfy: Mode is not legacy",
         ].joined(separator: "\n"))
@@ -292,7 +294,7 @@ No diagnostics.
 Status: invalid
 
 ```text
-broken.yaml: error: parse: unterminated quoted string at line 1
+broken.yaml: line 1: error: parse: unterminated quoted string at line 1
 ```
 
 ## duplicates.yaml
@@ -328,14 +330,16 @@ private let expectedReportModelValue = PureYAML.Model.Value.mapping(.init([
             .init(key: "diagnostics", value: .sequence([
                 .mapping(.init([
                     .init(key: "kind", value: .string("parse")),
+                    .init(key: "code", value: .string("unterminatedQuotedString")),
                     .init(key: "severity", value: .string("error")),
                     .init(key: "file", value: .string("broken.yaml")),
+                    .init(key: "line", value: .int(1)),
                     .init(key: "documentIndex", value: .null),
                     .init(key: "path", value: .null),
                     .init(key: "reason", value: .string("unterminated quoted string at line 1")),
                     .init(
                         key: "description",
-                        value: .string("broken.yaml: error: parse: unterminated quoted string at line 1"),
+                        value: .string("broken.yaml: line 1: error: parse: unterminated quoted string at line 1"),
                     ),
                 ])),
             ])),

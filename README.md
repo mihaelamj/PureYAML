@@ -35,16 +35,19 @@ flowchart TB
   LReview["PR in review"]:::review
   LEpic["Epic grouping"]:::epic
   LTodo["Open issue, no PR"]:::todo
-  LDone ~~~ LReview
-  LReview ~~~ LEpic
-  LEpic ~~~ LTodo
+  LDone --> LReview
+  LReview --> LEpic
+  LEpic --> LTodo
 ```
 
 Parser Replacement Roadmap #8 is complete in main.
 
-Production Hardening and Validation Readiness #54 is active. It tracks the
-remaining production-readiness work after current Yams parse-success parity on
-the checked corpus:
+Production Hardening and Validation Readiness #54 is active. PureYAML now has
+checked-corpus Yams parse-success parity, structured diagnostics and validation,
+JSON compatibility proof gates, internal token/event streaming, real-corpus
+property tests, and repeatable performance comparison artifacts. Remaining work
+is concentrated in downstream integration, true chunked input streaming, broader
+malformed fixtures, and continued throughput optimization:
 
 ```mermaid
 flowchart TB
@@ -53,25 +56,33 @@ flowchart TB
   classDef epic fill:#f2e5ff,stroke:#af52de,color:#111827
   classDef todo fill:#f2f4f7,stroke:#8e8e93,color:#111827
   E54["#54 Production hardening epic"]:::epic
-  I49["#49 Structured validation reports"]:::todo
-  I50["#50 False-positive diagnostic triage"]:::todo
+  I49["#49 Structured validation reports"]:::done
+  I50["#50 False-positive diagnostic triage"]:::done
   I51["#51 Bad-YAML mutation suite"]:::todo
-  I55["#55 Real corpus and fuzz gates"]:::todo
+  I55["#55 Corpus fuzz and property gates"]:::done
+  I44["#44 Humongous YAML corpus gate"]:::done
+  I45["#45 Yams execution and diagnostics comparison"]:::done
+  I47["#47 Yams-parseable OpenAPI gaps"]:::done
   I52["#52 OpenAPIDoctor integration dry run"]:::todo
-  I53["#53 Yams differential regression gate"]:::todo
+  I53["#53 Yams differential regression gate"]:::done
+  I43["#43 True chunked input streaming"]:::todo
   I48["#48 Parser throughput toward libyaml parity"]:::todo
   E54 --> I49
-  E54 --> I50
-  E54 --> I51
-  E54 --> I55
-  E54 --> I52
-  E54 --> I53
-  E54 --> I48
+  I49 --> I50
+  I50 --> I51
+  I51 --> I55
+  I55 --> I44
+  I44 --> I45
+  I45 --> I47
+  I47 --> I53
+  I53 --> I52
+  I52 --> I43
+  I43 --> I48
 ```
 
 ## Status
 
-The current release is 0.1.1. It includes block mappings, block sequences,
+The current release is 0.1.2. It includes block mappings, block sequences,
 ordered mappings, common scalars, quoted strings, comments, flow collections,
 literal and folded block scalars, anchors, aliases, YAML directives, document
 markers, explicit built-in scalar tags, merge-key expansion, complex mapping keys,

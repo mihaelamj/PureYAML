@@ -223,6 +223,26 @@ struct ScannerTests {
         expectMarks(value, start: .init(line: 1, column: 7, index: 7), end: .init(line: 1, column: 10, index: 10))
     }
 
+    @Test("Tracks ASCII and extended UTF-8 marks in one scan")
+    func test_asciiAndExtendedUTF8Marks() throws {
+        let tokens = try PureYAML.Parsing.Scanner().scan("ascii: abc\nemoji: 😀\nnext: ok")
+        guard let emoji = tokens.first(where: {
+            $0.kind == .scalar(value: "😀", style: .plain)
+        }) else {
+            recordIssue("expected emoji scalar")
+            return
+        }
+        guard let next = tokens.first(where: {
+            $0.kind == .scalar(value: "next", style: .plain)
+        }) else {
+            recordIssue("expected next scalar")
+            return
+        }
+
+        expectMarks(emoji, start: .init(line: 2, column: 8, index: 18), end: .init(line: 2, column: 9, index: 22))
+        expectMarks(next, start: .init(line: 3, column: 1, index: 23), end: .init(line: 3, column: 5, index: 27))
+    }
+
     @Test("Reader advances UTF-8 marks across line breaks")
     func test_readerAdvancesUTF8MarksAcrossLineBreaks() {
         var reader = PureYAML.Parsing.Reader("a\u{00E9}\n\u{03B2}\r\nz")

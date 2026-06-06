@@ -28,11 +28,13 @@ struct DumperTests {
         let value = PureYAML.Model.Value.mapping(.init([
             .init(key: "a:b", value: .string("quote \" slash \\ tab\t")),
             .init(key: "hash#key", value: .string("line\nnext")),
+            .init(key: "description ", value: .string("keeps trailing key space")),
         ]))
 
         #expect(PureYAML.dump(value) == """
-        "a:b": "quote \\" slash \\\\ tab\\t"
+        a:b: "quote \\" slash \\\\ tab\\t"
         "hash#key": "line\\nnext"
+        "description ": "keeps trailing key space"
 
         """)
         #expect(!PureYAML.dump(value).contains("quote \" slash \\ tab\t"))
