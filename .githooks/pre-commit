@@ -62,6 +62,8 @@ SKIP_PATTERNS=(
   '^third_party/'
   '^node_modules/'
   '^_archive/'
+  '^Tests/Fixtures/acme/'
+  '^Tests/Fixtures/real-yaml/'
   # Rule files that DEFINE the prohibitions; they MUST be able to cite
   # the forbidden strings to document them.
   '/github-discipline\.md$'
