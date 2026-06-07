@@ -16,7 +16,8 @@ Yams and libyaml source remain available from their upstream projects:
 - https://github.com/jpsim/Yams
 - https://pyyaml.org/wiki/LibYAML
 
-The license file includes a matching attribution notice.
+This file is the canonical attribution notice for the project; the `LICENSE`
+file is kept to the standard MIT text so it is correctly detected as MIT.
 
 The private `PureYAMLResearch` repository contains a full Yams source snapshot
 for study and compatibility research. That repository is not the implementation

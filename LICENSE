@@ -19,19 +19,3 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
-Attribution Notice
-------------------
-
-PureYAML is an independent Swift implementation. It is informed by the behavior
-and public API surface of Yams, and by the YAML parsing model embodied in Yams'
-bundled CYaml / libyaml-derived C sources.
-
-PureYAML does not copy Yams Swift source code, CYaml C source code, or libyaml C
-source code into this public package.
-
-Yams:
-https://github.com/jpsim/Yams
-
-libyaml:
-https://pyyaml.org/wiki/LibYAML
